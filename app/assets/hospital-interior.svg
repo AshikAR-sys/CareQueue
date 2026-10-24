@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <!-- A daylit hospital waiting hall, drawn in flat shapes; the page blurs it heavily. -->
+  <rect width="1600" height="1000" fill="#dfeaf2"/>
+  <!-- ceiling and light strips -->
+  <rect width="1600" height="210" fill="#f4f8fb"/>
+  <rect x="300" y="60" width="300" height="26" rx="13" fill="#ffffff"/>
+  <rect x="760" y="60" width="300" height="26" rx="13" fill="#ffffff"/>
+  <rect x="1220" y="60" width="300" height="26" rx="13" fill="#ffffff"/>
+  <rect x="420" y="140" width="220" height="18" rx="9" fill="#ffffff"/>
+  <rect x="860" y="140" width="220" height="18" rx="9" fill="#ffffff"/>
+  <!-- window wall, left: tall panes of daylight -->
+  <rect x="0" y="150" width="560" height="640" fill="#cfe4f2"/>
+  <rect x="30" y="180" width="150" height="580" fill="#ffffff"/>
+  <rect x="200" y="180" width="150" height="580" fill="#f6fbff"/>
+  <rect x="370" y="180" width="150" height="580" fill="#eef7fd"/>
+  <rect x="30" y="560" width="490" height="200" fill="#bfe0d0" opacity=".55"/>
+  <circle cx="110" cy="520" r="90" fill="#a9d4bd" opacity=".6"/>
+  <circle cx="420" cy="540" r="70" fill="#b5dbc5" opacity=".55"/>
+  <!-- far wall with corridor opening -->
+  <rect x="560" y="210" width="1040" height="560" fill="#e8f0f6"/>
+  <rect x="900" y="260" width="300" height="420" fill="#d6e4ee"/>
+  <rect x="960" y="300" width="180" height="380" fill="#f7fbfe"/>
+  <rect x="1290" y="290" width="230" height="120" rx="10" fill="#cfe2ef"/>
+  <rect x="1310" y="310" width="190" height="34" rx="6" fill="#2f7fd8" opacity=".55"/>
+  <rect x="1310" y="356" width="120" height="30" rx="6" fill="#0ea5c6" opacity=".45"/>
+  <!-- reception counter -->
+  <rect x="600" y="560" width="300" height="190" rx="18" fill="#ffffff"/>
+  <rect x="600" y="560" width="300" height="34" rx="12" fill="#cfe1ee"/>
+  <rect x="1220" y="590" width="330" height="170" rx="18" fill="#f7fafc"/>
+  <!-- waiting chairs -->
+  <g fill="#7fb0d6" opacity=".7">
+    <rect x="980" y="700" width="70" height="90" rx="14"/>
+    <rect x="1060" y="700" width="70" height="90" rx="14"/>
+    <rect x="1140" y="700" width="70" height="90" rx="14"/>
+  </g>
+  <!-- plant -->
+  <rect x="540" y="690" width="60" height="90" rx="10" fill="#e9eef2"/>
+  <circle cx="570" cy="640" r="70" fill="#8fc6a6" opacity=".75"/>
+  <!-- floor with window light -->
+  <rect y="770" width="1600" height="230" fill="#e9f1f6"/>
+  <polygon points="0,780 560,780 900,1000 0,1000" fill="#ffffff" opacity=".85"/>
+  <rect y="770" width="1600" height="8" fill="#d3e1eb"/>
+</svg>
