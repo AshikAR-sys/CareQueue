@@ -8,8 +8,11 @@
   let connected = false;
   let refreshInFlight = null;
 
-  async function refresh() {
-    if (refreshInFlight) return refreshInFlight;
+  async function refresh(force = false) {
+    if (refreshInFlight) {
+      if (!force) return refreshInFlight;
+      await refreshInFlight;
+    }
     refreshInFlight = (async () => {
       try {
         const path = isPublicScreen ? "/api/queue/public-state" : "/api/queue/state";
@@ -51,7 +54,7 @@
         phone: details.phone, doctor: details.doctor || ""
       }
     });
-    await refresh();
+    await refresh(true);
     const token = payload.token;
     return {
       number: token.number,
@@ -63,19 +66,19 @@
 
   async function callNext(code) {
     const result = await request("/api/queue/" + encodeURIComponent(code) + "/call-next", {});
-    await refresh();
+    await refresh(true);
     return result.token;
   }
 
   async function skip(code) {
     const result = await request("/api/queue/" + encodeURIComponent(code) + "/skip", {});
-    await refresh();
+    await refresh(true);
     return result.token;
   }
 
   async function recall(number) {
     const result = await request("/api/tokens/" + encodeURIComponent(number) + "/recall", {});
-    await refresh();
+    await refresh(true);
     return result.token;
   }
 

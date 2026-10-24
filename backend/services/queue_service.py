@@ -79,7 +79,7 @@ def issue_token(conn: Connection, payload: dict) -> dict:
         raise ValueError("Patient name must contain at least 2 characters.")
     phone = "".join(char for char in str(patient.get("phone", "")) if char.isdigit())
     if len(phone) != 10 or phone[0] not in "6789":
-        raise ValueError("A valid 10-digit mobile number is required.")
+        raise ValueError("A valid 10-digit phone number is required.")
     try:
         age = int(patient.get("age"))
     except (TypeError, ValueError):
