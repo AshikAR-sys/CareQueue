@@ -5,7 +5,7 @@
 existing approved Liquid Glass design of the token page takes priority, as on the token page. Inspector checks for
 those are switched off explicitly (`--allow`), never hidden.
 
-## Screen 1 — Staff console (`app/staff.html`)
+## Screen 1 — Staff console (`frontend/staff.html`)
 
 - **The screen's one question:** "Who do I call next?"
 - **Biggest thing:** the token now being served, with the **Call Next** pill beside it (the most frequent job, one click).
@@ -17,7 +17,7 @@ those are switched off explicitly (`--allow`), never hidden.
 - **States:** empty queue ("No one is waiting" + Call Next disabled), nobody serving (Skip disabled, says why),
   storage unavailable notice, keyboard focus on every control.
 
-## Screen 2 — Waiting-room display (`app/display.html`)
+## Screen 2 — Waiting-room display (`frontend/display.html`)
 
 - **The screen's one question:** "Is it my turn, and how long?"
 - **Biggest thing:** each active department's Now Serving number, at least 120 px high (AC-06.4), readable from 6 m.

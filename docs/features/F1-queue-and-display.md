@@ -39,7 +39,7 @@ statement is missing.
 
 1. **A queue is a department.** The token page (designed and approved earlier) issues tokens per department with
    the department letter as prefix (G, C, O, P, D, E). The PRD names two queues, Registration (R) and Billing (B).
-   The queue engine works for any set of queues, so switching to R/B is a one-file data change (`app/data.js`).
+   The queue engine works for any set of queues, so switching to R/B is a one-file data change (`frontend/data.js`).
    **Open decision for the BA (Sam Austin):** keep departments and update the PRD wording, or switch the data to R/B.
    Until then, this deviation is listed in `docs/project-status.md`.
 2. **One counter per queue.** Multiple counters (US-11, Should) are not in this feature.

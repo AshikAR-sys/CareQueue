@@ -90,8 +90,8 @@ Run `npm run test:all` to execute both suites in one command and confirm **29/29
 
 The app runs without a server. Open the HTML files directly in Chrome:
 
-- `app/index.html` — patient token page
-- `app/staff.html` — staff console
-- `app/display.html` — display
+- `frontend/index.html` — patient token page
+- `frontend/staff.html` — staff console
+- `frontend/display.html` — display
 
 All features work identically via `file://`.

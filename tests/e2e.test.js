@@ -6,7 +6,7 @@ const assert = require("node:assert/strict");
 const path = require("node:path");
 const { chromium } = require("playwright");
 
-const APP = "file://" + path.resolve(__dirname, "../app") + "/";
+const APP = "file://" + path.resolve(__dirname, "../frontend") + "/";
 let browser;
 
 test.before(async () => { browser = await chromium.launch({ channel: "chrome" }); });

@@ -41,7 +41,7 @@ All 29 automated tests pass. End-to-end demo flow verified. Start command fixed 
 | Business Analyst / PM | Sam Austin | MRD, PRD, epics, stories (`docs/*.pdf`); F1 spec | Decide: departments vs Registration/Billing queues | Make the queue-naming decision |
 | UI/UX Designer | Nishandhini | Token page, staff console, display designs | Demo deck (6 slides) | Fill slides 1–4 from MRD/PRD |
 | Frontend Developer | Ashik Rasool | All three screens (29/29 tests pass) | US-08 voice (optional) | — |
-| Backend Developer | Ashik Rasool | Queue rules in `app/queue-core.js` (19 unit tests) | — | — |
+| Backend Developer | Ashik Rasool | Queue rules in `frontend/js/queue-core.js` (19 unit tests) | — | — |
 | Database Developer | Ashik Rasool | Daily queue record in browser localStorage | — | — |
 | QA Engineer | Rogasree | 29 automated tests pass (`npm run test:all`) | Manual checklist in `docs/testing/demo-checklist.md` | Run the manual checklist on the demo laptop |
 | Integration / Demo | Ashik + Sam | Three screens integrated; demo flow verified | Demo script (see below) | Rehearse demo once |
@@ -50,7 +50,7 @@ All 29 automated tests pass. End-to-end demo flow verified. Start command fixed 
 
 ## Open decisions (need a human)
 
-1. **Queue naming** (BA): keep departments or switch `app/data.js` to Registration (R) and Billing (B). The engine supports both; it is a 2-line data change.
+1. **Queue naming** (BA): keep departments or switch `frontend/js/data.js` to Registration (R) and Billing (B). The engine supports both; it is a 2-line data change.
 2. **GitHub repository description** (Blocked): HTTP 403 from this environment. Set manually in GitHub → Settings → Repository description.
 
 ---

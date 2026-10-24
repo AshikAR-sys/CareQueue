@@ -80,7 +80,7 @@ a { color: inherit; }
 }
 .scene {
   position: absolute; inset: -30px;
-  background: url("assets/hospital-interior.svg") center / cover no-repeat;
+  background: url("../assets/hospital-interior.svg") center / cover no-repeat;
   filter: blur(14px) saturate(1.15);
   opacity: 0.55;
 }

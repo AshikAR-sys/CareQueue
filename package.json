@@ -4,7 +4,7 @@
   "private": true,
   "description": "CareQueue: Hospital Digital Token and Queue Management System (hackathon prototype)",
   "scripts": {
-    "start": "npx http-server app -p 8000 -c-1 --cors",
+    "start": "npx http-server frontend -p 8000 -c-1 --cors",
     "test": "node --test tests/queue-core.test.js",
     "test:e2e": "node --test --test-concurrency=1 tests/e2e.test.js",
     "test:all": "npm test && npm run test:e2e"
