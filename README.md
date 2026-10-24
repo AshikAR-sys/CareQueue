@@ -1,6 +1,6 @@
 # CareQueue
 
-A digital token and queue-management system for small clinics, built by **Future Coders** for the JJCET AI-PDLC Hackathon (24–25 October 2026).
+**CareQueue** is a Hospital Digital Token and Queue Management System, built by **Future Coders** for the JJCET AI-PDLC Hackathon (24–25 October 2026).
 
 > **Problem statement:** Patients wait in queues for registration and billing. Build a digital token and queue-management system that displays the current token and estimated waiting time.
 
@@ -65,6 +65,7 @@ npm run test:e2e                 # 10 browser tests across all three screens
 
 How this was built, stage by stage with test evidence: [`docs/automation-log.md`](docs/automation-log.md).
 Role-wise backlog: [`docs/project-status.md`](docs/project-status.md).
+Claude Code role conversation names and starter prompts: [`docs/role-conversations.md`](docs/role-conversations.md).
 
 ## Project structure
 
@@ -92,6 +93,7 @@ docs/
   features/                    feature specs and design decisions
   automation-log.md            how each feature was built and tested
   project-status.md            role-wise backlog
+  role-conversations.md        CareQueue role conversation names and starter prompts
   screenshots/
 ```
 

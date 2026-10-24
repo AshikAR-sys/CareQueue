@@ -1,6 +1,6 @@
 # Automation log
 
-How CareQueue (digital token and queue system) was developed with AI assistance, stage by stage.
+How CareQueue (Hospital Digital Token and Queue Management System) was developed with AI assistance, stage by stage.
 Every entry records what actually ran. Where a skill could not be loaded, the fallback is stated.
 
 Team (Future Coders): BA Sam Austin · Dev Ashik Rasool · UI/UX Nishandhini · QA Rogasree.
@@ -114,3 +114,25 @@ and the BA decision on queue naming.
 - **Check:** `grep -riE "careplus|queueease"` over the repo finds nothing; the four PDFs already used CareQueue.
 - **Tests:** `npm test` 19/19 pass; `npm run test:e2e` 10/10 pass.
 - **Screenshots:** all six in `docs/screenshots/` retaken from the renamed build.
+
+---
+
+## Change — Standardize the CareQueue name and description
+
+**Objective:** one name (**CareQueue**) and one description (**Hospital Digital Token and Queue Management System**).
+
+- **Audit (read-only first):** no CarePlus/QueueEase left in repo code, UI, docs, PDFs or file names (fixed in the
+  previous change). Inconsistent *descriptions* found in README, `package.json`, this log, the token page's meta
+  description, and the subtitle of all four PDFs ("…for Small Clinics").
+- **Changed:** those descriptions. The four PDFs were regenerated from their original generator scripts with only the
+  subtitle changed; a text diff of each PDF before and after shows exactly two changed lines per PDF (the subtitle and
+  the "Product" row), with page counts unchanged (3, 3, 4, 7).
+- **Added:** `docs/role-conversations.md`: names and starter prompts for CareQueue role conversations. Only the
+  Main Orchestrator conversation exists; the others are marked "Not yet".
+- **Session:** this Claude Code conversation renamed to "CareQueue — Main Orchestrator".
+- **Not changed, on purpose:** the merged git branch `add-careplus-token-prototype` and merge commit `5c1d720`
+  (rewriting history is destructive); the package name `carequeue`; the domain word "queue" in code.
+- **Blocked:** setting the GitHub repository description failed (HTTP 403, settings writes are not permitted from
+  this environment). Manual action needed.
+- **Open:** the MRD content still targets small clinics as its market; whether to reword it for hospitals is a BA
+  decision, not a naming fix.
