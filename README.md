@@ -15,7 +15,7 @@
 
 ## Run locally
 
-CareQueue uses a Flask API and SQLite database. Run the frontend and API together from the repository root.
+CareQueue uses a Flask API and SQLite database. Run the frontend and API together from the repository root. A Render Blueprint configuration is included in `render.yaml` for a quick public demo deployment.
 
 1. Clone the repo:
    ```bash
@@ -35,6 +35,16 @@ CareQueue uses a Flask API and SQLite database. Run the frontend and API togethe
 4. Open http://127.0.0.1:8000. Use the Patient Portal to issue tokens, the Receptionist Portal to manage queues, and the display link for the waiting-room screen.
 
 The database file is created automatically at `database/carequeue.sqlite3`. It is ignored by Git, so local queue data is not committed to the repository.
+
+### Deploy a public demo on Render
+
+1. Open [Render](https://render.com/) and sign in.
+2. In the dashboard choose **New → Blueprint** and connect the `AshikAR-sys/CareQueue` GitHub repository.
+3. Select branch `refactor/organize-frontend-backend-database` (or merge this branch first, then select `main`).
+4. Let Render read `render.yaml` and create the web service. Wait for its deploy to show **Live**.
+5. Open the `onrender.com` URL shown by Render and test the patient, receptionist, and display flows using sample data.
+
+**Demo-only hosting notes:** the included Render config uses SQLite at `/tmp/carequeue.sqlite3`. Render's free web-service filesystem is ephemeral and the service can spin down when idle, so queue data can be lost on a restart/redeploy/idle spin-down and the first visit after idle may be slow. Do not enter real patient data. For data that must survive, move to a persistent managed database such as PostgreSQL before a longer-lived demo. The current PIN/login is client-side only; it is not secure access control.
 
 ### Run the tests
 
@@ -92,6 +102,7 @@ CareQueue/
 │   ├── queue-core.test.js
 │   └── e2e.test.js
 ├── docs/                     requirements, feature specs, screenshots
+├── render.yaml               Render demo deployment blueprint
 ├── package.json
 ├── package-lock.json
 ├── .gitignore

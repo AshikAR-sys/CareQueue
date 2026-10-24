@@ -102,5 +102,6 @@ def create_app(test_config: dict | None = None) -> Flask:
 
 if __name__ == "__main__":
     app = create_app()
-    port = int(os.environ.get("CAREQUEUE_PORT", "8000"))
-    app.run(host="127.0.0.1", port=port, debug=False, threaded=True)
+    port = int(os.environ.get("PORT", os.environ.get("CAREQUEUE_PORT", "8000")))
+    host = os.environ.get("HOST", "127.0.0.1")
+    app.run(host=host, port=port, debug=False, threaded=True)
