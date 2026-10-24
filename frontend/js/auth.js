@@ -1,6 +1,6 @@
 // CareQueue session management.
 // Roles: "patient" | "receptionist" | "admin" (admin is for automated tests only — bypasses guards).
-// No server exists. This is a demo-appropriate PIN gate, not production security.
+// Demo-only session handling. The PIN is checked client-side, not by secure server-side authentication.
 (function () {
   "use strict";
   const KEY = "carequeue-session";

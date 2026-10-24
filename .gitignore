@@ -1,5 +1,10 @@
-
 node_modules/
+.venv/
+__pycache__/
+*.py[cod]
 .env
 .env.*
 !.env.example
+database/*.sqlite3
+database/*.sqlite3-shm
+database/*.sqlite3-wal

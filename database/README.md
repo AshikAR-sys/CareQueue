@@ -1,9 +1,11 @@
-# Database status
+# CareQueue Database
 
-**Status: not implemented in the current CareQueue prototype.**
+CareQueue uses SQLite for persistent queue data.
 
-The current queue is stored in each browser's `localStorage`, so it is not shared across devices and is not a server database. This repository currently has no database engine configuration, schema, migrations, or seed data.
+- `schema.sql`: departments, daily queue counters, tokens, constraints, and indexes.
+- `seed.sql`: sample departments and doctors used by the prototype.
+- `carequeue.sqlite3`: created automatically at runtime and intentionally ignored by Git.
 
-When a persistent database is added, keep schema definitions, migrations, and seed data here, and connect it through the backend. Do not store patient data or secrets in this directory as plain committed files.
+The backend initializes the schema and seeds sample departments when it starts. Queue counters and token changes are persisted in the database, so separate browser tabs connect to the same server state.
 
-Do not treat this directory as a working database until the database layer is implemented and tested.
+Do not commit a populated database file. This is a hackathon prototype; review retention, access control, and patient-data privacy before any real hospital use.

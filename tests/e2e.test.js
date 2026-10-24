@@ -4,13 +4,54 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
+const os = require("node:os");
+const fs = require("node:fs");
+const { spawn } = require("node:child_process");
 const { chromium } = require("playwright");
 
-const APP = "file://" + path.resolve(__dirname, "../frontend") + "/";
+const APP = "http://127.0.0.1:8765/";
 let browser;
+let server;
+let tempDir;
+let serverError = "";
 
-test.before(async () => { browser = await chromium.launch({ channel: "chrome" }); });
-test.after(async () => { await browser.close(); });
+async function waitForServer() {
+  for (let i = 0; i < 60; i++) {
+    if (server && server.exitCode !== null) throw new Error("CareQueue server exited: " + serverError);
+    try {
+      const response = await fetch(APP + "api/health");
+      if (response.ok) return;
+    } catch (_) {}
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error("CareQueue API did not become ready. " + serverError);
+}
+
+test.before(async () => {
+  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "carequeue-e2e-"));
+  const python = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
+  server = spawn(python, ["backend/app.py"], {
+    cwd: path.resolve(__dirname, ".."),
+    env: { ...process.env, CAREQUEUE_PORT: "8765", CAREQUEUE_TEST_MODE: "1",
+      CAREQUEUE_DB_PATH: path.join(tempDir, "carequeue.sqlite3") },
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+  server.stdout.on("data", (chunk) => { serverError += chunk.toString(); });
+  server.stderr.on("data", (chunk) => { serverError += chunk.toString(); });
+  await waitForServer();
+  browser = await chromium.launch();
+});
+test.after(async () => {
+  if (browser) await browser.close();
+  if (server && server.exitCode === null) {
+    await new Promise((resolve) => {
+      const timeout = setTimeout(resolve, 3000);
+      server.once("exit", () => { clearTimeout(timeout); resolve(); });
+      server.kill();
+    });
+  }
+  if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
+});
 
 async function open(ctx, file, errors) {
   const page = await ctx.newPage();
@@ -35,6 +76,8 @@ async function issue(page, dept, name) {
 // Default role is "admin" — bypasses all auth guards so queue tests work unchanged.
 // Opens a throwaway page to set localStorage reliably before any guarded page loads.
 async function setup(viewport = { width: 1440, height: 900 }, role = "admin") {
+  const reset = await fetch(APP + "api/test/reset", { method: "POST" });
+  assert.equal(reset.status, 200, "the test server should reset the database before each test");
   const ctx = await browser.newContext({ viewport });
   const seed = await ctx.newPage();
   await seed.goto(APP + "index.html");

@@ -134,5 +134,8 @@
   $("storage-note").hidden = Q.isPersistent();
   startClock();
   render(true);
-  Q.subscribe(() => render(false));
+  Q.subscribe(() => {
+    $("storage-note").hidden = Q.isPersistent();
+    render(false);
+  });
 })();

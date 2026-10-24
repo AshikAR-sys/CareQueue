@@ -13,31 +13,36 @@
 
 ![Token page](docs/screenshots/desktop-sample.png)
 
-## Run it (under 5 minutes)
+## Run locally
 
-No install and no build step for the app. It is plain HTML, CSS and JavaScript.
+CareQueue uses a Flask API and SQLite database. Run the frontend and API together from the repository root.
 
 1. Clone the repo:
    ```bash
    git clone https://github.com/AshikAR-sys/CareQueue.git
    cd CareQueue
    ```
-2. Open these three files in **the same browser** (Chrome, Edge or Safari), side by side:
-   - `frontend/index.html`: patient token page
-   - `frontend/staff.html`: staff console (Call Next, Skip, Recall)
-   - `frontend/display.html`: waiting-room display (put it on the TV)
-3. Generate a few tokens, press **Call Next** on the staff console, and watch the display change.
+2. Install backend and test dependencies:
+   ```bash
+   python -m pip install -r backend/requirements.txt
+   npm install
+   npx playwright install chromium
+   ```
+3. Start the application:
+   ```bash
+   npm start
+   ```
+4. Open http://127.0.0.1:8000. Use the Patient Portal to issue tokens, the Receptionist Portal to manage queues, and the display link for the waiting-room screen.
 
-Optional, to serve it locally instead: `npm start` (or `python3 -m http.server 8000 --directory app`), then open
-http://localhost:8000.
+The database file is created automatically at `database/carequeue.sqlite3`. It is ignored by Git, so local queue data is not committed to the repository.
 
 ### Run the tests
 
 ```bash
-npm install                      # installs Playwright for the browser tests
-npx playwright install chromium  # once
-npm test                         # 19 unit tests for the queue rules
-npm run test:e2e                 # 10 browser tests across all three screens
+npm test                         # queue-rule unit tests
+npm run test:backend             # Flask API + SQLite integration tests
+npm run test:e2e                 # browser tests against an isolated test database
+npm run test:all                 # all three suites
 ```
 
 ## What works today
@@ -54,14 +59,11 @@ npm run test:e2e                 # 10 browser tests across all three screens
 
 ## Honest limits
 
-- **No server or database.** The queue lives in this browser's `localStorage` and is shared live between the three
-  screens open in the same browser on one computer. Other computers do not see it.
-- **Demo-only authentication.** The PIN check is client-side (demo PIN `1234`) and is not production security.
-- **Queues are departments** (G, C, O, P, D, E). The PRD names Registration (R) and Billing (B); switching is a data
-  change in `frontend/data.js` and is an open team decision.
-- **Not built yet:** Send to Billing (US-04), voice announcement (US-08), multiple counters (US-11), QR phone
-  tracking (US-13).
-- Departments, doctors and room locations in `frontend/data.js` are **sample data**.
+- **Prototype authentication only.** The PIN check is client-side (demo PIN `1234`), not secure server-side authentication. Do not expose this prototype to the public internet or use real patient information.
+- **Local server by default.** The app binds to `127.0.0.1`, so all screens on the same computer share the SQLite-backed queue. Other devices will need a deliberately configured, secured deployment.
+- **Sample hospital data.** Departments, doctors and locations in `frontend/js/data.js` are sample data.
+- **Not built yet:** Send to Billing (US-04), voice announcement (US-08), multiple counters (US-11), QR phone tracking (US-13).
+- A public display endpoint returns token numbers and status only; it excludes patient names and contact details.
 
 How this was built, stage by stage with test evidence: [`docs/automation-log.md`](docs/automation-log.md).
 Role-wise backlog: [`docs/project-status.md`](docs/project-status.md).
@@ -71,29 +73,29 @@ Claude Code role conversation names and starter prompts: [`docs/role-conversatio
 
 ```
 CareQueue/
-  frontend/
-    index.html, patient.html, staff.html, display.html
-    css/              styles.css, screens.css
-    js/               app, auth, data, queue, queue-core, staff, display, screens
-    assets/           hospital-interior.svg
-  backend/
-    README.md         current backend status and next steps
-  database/
-    README.md         current database status and next steps
-  tests/
-    queue-core.test.js
-    e2e.test.js
-  docs/               requirements, feature specs, screenshots, testing notes
-  package.json
-  package-lock.json
-  README.md
-  .gitignore
+├── frontend/
+│   ├── index.html, patient.html, staff.html, display.html
+│   ├── css/                 styles.css, screens.css
+│   ├── js/                  UI, auth demo, queue API adapter, queue rules
+│   └── assets/              hospital illustration
+├── backend/
+│   ├── app.py               Flask API + static frontend server
+│   ├── db.py                SQLite connection and initialization
+│   ├── services/
+│   │   └── queue_service.py token issue and queue transitions
+│   ├── tests/                API integration tests
+│   └── requirements.txt
+├── database/
+│   ├── schema.sql            table constraints and indexes
+│   └── seed.sql              sample departments and doctors
+├── tests/
+│   ├── queue-core.test.js
+│   └── e2e.test.js
+├── docs/                     requirements, feature specs, screenshots
+├── package.json
+├── package-lock.json
+├── .gitignore
+└── README.md
 ```
 
-**Important:** this refactor organizes the code that exists today. The current repository does not yet contain a real API server or database; the `backend/` and `database/` READMEs document that gap rather than pretending placeholder files are working components.
-
-## Connecting a real queue
-
-`frontend/queue.js` keeps the same function names a backend would need (`issue`, `callNext`, `skip`, `recall`, `view`,
-`publicView`, `subscribe`). Replace its `load`/`save` with API calls and server push, and the three screens keep
-working. The rules in `frontend/queue-core.js` can run on the server unchanged (they are plain functions with tests).
+The browser UI calls the Flask API; queue state is persisted in SQLite. The folder boundaries are functional, not placeholders.

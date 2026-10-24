@@ -1,64 +1,67 @@
-# Project status (role-wise backlog)
+# CareQueue Project Status
 
-Updated: 25 Oct 2026, ~01:10 IST — Demo-readiness audit complete · Demo: 25 Oct, 10:00 IST.
-Status labels: **Completed** (with evidence) · **In Progress** · **Pending** · **Blocked** · **Needs Verification**.
+**Architecture refactor:** draft PR #6, branch `refactor/organize-frontend-backend-database`.
+**Important:** this branch adds a Flask API and SQLite persistence. Automated tests have been added for the backend and are updated to run the UI against the API. Run the test suite before merging; results have not yet been verified in this working session.
 
----
+## Architecture
 
-## DEMO READINESS: READY ✓
+| Layer | Files | Responsibility |
+|---|---|---|
+| Frontend | `frontend/*.html`, `frontend/css/`, `frontend/js/`, `frontend/assets/` | Existing screens and styling; calls the API through `frontend/js/queue.js` |
+| Backend | `backend/app.py`, `backend/db.py`, `backend/services/queue_service.py` | Flask routes, SQLite connection lifecycle, validation, token issue/call/skip/recall actions |
+| Database | `database/schema.sql`, `database/seed.sql` | Tables, constraints, indexes, and sample departments |
+| Backend tests | `backend/tests/test_api.py` | Flask API and SQLite integration coverage |
+| Frontend/unit/e2e tests | `tests/` | Queue-rule tests and browser workflows against the live API |
 
-All 29 automated tests pass. End-to-end demo flow verified. Start command fixed for Windows (no Python required).
+## Current features
 
-**Start command:** `cd CareQueue && npm start`
-**URLs:** Token → `http://localhost:8000` · Staff → `http://localhost:8000/staff.html` · Display → `http://localhost:8000/display.html`
+| Feature | Status | Notes |
+|---|---|---|
+| Patient token generation and per-department numbering | Implemented in current code; validation required | Server allocates numbers and writes tokens to SQLite |
+| Receptionist Call Next, Skip, Recall | Implemented in current code; validation required | Actions use the Flask API |
+| Waiting-room display | Implemented in current code; validation required | Public endpoint returns token status/number without patient details |
+| Estimated waiting time | Existing queue rules retained | Uses cached API queue state in the browser |
+| Print token and download PNG | Existing frontend feature retained | Requires browser verification after migration |
+| Persistent queue across page reloads | Implemented in current code; validation required | Database file is created at runtime and ignored by Git |
+| Patient/receptionist login | Demo only | PIN validation remains client-side and is not secure authentication |
+| Send to Billing (US-04) | Pending | Not built |
+| Voice announcement (US-08) | Pending | Not built |
+| Multiple counters (US-11) | Pending | Not built |
+| QR phone tracking (US-13) | Pending | Not built |
 
----
+## How to run
 
-## Feature status
+```bash
+python -m pip install -r backend/requirements.txt
+npm install
+npx playwright install chromium
+npm start
+```
 
-| Feature | Stories | Status | Evidence |
-|---|---|---|---|
-| Token generation (form, validation, order) | US-01, US-02, US-03 | **Completed** | e2e tests AC-01.1, AC-02.1, AC-03.1; 29/29 pass 25 Oct |
-| Call Next, Skip, Recall (staff console) | US-05, US-07 | **Completed** | e2e AC-05.1–05.3, AC-07.1–07.2 |
-| Now-Serving display | US-06 | **Completed** | e2e AC-06.1–06.4 (display updates <2 s, 158 px number, no names) |
-| Estimated waiting time | US-09, US-10 | **Completed** | unit tests AC-09.1 (23 min example), AC-10.1–10.2; e2e AC-09.2–09.3 |
-| Print / download slip | US-12 | **Completed** | e2e download test |
-| Queue persists across page reload | — | **Completed** | e2e persistence test |
-| Phone layout (no overflow) | — | **Completed** | e2e layout test at 390 px |
-| Send to Billing | US-04 | Pending | not built |
-| Voice announcement | US-08 | Pending | not built |
-| Multiple counters | US-11 | Pending | not built |
-| QR phone tracking | US-13 | Pending | not built |
-| Login / authentication | none in PRD | Pending (out of scope) | by design |
-| Backend / database | none in PRD | Pending (out of scope) | browser localStorage by design; documented |
+Open http://127.0.0.1:8000.
 
----
+## Tests
+
+```bash
+npm test
+npm run test:backend
+npm run test:e2e
+npm run test:all
+```
+
+Run tests and record actual pass/fail results before merging draft PR #6. Do not state that the migration is verified until those commands pass.
 
 ## Role-wise backlog
 
-| Role | Owner | Completed (evidence) | Pending | Next action |
-|---|---|---|---|---|
-| Business Analyst / PM | Sam Austin | MRD, PRD, epics, stories (`docs/*.pdf`); F1 spec | Decide: departments vs Registration/Billing queues | Make the queue-naming decision |
-| UI/UX Designer | Nishandhini | Token page, staff console, display designs | Demo deck (6 slides) | Fill slides 1–4 from MRD/PRD |
-| Frontend Developer | Ashik Rasool | All three screens (29/29 tests pass) | US-08 voice (optional) | — |
-| Backend Developer | Ashik Rasool | Queue rules in `frontend/js/queue-core.js` (19 unit tests) | — | — |
-| Database Developer | Ashik Rasool | Daily queue record in browser localStorage | — | — |
-| QA Engineer | Rogasree | 29 automated tests pass (`npm run test:all`) | Manual checklist in `docs/testing/demo-checklist.md` | Run the manual checklist on the demo laptop |
-| Integration / Demo | Ashik + Sam | Three screens integrated; demo flow verified | Demo script (see below) | Rehearse demo once |
+| Role | Owner | Next action |
+|---|---|---|
+| Business Analyst / PM | Sam Austin | Decide whether to retain department queues or switch to Registration and Billing |
+| UI/UX Designer | Nishandhini | Review existing screens after the file move; preserve Liquid Glass design |
+| Frontend Developer | Ashik Rasool | Run browser tests; verify token issue, print/download, live updates, and mobile layout |
+| Backend Developer | Ashik Rasool | Run API tests; review validation and demo-only authentication limitation |
+| Database Developer | Ashik Rasool | Verify schema, seed data, persistence, daily numbering, and ignored local database file |
+| QA Engineer | Rogasree | Run all test commands and the manual checklist in `docs/testing/demo-checklist.md` |
 
----
+## Safety note
 
-## Open decisions (need a human)
-
-1. **Queue naming** (BA): keep departments or switch `frontend/js/data.js` to Registration (R) and Billing (B). The engine supports both; it is a 2-line data change.
-2. **GitHub repository description** (Blocked): HTTP 403 from this environment. Set manually in GitHub → Settings → Repository description.
-
----
-
-## Test results (25 Oct 2026, ~01:10 IST)
-
-```
-npm test          →  19 / 19 pass  (queue-core unit tests)
-npm run test:e2e  →  10 / 10 pass  (Playwright e2e, installed Chrome)
-npm run test:all  →  29 / 29 pass
-```
+CareQueue is a hackathon prototype. Do not expose it to the public internet or use real patient information until server-side authentication, authorization, HTTPS, rate limiting, logging, and privacy requirements have been implemented and reviewed.

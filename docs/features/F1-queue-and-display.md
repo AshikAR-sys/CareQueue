@@ -39,13 +39,13 @@ statement is missing.
 
 1. **A queue is a department.** The token page (designed and approved earlier) issues tokens per department with
    the department letter as prefix (G, C, O, P, D, E). The PRD names two queues, Registration (R) and Billing (B).
-   The queue engine works for any set of queues, so switching to R/B is a one-file data change (`frontend/data.js`).
+   The queue engine works for any set of queues, so switching to R/B is a one-file data change (`frontend/js/data.js`).
    **Open decision for the BA (Sam Austin):** keep departments and update the PRD wording, or switch the data to R/B.
    Until then, this deviation is listed in `docs/project-status.md`.
 2. **One counter per queue.** Multiple counters (US-11, Should) are not in this feature.
 3. **Call Next completes the current patient.** There is no separate "Complete" button; service time is measured
    from Call to the next Call (or Skip) in that queue.
-4. **No server.** Queue data is kept in the browser's `localStorage`, one record per day, and shared live between
+4. **Initial prototype decision (superseded by the full-stack refactor).** The first implementation kept queue data in browser `localStorage`, one record per day, and shared live between
    the token page, staff console and display opened in the same browser on the demo machine. This is a working
    local system, not a networked one; it is stated as a limitation.
 5. **Login is not in this feature.** The PRD lists no login story; staff and display pages are open in the demo.
