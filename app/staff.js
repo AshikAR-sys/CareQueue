@@ -3,7 +3,7 @@
   const { DATA, time, startClock, deptByCode, minutes, el } = window.Screens;
   const Q = window.TokenQueue;
   const $ = (id) => document.getElementById(id);
-  const PREF_KEY = "careplus-staff-dept";
+  const PREF_KEY = "carequeue-staff-dept";
 
   let code = readPref() || DATA.departments[0].code;
   let lastSignature = "";

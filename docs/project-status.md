@@ -1,6 +1,6 @@
 # Project status (role-wise backlog)
 
-Updated: 25 Oct 2026, about 00:45 IST · Demo: 25 Oct, 10:00 IST.
+Updated: 25 Oct 2026, about 00:55 IST (renamed to CareQueue) · Demo: 25 Oct, 10:00 IST.
 Status labels: **Completed** (with evidence) · **In Progress** · **Pending** · **Blocked** · **Needs Verification**.
 
 ## Feature status

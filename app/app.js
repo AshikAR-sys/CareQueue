@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const DATA = window.CAREPLUS_DATA;
+  const DATA = window.CAREQUEUE_DATA;
   const $ = (id) => document.getElementById(id);
 
   const form = $("token-form");
@@ -310,7 +310,7 @@
       if (document.fonts && document.fonts.ready) await document.fonts.ready;
       const canvas = drawSlip(issued);
       const link = document.createElement("a");
-      link.download = "CarePlus-token-" + issued.number + ".png";
+      link.download = "CareQueue-token-" + issued.number + ".png";
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (err) {
@@ -337,7 +337,7 @@
     // header
     round(72, 72, 52, 52, 14); g.fillStyle = "#1559e8"; g.fill();
     g.fillStyle = "#fff"; g.fillRect(92, 82, 12, 32); g.fillRect(82, 92, 32, 12);
-    g.fillStyle = "#0b1b33"; g.font = F(800, 26); g.fillText("CarePlus Hospital", 142, 96);
+    g.fillStyle = "#0b1b33"; g.font = F(800, 26); g.fillText("CareQueue", 142, 96);
     g.fillStyle = "#56657b"; g.font = F(500, 18); g.fillText("Outpatient token", 142, 122);
 
     // number

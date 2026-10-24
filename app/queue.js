@@ -8,7 +8,7 @@
 (function () {
   "use strict";
   const Core = window.QueueCore;
-  const PREFIX = "careplus-queue:";
+  const PREFIX = "carequeue-queue:";
   const listeners = new Set();
   let memoryDay = null;      // used only when localStorage is unavailable
   let persistent = true;

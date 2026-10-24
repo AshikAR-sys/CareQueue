@@ -1,6 +1,6 @@
 # Automation log
 
-How CareQueue (CarePlus Hospital token and queue system) was developed with AI assistance, stage by stage.
+How CareQueue (digital token and queue system) was developed with AI assistance, stage by stage.
 Every entry records what actually ran. Where a skill could not be loaded, the fallback is stated.
 
 Team (Future Coders): BA Sam Austin · Dev Ashik Rasool · UI/UX Nishandhini · QA Rogasree.
@@ -100,3 +100,17 @@ AI: Claude Code (cloud session), directed by the team.
 ### Final status
 **Completed** for US-05, US-06, US-07, US-09, US-10, with the test evidence above. Awaiting human review of the PR
 and the BA decision on queue naming.
+
+---
+
+## Change — Rename to CareQueue
+
+**Requested by:** the team. **Objective:** use one product and web name, **CareQueue**, everywhere.
+
+- **Replaced:** "CarePlus Hospital", "CarePlus" and "QueueEase" in page titles, the header wordmark, the welcome
+  headline, the token slip, the downloaded file name (`CareQueue-token-C001.png`), the sample data, code comments,
+  `package.json`, and these docs. Internal names changed too: `CAREPLUS_DATA` → `CAREQUEUE_DATA`, storage keys
+  `careplus-*` → `carequeue-*` (a queue saved under the old key is not carried over).
+- **Check:** `grep -riE "careplus|queueease"` over the repo finds nothing; the four PDFs already used CareQueue.
+- **Tests:** `npm test` 19/19 pass; `npm run test:e2e` 10/10 pass.
+- **Screenshots:** all six in `docs/screenshots/` retaken from the renamed build.

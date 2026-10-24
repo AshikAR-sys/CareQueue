@@ -2,7 +2,7 @@
   "name": "carequeue",
   "version": "1.0.0",
   "private": true,
-  "description": "CarePlus Hospital digital token and queue management (hackathon prototype)",
+  "description": "CareQueue digital token and queue management (hackathon prototype)",
   "scripts": {
     "start": "python3 -m http.server 8000 --directory app",
     "test": "node --test tests/queue-core.test.js",

@@ -1,7 +1,7 @@
 // Helpers shared by the staff console and the waiting-room display.
 window.Screens = (function () {
   "use strict";
-  const DATA = window.CAREPLUS_DATA;
+  const DATA = window.CAREQUEUE_DATA;
   const timeFmt = new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
   const dateFmt = new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 

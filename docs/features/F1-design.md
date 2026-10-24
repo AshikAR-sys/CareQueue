@@ -23,7 +23,7 @@ those are switched off explicitly (`--allow`), never hidden.
 - **Biggest thing:** each active department's Now Serving number, at least 120 px high (AC-06.4), readable from 6 m.
 - **Per department panel:** department name and letter, Now Serving number, the next 5 waiting tokens with their
   estimated wait. **Token numbers only; patient names are never put in the page (AC-06.3).**
-- **Header:** CarePlus Hospital, live clock, a one-line instruction ("Keep your token. Your number will appear here.").
+- **Header:** CareQueue, live clock, a one-line instruction ("Keep your token. Your number will appear here.").
 - **States:** no tokens yet today (one sentence in the frame), a department with nobody waiting ("No one waiting").
 - **Layout:** fills a 1920×1080 TV; panels sized by the number of active departments (1–3 across, wraps).
 

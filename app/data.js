@@ -1,7 +1,7 @@
 // Sample hospital data for the prototype. Replace with the hospital's real departments,
 // rooms and duty roster before use. Each department's `code` is the letter its tokens carry.
-window.CAREPLUS_DATA = {
-  hospital: { name: "CarePlus Hospital", desk: "Main reception" },
+window.CAREQUEUE_DATA = {
+  hospital: { name: "CareQueue", desk: "Main reception" },
   departments: [
     { id: "gen",   code: "G", name: "General Medicine", location: "Ground floor, Block A",
       doctors: ["Dr. Anjali Rao", "Dr. Vikram Menon"] },
