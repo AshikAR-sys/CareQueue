@@ -148,10 +148,22 @@
     items[2].textContent = "If you miss your turn, tell the reception desk.";
   }
 
+  // Words for an estimate from the queue: { status, ahead, minutes } (see queue-core.js).
+  function waitText(estimate) {
+    if (!estimate) return null;
+    if (estimate.status === "serving") return "It's your turn now";
+    if (estimate.status === "missed") return "Missed. Please tell the reception desk";
+    if (estimate.status === "done") return "Visit completed";
+    if (estimate.minutes === 0) return "You're next";
+    const ahead = estimate.ahead === 1 ? "1 person ahead" : estimate.ahead + " people ahead";
+    return "About " + estimate.minutes + " min · " + ahead;
+  }
+
   function setWait(estimate, fallback) {
     const el = $("t-wait");
-    if (estimate) {
-      el.textContent = estimate.minMinutes + "–" + estimate.maxMinutes + " min";
+    const text = waitText(estimate);
+    if (text) {
+      el.textContent = text;
       el.classList.remove("unavailable");
     } else {
       el.textContent = fallback;
@@ -202,7 +214,7 @@
 
   function renderIssued(t) {
     card.dataset.state = "issued";
-    setText("status-pill", t.mode === "demo" ? "Demo token" : "Confirmed");
+    setText("status-pill", "Issued");
     setText("status-text", "Your Token is Generated!");
     setText("t-number", t.number);
     setText("t-dept", t.department.name);
@@ -342,7 +354,7 @@
       ["Patient", t.name + patientSuffix(t)],
       ["Phone", "+91 " + t.phone.slice(0, 5) + " " + t.phone.slice(5)],
       ["Issued", issuedFmt.format(t.issuedAt)],
-      ["Estimated wait", t.estimate ? t.estimate.minMinutes + "–" + t.estimate.maxMinutes + " min" : "Not available yet"],
+      ["Estimated wait", waitText(t.estimate) || "Not available"],
       ["Where to go", t.department.location]
     ];
     let y = 430;
@@ -354,7 +366,7 @@
 
     // footer
     g.fillStyle = "#56657b"; g.font = F(500, 16);
-    const note = t.mode === "demo" ? "Demo token, numbered on this device. Not connected to the hospital queue."
+    const note = t.mode === "local" ? "Issued from this computer's queue. Watch the display for your number."
                                    : "Please keep this token until your visit is complete.";
     g.fillText(fit(g, note, W - 144), 72, H - 72);
     return c;
@@ -366,6 +378,13 @@
     while (t.length > 1 && g.measureText(t + "…").width > max) t = t.slice(0, -1);
     return t + "…";
   }
+
+  /* ---------- live estimate on an issued token ---------- */
+  window.TokenQueue.subscribe(() => {
+    if (!issued || card.dataset.state !== "issued") return;
+    issued.estimate = window.TokenQueue.estimate(issued.number);
+    setWait(issued.estimate, "Not available.");
+  });
 
   /* ---------- start ---------- */
   renderSample();

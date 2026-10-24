@@ -1,0 +1,181 @@
+// End-to-end browser tests: token page, staff console and display working together.
+// Run: npm run test:e2e   (needs Playwright: npm install && npx playwright install chromium)
+// Each test gets a fresh browser context, so localStorage (the queue) starts empty.
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const path = require("node:path");
+const { chromium } = require("playwright");
+
+const APP = "file://" + path.resolve(__dirname, "../app") + "/";
+let browser;
+
+test.before(async () => { browser = await chromium.launch(); });
+test.after(async () => { await browser.close(); });
+
+async function open(ctx, file, errors) {
+  const page = await ctx.newPage();
+  page.on("pageerror", (e) => errors.push(file + ": " + e.message));
+  page.on("console", (m) => { if (m.type() === "error") errors.push(file + ": " + m.text()); });
+  await page.goto(APP + file);
+  await page.waitForLoadState("load");
+  return page;
+}
+
+async function issue(page, dept, name) {
+  await page.selectOption("#department", dept);
+  await page.fill("#name", name);
+  await page.fill("#age", "40");
+  await page.click(".segmented label:nth-child(2)");
+  await page.fill("#phone", "9876543210");
+  await page.click("#submit-btn");
+  await page.waitForFunction(() => document.getElementById("token-card").dataset.state === "issued");
+  return page.textContent("#t-number");
+}
+
+async function setup(viewport = { width: 1440, height: 900 }) {
+  const ctx = await browser.newContext({ viewport });
+  const errors = [];
+  return { ctx, errors, open: (f) => open(ctx, f, errors) };
+}
+
+test("AC-03.1 empty form is refused with a message on each field", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("index.html");
+  await tok.click("#submit-btn");
+  const msgs = await tok.$$eval(".err", (els) => els.map((e) => e.textContent).filter(Boolean));
+  assert.equal(msgs.length, 5);
+  assert.equal(await tok.getAttribute("#token-card", "data-state"), "sample");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-01.1 / AC-02.1 tokens are issued in order per department", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("index.html");
+  assert.equal(await issue(tok, "gen", "Priya Sharma"), "G001");
+  assert.equal(await issue(tok, "gen", "Ravi Kumar"), "G002");
+  assert.equal(await issue(tok, "card", "Anita Das"), "C001");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-05.1 / AC-06.1 Call Next updates the display within 2 seconds, without refresh", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("index.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  const staff = await open("staff.html");
+  const disp = await open("display.html");
+  const start = Date.now();
+  await staff.click("#call-next");
+  await disp.waitForFunction(() => document.querySelector(".panel-number")?.textContent === "G001", null, { timeout: 2000 });
+  assert.ok(Date.now() - start < 2000);
+  await staff.click("#call-next");
+  await disp.waitForFunction(() => document.querySelector(".panel-number")?.textContent === "G002", null, { timeout: 2000 });
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-05.2 with nobody waiting, Call Next is disabled and says no one is waiting", async () => {
+  const { ctx, errors, open } = await setup();
+  const staff = await open("staff.html");
+  assert.equal(await staff.isDisabled("#call-next"), true);
+  assert.match(await staff.textContent("#serving-name"), /No one is waiting/);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-05.3 a called token leaves the waiting list", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("index.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  const waiting = await staff.$$eval("#waiting-rows .token", (els) => els.map((e) => e.textContent));
+  assert.deepEqual(waiting, ["G002"]);
+  assert.equal(await staff.textContent("#serving-number"), "G001");
+  await ctx.close();
+});
+
+test("AC-06.2 / AC-06.3 / AC-06.4 display shows the next 5 in order, no names, number at least 120px", async () => {
+  const { ctx, open } = await setup({ width: 1920, height: 1080 });
+  const tok = await open("index.html");
+  const names = ["Priya Sharma", "Ravi Kumar", "Anita Das", "Mohan Iyer", "Lakshmi Rao", "Arjun Nair", "Kavya Reddy"];
+  for (const n of names) await issue(tok, "gen", n);
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  const disp = await open("display.html");
+  await disp.waitForFunction(() => document.querySelector(".panel-number")?.textContent === "G001");
+  const next = await disp.$$eval(".next-number", (els) => els.map((e) => e.textContent));
+  assert.deepEqual(next, ["G002", "G003", "G004", "G005", "G006"]);
+  const html = await disp.content();
+  for (const n of names) assert.ok(!html.includes(n.split(" ")[0]), "name on display: " + n);
+  assert.ok(!html.includes("9876543210"));
+  const px = parseFloat(await disp.$eval(".panel-number", (e) => getComputedStyle(e).fontSize));
+  assert.ok(px >= 120, "number is " + px + "px");
+  await ctx.close();
+});
+
+test("AC-07.1 / AC-07.2 skip moves a token to Missed and recall serves it again", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("index.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  const staff = await open("staff.html");
+  const disp = await open("display.html");
+  await staff.click("#call-next");
+  await staff.click("#skip");
+  assert.equal(await staff.isVisible("#missed-card"), true);
+  assert.equal(await staff.textContent("#missed-rows .token"), "G001");
+  await staff.click("#call-next");
+  await staff.click("#recall-G001");
+  assert.equal(await staff.textContent("#serving-number"), "G001");
+  await disp.waitForFunction(() => document.querySelector(".panel-number")?.textContent === "G001", null, { timeout: 2000 });
+  assert.equal(await staff.isVisible("#missed-card"), false);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-09.2 / AC-09.3 estimates show on the token, staff screen and display, and update live", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("index.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  await issue(tok, "gen", "Anita Das");             // the token card now shows G003
+  assert.equal(await tok.textContent("#t-wait"), "About 6 min · 2 people ahead");
+  const staff = await open("staff.html");
+  const disp = await open("display.html");
+  await staff.click("#call-next");                  // G001 serving, default AST 3 min
+  await tok.waitForFunction(() => document.getElementById("t-wait").textContent.includes("1 person ahead"), null, { timeout: 2000 });
+  const est = await staff.$$eval("#waiting-rows tr td:last-child", (els) => els.map((e) => e.textContent));
+  assert.deepEqual(est, ["3 min", "6 min"]);
+  const shown = await disp.$$eval(".next-wait", (els) => els.map((e) => e.textContent));
+  assert.deepEqual(shown, ["about 3 min", "about 6 min"]);
+  await staff.click("#call-next");
+  await staff.click("#call-next");                  // G003 is now serving
+  await tok.waitForFunction(() => document.getElementById("t-wait").textContent === "It's your turn now", null, { timeout: 2000 });
+  await ctx.close();
+});
+
+test("the queue survives a reload (persistence)", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("index.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await staff.reload();
+  assert.equal(await staff.textContent("#serving-number"), "G001");
+  await ctx.close();
+});
+
+test("all three screens fit a phone without sideways scrolling", async () => {
+  const { ctx, errors, open } = await setup({ width: 390, height: 844 });
+  for (const f of ["index.html", "staff.html", "display.html"]) {
+    const p = await open(f);
+    const overflow = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    assert.equal(overflow, 0, f + " overflows by " + overflow + "px");
+  }
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
