@@ -1,4 +1,4 @@
-// Queue rules for CarePlus, shared by the token page, the staff console and the display.
+// Queue rules for CareQueue, shared by the token page, the staff console and the display.
 // Pure functions over one day's record; storage lives in queue.js. Works in the browser
 // (window.QueueCore) and in Node for the tests (module.exports).
 //
