@@ -146,6 +146,10 @@ test("AC-05.3 a called token leaves the waiting list", async () => {
   await issue(tok, "gen", "Ravi Kumar");
   const staff = await open("staff.html");
   await staff.click("#call-next");
+  await staff.waitForFunction(() =>
+    document.getElementById("serving-number").textContent === "G001" &&
+    Array.from(document.querySelectorAll("#waiting-rows .token")).map((e) => e.textContent).join(",") === "G002"
+  );
   const waiting = await staff.$$eval("#waiting-rows .token", (els) => els.map((e) => e.textContent));
   assert.deepEqual(waiting, ["G002"]);
   assert.equal(await staff.textContent("#serving-number"), "G001");
@@ -179,11 +183,15 @@ test("AC-07.1 / AC-07.2 skip moves a token to Missed and recall serves it again"
   const staff = await open("staff.html");
   const disp = await open("display.html");
   await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
   await staff.click("#skip");
+  await staff.waitForFunction(() => document.getElementById("missed-card").hidden === false);
   assert.equal(await staff.isVisible("#missed-card"), true);
   assert.equal(await staff.textContent("#missed-rows .token"), "G001");
   await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G002");
   await staff.click("#recall-G001");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
   assert.equal(await staff.textContent("#serving-number"), "G001");
   await disp.waitForFunction(() => document.querySelector(".panel-number")?.textContent === "G001", null, { timeout: 2000 });
   assert.equal(await staff.isVisible("#missed-card"), false);
@@ -202,11 +210,23 @@ test("AC-09.2 / AC-09.3 estimates show on the token, staff screen and display, a
   const disp = await open("display.html");
   await staff.click("#call-next");                  // G001 serving, default AST 3 min
   await tok.waitForFunction(() => document.getElementById("t-wait").textContent.includes("1 person ahead"), null, { timeout: 2000 });
+  await staff.waitForFunction(() =>
+    Array.from(document.querySelectorAll("#waiting-rows tr td:last-child")).map((e) => e.textContent).join(",") === "3 min,6 min"
+  );
   const est = await staff.$$eval("#waiting-rows tr td:last-child", (els) => els.map((e) => e.textContent));
   assert.deepEqual(est, ["3 min", "6 min"]);
-  const shown = await disp.$$eval(".next-wait", (els) => els.map((e) => e.textContent));
+  await disp.waitForFunction(() =>
+    Array.from(document.querySelectorAll(".next-wait"))
+      .map((e) => e.textContent)
+      .filter((text) => text.startsWith("about "))
+      .join(",") === "about 3 min,about 6 min"
+  );
+  const shown = await disp.$$eval(".next-wait", (els) =>
+    els.map((e) => e.textContent).filter((text) => text.startsWith("about "))
+  );
   assert.deepEqual(shown, ["about 3 min", "about 6 min"]);
   await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G002");
   await staff.click("#call-next");                  // G003 is now serving
   await tok.waitForFunction(() => document.getElementById("t-wait").textContent === "It's your turn now", null, { timeout: 2000 });
   await ctx.close();
@@ -218,7 +238,9 @@ test("the queue survives a reload (persistence)", async () => {
   await issue(tok, "gen", "Priya Sharma");
   const staff = await open("staff.html");
   await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
   await staff.reload();
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
   assert.equal(await staff.textContent("#serving-number"), "G001");
   await ctx.close();
 });
