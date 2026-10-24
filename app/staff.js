@@ -1,5 +1,9 @@
 (function () {
   "use strict";
+
+  // Auth guard: redirect to login if no receptionist session.
+  if (window.CareAuth && !window.CareAuth.guard("receptionist")) return;
+
   const { DATA, time, startClock, deptByCode, minutes, el } = window.Screens;
   const Q = window.TokenQueue;
   const $ = (id) => document.getElementById(id);
@@ -118,6 +122,14 @@
     (r) => r ? "Called " + r.number + ". It is now on the display." : "No one is waiting."));
   $("skip").addEventListener("click", () => act(() => Q.skip(code),
     (r) => r ? r.number + " moved to Missed. Recall it when the patient arrives." : ""));
+
+  const session = window.CareAuth ? window.CareAuth.get() : null;
+  const sessionChip = $("session-chip"), soBtn = $("signout-btn");
+  if (session && sessionChip) { sessionChip.textContent = session.name || ""; sessionChip.style.display = ""; }
+  if (soBtn) {
+    soBtn.style.display = "";
+    soBtn.addEventListener("click", () => { if (window.CareAuth) window.CareAuth.clear(); window.location.replace("index.html"); });
+  }
 
   $("storage-note").hidden = Q.isPersistent();
   startClock();

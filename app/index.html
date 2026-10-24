@@ -3,35 +3,100 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Get a Token · CareQueue</title>
-  <meta name="description" content="CareQueue, the hospital digital token and queue management system: choose a department, enter patient details and print or download your token.">
+  <title>CareQueue · Hospital Token and Queue System</title>
+  <meta name="description" content="CareQueue: Hospital Digital Token and Queue Management System. Get your token quickly or manage the reception queue.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- SF Pro on Apple devices; Inter is the closest open fallback elsewhere. -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .login-main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 44px var(--margin) 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 36px;
+    }
+    .login-hero { text-align: center; max-width: 540px; }
+    .login-hero h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+      color: var(--ink);
+    }
+    .login-hero p { margin-top: 12px; font-size: 17px; color: var(--ink-2); line-height: 1.5; }
+
+    .role-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--gap);
+    }
+    @media (max-width: 580px) { .role-grid { grid-template-columns: 1fr; } }
+
+    .role-card {
+      border-radius: var(--r-panel);
+      padding: 30px 26px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      cursor: pointer;
+      transition: transform .25s var(--ease);
+    }
+    .role-card:hover, .role-card:focus-within { transform: translateY(-4px); }
+    .role-card:focus { outline: none; }
+
+    .role-icon {
+      width: 54px; height: 54px; border-radius: 16px;
+      display: grid; place-items: center; color: #fff; flex: none;
+    }
+    .role-icon svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .role-icon.patient-ic { background: linear-gradient(145deg, var(--blue) 0%, var(--blue-deep) 100%); box-shadow: 0 8px 18px -6px rgba(20,88,230,0.5); }
+    .role-icon.staff-ic   { background: linear-gradient(145deg, var(--teal) 0%, var(--cyan) 100%);      box-shadow: 0 8px 18px -6px rgba(14,138,125,0.45); }
+
+    .role-card h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.025em; color: var(--ink); }
+    .role-card p  { font-size: 14px; color: var(--ink-2); line-height: 1.55; flex: 1; margin: 0; }
+    .role-card .btn-primary { margin-top: 6px; }
+
+    .login-panel {
+      width: 100%;
+      max-width: 440px;
+      border-radius: var(--r-panel);
+      padding: 34px 34px 28px;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: none; border: 0; cursor: pointer; padding: 0;
+      font-size: 13.5px; font-weight: 600; color: var(--ink-2);
+      margin-bottom: 20px;
+    }
+    .back-link:hover { color: var(--ink); }
+    .back-link svg { width: 14px; height: 14px; }
+
+    .login-form { display: grid; gap: 16px; margin-top: 24px; }
+    .pin-note {
+      font-size: 13px; color: var(--ink-2); line-height: 1.45;
+      padding: 10px 14px; border-radius: var(--r-field);
+      background: rgba(20,88,230,0.07);
+      border: 1px solid rgba(20,88,230,0.12);
+    }
+    .display-foot-link { font-size: 13px; color: var(--ink-3); text-align: center; }
+    .display-foot-link a { color: var(--blue); }
+  </style>
 </head>
 <body>
-  <!-- Lucide icons (ISC licence), inlined as a sprite so the page needs no icon package. -->
   <svg class="sprite" aria-hidden="true">
-    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></symbol>
+    <symbol id="i-user"    viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+    <symbol id="i-users"   viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-lock"    viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-phone"   viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+    <symbol id="i-alert"   viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
     <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
-    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
-    <symbol id="i-timer" viewBox="0 0 24 24"><path d="M10 2h4"/><path d="M12 14l3-3"/><circle cx="12" cy="14" r="8"/></symbol>
-    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
-    <symbol id="i-heart-pulse" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></symbol>
-    <symbol id="i-stethoscope" viewBox="0 0 24 24"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></symbol>
-    <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
-    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
-    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
-    <symbol id="i-printer" viewBox="0 0 24 24"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></symbol>
-    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
-    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
-    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
-    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
-    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></symbol>
-    <symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
-    <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+    <symbol id="i-clock"   viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></symbol>
   </svg>
 
   <div class="backdrop" aria-hidden="true">
@@ -44,207 +109,238 @@
   </div>
 
   <header class="topbar glass">
-    <a class="brand" href="#" aria-label="CareQueue, home">
+    <a class="brand" href="#" aria-label="CareQueue">
       <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="9"/><path d="M13 8h6v5h5v6h-5v5h-6v-5H8v-6h5z"/></svg></span>
       <span class="brand-name">CareQueue</span>
     </a>
-
-    <nav class="nav" id="site-nav" aria-label="Main">
-      <a href="#" aria-current="page">Token</a>
-      <a href="#departments">Departments</a>
-      <a href="#doctors">Our Doctors</a>
-      <a href="#guide">Patient Guide</a>
-    </nav>
-
-    <div class="topbar-tools">
-      <div class="notify">
-        <button class="icon-btn" type="button" id="notify-btn" aria-label="Notifications" aria-expanded="false" aria-controls="notify-panel">
-          <svg class="ic"><use href="#i-bell"/></svg>
-        </button>
-        <div class="popover" id="notify-panel" role="dialog" aria-label="Notifications" hidden>
-          <p class="popover-title">Notifications</p>
-          <p class="popover-body">No notifications. Token updates will show here once the live queue is connected.</p>
-        </div>
-      </div>
-      <div class="clock" aria-live="off">
+    <div class="topbar-tools" style="margin-left:auto">
+      <div class="clock">
         <span class="clock-row"><svg class="ic ic-sm"><use href="#i-calendar"/></svg><time id="clock-date">&nbsp;</time></span>
         <span class="clock-row"><svg class="ic ic-sm"><use href="#i-clock"/></svg><time id="clock-time">&nbsp;</time></span>
       </div>
-      <button class="icon-btn menu-btn" type="button" id="menu-btn" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">
-        <svg class="ic"><use href="#i-menu"/></svg>
-      </button>
     </div>
   </header>
 
-  <main class="layout">
-    <!-- A. Introduction -->
-    <section class="intro" aria-labelledby="intro-title">
-      <h1 id="intro-title">Welcome to CareQueue</h1>
-      <p class="lede">Quick, Easy and Hassle-Free Token Generation</p>
-      <ul class="benefits">
-        <li class="benefit glass">
-          <svg class="ic benefit-ic"><use href="#i-timer"/></svg>
-          <div><h2>Save Time</h2><p>Get your token in seconds.</p></div>
-        </li>
-        <li class="benefit glass">
-          <svg class="ic benefit-ic"><use href="#i-users"/></svg>
-          <div><h2>Less Waiting</h2><p>Know your queue position.</p></div>
-        </li>
-        <li class="benefit glass">
-          <svg class="ic benefit-ic"><use href="#i-heart-pulse"/></svg>
-          <div><h2>Better Care</h2><p>Faster and smoother service.</p></div>
-        </li>
-      </ul>
-      <p class="help-line"><svg class="ic ic-sm"><use href="#i-info"/></svg>Need help? Ask at the main reception desk.</p>
-    </section>
+  <main class="login-main">
 
-    <!-- C. Token form -->
-    <section class="form-card glass" aria-labelledby="form-title">
-      <h2 id="form-title" class="card-title">Generate Your Token</h2>
-      <p class="card-sub">Please select the department and fill in your details.</p>
+    <!-- Hero -->
+    <div class="login-hero">
+      <h1>Welcome to CareQueue</h1>
+      <p>Hospital Digital Token and Queue Management System.<br>Choose your role to continue.</p>
+    </div>
 
-      <div class="form-error" id="form-error" role="alert" hidden></div>
-
-      <form id="token-form" novalidate>
-        <div class="field">
-          <label for="department">Select Department <span class="req" aria-hidden="true">*</span></label>
-          <div class="control has-icon is-select">
-            <svg class="ic lead"><use href="#i-stethoscope"/></svg>
-            <select id="department" name="department" required aria-describedby="department-err">
-              <option value="">Choose a department</option>
-            </select>
-            <svg class="ic trail"><use href="#i-chevron"/></svg>
-          </div>
-          <p class="err" id="department-err"></p>
+    <!-- Role selector -->
+    <div class="role-grid" id="role-grid">
+      <div class="role-card glass" id="card-patient" role="button" tabindex="0" aria-label="Patient Portal — get your token">
+        <div class="role-icon patient-ic" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
         </div>
+        <h2>Patient Portal</h2>
+        <p>Sign in to get your token quickly and see your queue position and estimated wait time.</p>
+        <button class="btn-primary" type="button" tabindex="-1">Get your token</button>
+      </div>
 
-        <div class="field">
-          <label for="doctor">Select Doctor <span class="opt">(optional)</span></label>
-          <div class="control has-icon is-select">
-            <svg class="ic lead"><use href="#i-user"/></svg>
-            <select id="doctor" name="doctor" disabled aria-describedby="doctor-hint">
-              <option value="">Any available doctor</option>
-            </select>
-            <svg class="ic trail"><use href="#i-chevron"/></svg>
-          </div>
-          <p class="hint" id="doctor-hint">Choose a department first.</p>
+      <div class="role-card glass" id="card-staff" role="button" tabindex="0" aria-label="Receptionist Portal — manage the queue">
+        <div class="role-icon staff-ic" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3h-2a2 2 0 0 0-4 0H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg>
         </div>
+        <h2>Receptionist Portal</h2>
+        <p>Manage the queue. Call the next patient, skip or recall tokens and see the waiting list.</p>
+        <button class="btn-primary" type="button" tabindex="-1">Manage queue</button>
+      </div>
+    </div>
 
+    <!-- Patient login form -->
+    <section class="glass login-panel" id="form-patient" hidden>
+      <button class="back-link" type="button" id="back-patient" aria-label="Back to role selection">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Back
+      </button>
+      <h2 class="card-title">Patient sign in</h2>
+      <p class="card-sub">Enter your details to get a token.</p>
+      <div class="form-error" id="patient-error" hidden role="alert">
+        <svg class="ic"><use href="#i-alert"/></svg><span></span>
+      </div>
+      <form id="patient-form" class="login-form" novalidate>
         <div class="field">
-          <label for="name">Patient Name <span class="req" aria-hidden="true">*</span></label>
+          <label for="p-name">Full name <span class="req" aria-hidden="true">*</span></label>
           <div class="control has-icon">
             <svg class="ic lead"><use href="#i-user"/></svg>
-            <input id="name" name="name" type="text" autocomplete="name" maxlength="60" required placeholder="Full name as on ID" aria-describedby="name-err">
+            <input id="p-name" name="name" type="text" autocomplete="name" maxlength="60" required placeholder="Full name as on ID" aria-describedby="p-name-err">
           </div>
-          <p class="err" id="name-err"></p>
+          <p class="err" id="p-name-err"></p>
         </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="age">Age <span class="req" aria-hidden="true">*</span></label>
-            <div class="control">
-              <input id="age" name="age" type="number" inputmode="numeric" min="0" max="120" step="1" required placeholder="Years" aria-describedby="age-err">
-            </div>
-            <p class="err" id="age-err"></p>
-          </div>
-
-          <fieldset class="field">
-            <legend>Gender <span class="req" aria-hidden="true">*</span></legend>
-            <div class="segmented" aria-describedby="gender-err">
-              <label><input type="radio" name="gender" value="Male" required><span>Male</span></label>
-              <label><input type="radio" name="gender" value="Female"><span>Female</span></label>
-              <label><input type="radio" name="gender" value="Other"><span>Other</span></label>
-            </div>
-            <p class="err" id="gender-err"></p>
-          </fieldset>
-        </div>
-
         <div class="field">
-          <label for="phone">Phone Number <span class="req" aria-hidden="true">*</span></label>
+          <label for="p-phone">Phone number <span class="req" aria-hidden="true">*</span></label>
           <div class="control has-prefix">
             <span class="prefix"><svg class="ic ic-sm"><use href="#i-phone"/></svg>+91</span>
-            <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" required placeholder="10-digit mobile number" aria-describedby="phone-err">
+            <input id="p-phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel-national" required placeholder="10-digit mobile number" aria-describedby="p-phone-err">
           </div>
-          <p class="err" id="phone-err"></p>
+          <p class="err" id="p-phone-err"></p>
         </div>
-
-        <button class="btn-primary" type="submit" id="submit-btn">
-          <span class="spinner" aria-hidden="true"></span>
-          <span class="btn-label">Generate Token</span>
-        </button>
-        <p class="privacy">Your details are used only to issue this token.</p>
+        <button class="btn-primary" type="submit">Sign in as Patient</button>
       </form>
     </section>
 
-    <!-- D. Token preview -->
-    <section class="token-card glass" id="token-card" data-state="sample" aria-labelledby="token-heading" aria-live="polite">
-      <div class="status">
-        <p class="status-pill" id="status-pill">Sample preview</p>
-        <h2 id="token-heading" class="status-title">
-          <svg class="ic status-ic"><use href="#i-check"/></svg>
-          <span id="status-text">This is how your token will look</span>
-        </h2>
+    <!-- Receptionist login form -->
+    <section class="glass login-panel" id="form-staff" hidden>
+      <button class="back-link" type="button" id="back-staff" aria-label="Back to role selection">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Back
+      </button>
+      <h2 class="card-title">Receptionist sign in</h2>
+      <p class="card-sub">Enter your staff credentials.</p>
+      <div class="form-error" id="staff-error" hidden role="alert">
+        <svg class="ic"><use href="#i-alert"/></svg><span></span>
       </div>
-
-      <div class="slip" id="slip">
-        <div class="slip-head">
-          <span class="brand-mark small" aria-hidden="true"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="9"/><path d="M13 8h6v5h5v6h-5v5h-6v-5H8v-6h5z"/></svg></span>
-          <span><strong>CareQueue</strong><br><span class="muted">Outpatient token</span></span>
-        </div>
-
-        <div class="slip-number">
-          <p class="label">Token number</p>
-          <p class="number" id="t-number">G023</p>
-          <div class="skeleton sk-number" aria-hidden="true"></div>
-        </div>
-
-        <dl class="slip-meta">
-          <div><dt>Department</dt><dd id="t-dept">General Medicine</dd></div>
-          <div><dt>Doctor</dt><dd id="t-doctor">Dr. Anjali Rao</dd></div>
-          <div><dt>Patient</dt><dd id="t-patient">Sample patient</dd></div>
-          <div><dt>Issued</dt><dd id="t-issued">24 Oct 2026, 10:30 AM</dd></div>
-        </dl>
-
-        <div class="wait" id="t-wait-box">
-          <svg class="ic"><use href="#i-clock"/></svg>
-          <div>
-            <p class="label">Estimated waiting time</p>
-            <p class="wait-value" id="t-wait">20–30 min</p>
+      <form id="staff-form" class="login-form" novalidate>
+        <div class="field">
+          <label for="s-name">Staff name / ID <span class="req" aria-hidden="true">*</span></label>
+          <div class="control has-icon">
+            <svg class="ic lead"><use href="#i-users"/></svg>
+            <input id="s-name" name="staffname" type="text" autocomplete="off" maxlength="60" required placeholder="Your name or staff ID">
           </div>
+          <p class="err" id="s-name-err"></p>
         </div>
-      </div>
-
-      <div class="card-error" id="token-error" hidden>
-        <svg class="ic"><use href="#i-alert"/></svg>
-        <p id="token-error-text">We couldn't generate your token.</p>
-        <button type="button" class="text-btn" id="retry-btn"><svg class="ic ic-sm"><use href="#i-rotate"/></svg>Try again</button>
-      </div>
-
-      <div class="instructions">
-        <h3>Before your visit</h3>
-        <ul id="t-instructions">
-          <li><svg class="ic ic-sm"><use href="#i-map-pin"/></svg><span>Go to General Medicine, Ground floor, Block A.</span></li>
-          <li><svg class="ic ic-sm"><use href="#i-info"/></svg><span>Watch the display there and keep this token with you.</span></li>
-          <li><svg class="ic ic-sm"><use href="#i-phone"/></svg><span>If you miss your turn, tell the reception desk.</span></li>
-        </ul>
-      </div>
-
-      <div class="actions">
-        <button type="button" class="btn-secondary" id="print-btn" disabled><svg class="ic"><use href="#i-printer"/></svg>Print Token</button>
-        <button type="button" class="btn-secondary" id="download-btn" disabled><svg class="ic"><use href="#i-download"/></svg>Download</button>
-      </div>
-      <p class="actions-note" id="actions-note">Print and download are available once you generate a token.</p>
+        <div class="field">
+          <label for="s-pin">PIN <span class="req" aria-hidden="true">*</span></label>
+          <div class="control has-icon">
+            <svg class="ic lead"><use href="#i-lock"/></svg>
+            <input id="s-pin" name="pin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="10" required placeholder="Enter PIN" aria-describedby="s-pin-err">
+          </div>
+          <p class="err" id="s-pin-err"></p>
+        </div>
+        <p class="pin-note"><strong>Demo PIN: 1234.</strong> This is a prototype. The PIN is checked client-side only and is not production-grade security.</p>
+        <button class="btn-primary" type="submit">Sign in as Receptionist</button>
+      </form>
     </section>
+
+    <p class="display-foot-link">
+      <a href="display.html">
+        <svg class="ic ic-sm" style="vertical-align:middle;margin-right:4px"><use href="#i-monitor"/></svg>Open waiting-room display</a>
+    </p>
+
   </main>
 
   <footer class="foot">
-    <p>Staff: <a href="staff.html">Staff console</a> · <a href="display.html">Waiting-room display</a></p>
-    <p>Prototype. The queue is kept in this browser on this computer; it is not yet connected to a hospital server.</p>
+    <p>CareQueue · JJCET AI-PDLC Hackathon · Future Coders team</p>
   </footer>
 
-  <script src="data.js"></script>
-  <script src="queue-core.js"></script>
-  <script src="queue.js"></script>
-  <script src="app.js"></script>
+  <script src="auth.js"></script>
+  <script>
+  (function () {
+    "use strict";
+
+    // If already logged in, go straight to the right page.
+    var s = window.CareAuth.get();
+    if (s && s.role === "patient")       { window.location.replace("patient.html"); return; }
+    if (s && s.role === "receptionist")  { window.location.replace("staff.html");   return; }
+
+    var $ = function (id) { return document.getElementById(id); };
+
+    // Clock
+    var dateFmt = new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+    var timeFmt = new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
+    function tick() {
+      var now = new Date();
+      $("clock-date").textContent = dateFmt.format(now);
+      $("clock-time").textContent = timeFmt.format(now).toUpperCase();
+    }
+    tick();
+    setInterval(tick, 15000);
+
+    // Panel visibility helpers
+    var roleGrid   = $("role-grid");
+    var panelPatient = $("form-patient");
+    var panelStaff   = $("form-staff");
+
+    function showPanel(panel) {
+      roleGrid.hidden = true;
+      panelPatient.hidden = true;
+      panelStaff.hidden = true;
+      panel.hidden = false;
+      var first = panel.querySelector("input");
+      if (first) first.focus();
+    }
+    function showGrid() {
+      panelPatient.hidden = true;
+      panelStaff.hidden = true;
+      roleGrid.hidden = false;
+    }
+
+    // Role card clicks (keyboard + mouse)
+    function activate(el, fn) {
+      el.addEventListener("click", fn);
+      el.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); }
+      });
+    }
+    activate($("card-patient"), function () { showPanel(panelPatient); });
+    activate($("card-staff"),   function () { showPanel(panelStaff); });
+    $("back-patient").addEventListener("click", showGrid);
+    $("back-staff").addEventListener("click",   showGrid);
+
+    // Field-level error helper
+    function fieldErr(inputId, errId, msg) {
+      $(errId).textContent = msg;
+      $(inputId).closest(".field").classList.toggle("invalid", !!msg);
+      $(inputId).setAttribute("aria-invalid", msg ? "true" : "false");
+    }
+
+    // Patient form
+    $("p-phone").addEventListener("input", function () {
+      var d = this.value.replace(/\D/g, "").slice(0, 10);
+      if (d !== this.value) this.value = d;
+    });
+
+    $("patient-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var name  = $("p-name").value.trim().replace(/\s+/g, " ");
+      var phone = $("p-phone").value.replace(/\D/g, "");
+      var ok = true;
+
+      if (name.length < 2) {
+        fieldErr("p-name",  "p-name-err",  name ? "Name must be at least 2 letters." : "Enter your name.");
+        ok = false;
+      } else { fieldErr("p-name", "p-name-err", ""); }
+
+      if (!/^[6-9]\d{9}$/.test(phone)) {
+        fieldErr("p-phone", "p-phone-err", phone ? "Enter a valid 10-digit mobile number starting with 6–9." : "Enter your mobile number.");
+        ok = false;
+      } else { fieldErr("p-phone", "p-phone-err", ""); }
+
+      if (!ok) return;
+      window.CareAuth.set("patient", { name: name, phone: phone });
+      window.location.replace("patient.html");
+    });
+
+    // Receptionist form
+    $("staff-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var staffName = $("s-name").value.trim();
+      var pin       = $("s-pin").value;
+      var ok = true;
+
+      if (!staffName) {
+        fieldErr("s-name", "s-name-err", "Enter your name or staff ID.");
+        ok = false;
+      } else { fieldErr("s-name", "s-name-err", ""); }
+
+      if (!pin) {
+        fieldErr("s-pin", "s-pin-err", "Enter your PIN.");
+        ok = false;
+      } else if (!window.CareAuth.checkPin(pin)) {
+        fieldErr("s-pin", "s-pin-err", "Incorrect PIN. Please try again.");
+        $("s-pin").value = "";
+        $("s-pin").focus();
+        ok = false;
+      } else { fieldErr("s-pin", "s-pin-err", ""); }
+
+      if (!ok) return;
+      window.CareAuth.set("receptionist", { name: staffName });
+      window.location.replace("staff.html");
+    });
+  })();
+  </script>
 </body>
 </html>

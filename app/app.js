@@ -1,6 +1,9 @@
 (function () {
   "use strict";
 
+  // Auth guard: redirect to login if no patient session.
+  if (window.CareAuth && !window.CareAuth.guard("patient")) return;
+
   const DATA = window.CAREQUEUE_DATA;
   const $ = (id) => document.getElementById(id);
 
@@ -50,14 +53,14 @@
   }
   const notifyBtn = $("notify-btn"), notifyPanel = $("notify-panel");
   const menuBtn = $("menu-btn"), nav = $("site-nav");
-  notifyBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePopover(notifyBtn, notifyPanel); togglePopover(menuBtn, nav, false); });
-  menuBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePopover(menuBtn, nav); togglePopover(notifyBtn, notifyPanel, false); });
+  if (notifyBtn) notifyBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePopover(notifyBtn, notifyPanel); togglePopover(menuBtn, nav, false); });
+  menuBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePopover(menuBtn, nav); if (notifyBtn) togglePopover(notifyBtn, notifyPanel, false); });
   document.addEventListener("click", (e) => {
-    if (!notifyPanel.contains(e.target)) togglePopover(notifyBtn, notifyPanel, false);
+    if (notifyPanel && !notifyPanel.contains(e.target)) togglePopover(notifyBtn, notifyPanel, false);
     if (!nav.contains(e.target)) togglePopover(menuBtn, nav, false);
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { togglePopover(notifyBtn, notifyPanel, false); togglePopover(menuBtn, nav, false); }
+    if (e.key === "Escape") { if (notifyBtn) togglePopover(notifyBtn, notifyPanel, false); togglePopover(menuBtn, nav, false); }
   });
 
   /* ---------- form options ---------- */
@@ -385,6 +388,26 @@
     issued.estimate = window.TokenQueue.estimate(issued.number);
     setWait(issued.estimate, "Not available.");
   });
+
+  /* ---------- session ---------- */
+  const session = window.CareAuth ? window.CareAuth.get() : null;
+  if (session) {
+    const nameEl = $("session-name"), soBtn = $("signout-btn");
+    if (nameEl) { nameEl.textContent = session.name || ""; nameEl.style.display = ""; }
+    if (soBtn) soBtn.style.display = "";
+    if (session.name && !fields.name.value) { fields.name.value = session.name; onEdit(); }
+    if (session.phone) {
+      const d = String(session.phone).replace(/\D/g, "").slice(0, 10);
+      if (d && !fields.phone.value) fields.phone.value = d;
+    }
+  }
+  const signoutBtn = $("signout-btn");
+  if (signoutBtn) {
+    signoutBtn.addEventListener("click", () => {
+      if (window.CareAuth) window.CareAuth.clear();
+      window.location.replace("index.html");
+    });
+  }
 
   /* ---------- start ---------- */
   renderSample();

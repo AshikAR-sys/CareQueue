@@ -188,7 +188,7 @@
   .display-grid[data-count="1"] .panel-head,
   .display-grid[data-count="2"] .panel-head { grid-column: 1 / -1; }
   .display-grid[data-count="1"] .panel-now { display: grid; align-content: center; min-height: 52vh; }
-  .display-grid[data-count="1"] .panel-number { font-size: clamp(160px, 15vw, 300px); }
+  .display-grid[data-count="1"] .panel-number:not(.empty) { font-size: clamp(160px, 15vw, 300px); }
   .display-grid[data-count="1"] .next-number { font-size: 40px; }
   .display-grid[data-count="1"] .next-list li { padding: 18px 22px; }
 }

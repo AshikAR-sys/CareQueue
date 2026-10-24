@@ -9,7 +9,7 @@ const { chromium } = require("playwright");
 const APP = "file://" + path.resolve(__dirname, "../app") + "/";
 let browser;
 
-test.before(async () => { browser = await chromium.launch(); });
+test.before(async () => { browser = await chromium.launch({ channel: "chrome" }); });
 test.after(async () => { await browser.close(); });
 
 async function open(ctx, file, errors) {
@@ -32,15 +32,26 @@ async function issue(page, dept, name) {
   return page.textContent("#t-number");
 }
 
-async function setup(viewport = { width: 1440, height: 900 }) {
+// Default role is "admin" — bypasses all auth guards so queue tests work unchanged.
+// Opens a throwaway page to set localStorage reliably before any guarded page loads.
+async function setup(viewport = { width: 1440, height: 900 }, role = "admin") {
   const ctx = await browser.newContext({ viewport });
+  const seed = await ctx.newPage();
+  await seed.goto(APP + "index.html");
+  await seed.waitForLoadState("load");
+  await seed.evaluate((session) => {
+    localStorage.setItem("carequeue-session", JSON.stringify(session));
+  }, { role, timestamp: Date.now() });
+  await seed.close();
   const errors = [];
   return { ctx, errors, open: (f) => open(ctx, f, errors) };
 }
 
+// --- existing queue tests (patient page is now patient.html) ---
+
 test("AC-03.1 empty form is refused with a message on each field", async () => {
   const { ctx, errors, open } = await setup();
-  const tok = await open("index.html");
+  const tok = await open("patient.html");
   await tok.click("#submit-btn");
   const msgs = await tok.$$eval(".err", (els) => els.map((e) => e.textContent).filter(Boolean));
   assert.equal(msgs.length, 5);
@@ -51,7 +62,7 @@ test("AC-03.1 empty form is refused with a message on each field", async () => {
 
 test("AC-01.1 / AC-02.1 tokens are issued in order per department", async () => {
   const { ctx, errors, open } = await setup();
-  const tok = await open("index.html");
+  const tok = await open("patient.html");
   assert.equal(await issue(tok, "gen", "Priya Sharma"), "G001");
   assert.equal(await issue(tok, "gen", "Ravi Kumar"), "G002");
   assert.equal(await issue(tok, "card", "Anita Das"), "C001");
@@ -61,7 +72,7 @@ test("AC-01.1 / AC-02.1 tokens are issued in order per department", async () => 
 
 test("AC-05.1 / AC-06.1 Call Next updates the display within 2 seconds, without refresh", async () => {
   const { ctx, errors, open } = await setup();
-  const tok = await open("index.html");
+  const tok = await open("patient.html");
   await issue(tok, "gen", "Priya Sharma");
   await issue(tok, "gen", "Ravi Kumar");
   const staff = await open("staff.html");
@@ -87,7 +98,7 @@ test("AC-05.2 with nobody waiting, Call Next is disabled and says no one is wait
 
 test("AC-05.3 a called token leaves the waiting list", async () => {
   const { ctx, open } = await setup();
-  const tok = await open("index.html");
+  const tok = await open("patient.html");
   await issue(tok, "gen", "Priya Sharma");
   await issue(tok, "gen", "Ravi Kumar");
   const staff = await open("staff.html");
@@ -100,7 +111,7 @@ test("AC-05.3 a called token leaves the waiting list", async () => {
 
 test("AC-06.2 / AC-06.3 / AC-06.4 display shows the next 5 in order, no names, number at least 120px", async () => {
   const { ctx, open } = await setup({ width: 1920, height: 1080 });
-  const tok = await open("index.html");
+  const tok = await open("patient.html");
   const names = ["Priya Sharma", "Ravi Kumar", "Anita Das", "Mohan Iyer", "Lakshmi Rao", "Arjun Nair", "Kavya Reddy"];
   for (const n of names) await issue(tok, "gen", n);
   const staff = await open("staff.html");
@@ -119,7 +130,7 @@ test("AC-06.2 / AC-06.3 / AC-06.4 display shows the next 5 in order, no names, n
 
 test("AC-07.1 / AC-07.2 skip moves a token to Missed and recall serves it again", async () => {
   const { ctx, errors, open } = await setup();
-  const tok = await open("index.html");
+  const tok = await open("patient.html");
   await issue(tok, "gen", "Priya Sharma");
   await issue(tok, "gen", "Ravi Kumar");
   const staff = await open("staff.html");
@@ -139,7 +150,7 @@ test("AC-07.1 / AC-07.2 skip moves a token to Missed and recall serves it again"
 
 test("AC-09.2 / AC-09.3 estimates show on the token, staff screen and display, and update live", async () => {
   const { ctx, open } = await setup();
-  const tok = await open("index.html");
+  const tok = await open("patient.html");
   await issue(tok, "gen", "Priya Sharma");
   await issue(tok, "gen", "Ravi Kumar");
   await issue(tok, "gen", "Anita Das");             // the token card now shows G003
@@ -160,7 +171,7 @@ test("AC-09.2 / AC-09.3 estimates show on the token, staff screen and display, a
 
 test("the queue survives a reload (persistence)", async () => {
   const { ctx, open } = await setup();
-  const tok = await open("index.html");
+  const tok = await open("patient.html");
   await issue(tok, "gen", "Priya Sharma");
   const staff = await open("staff.html");
   await staff.click("#call-next");
@@ -171,11 +182,98 @@ test("the queue survives a reload (persistence)", async () => {
 
 test("all three screens fit a phone without sideways scrolling", async () => {
   const { ctx, errors, open } = await setup({ width: 390, height: 844 });
-  for (const f of ["index.html", "staff.html", "display.html"]) {
+  for (const f of ["patient.html", "staff.html", "display.html"]) {
     const p = await open(f);
     const overflow = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     assert.equal(overflow, 0, f + " overflows by " + overflow + "px");
   }
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+// --- auth-specific tests ---
+
+test("landing page shows patient and receptionist role cards", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const errors = [];
+  const page = await open(ctx, "index.html", errors);
+  assert.ok(await page.isVisible("#card-patient"),  "patient card not visible");
+  assert.ok(await page.isVisible("#card-staff"),    "staff card not visible");
+  assert.ok(await page.isHidden("#form-patient"),   "patient form should start hidden");
+  assert.ok(await page.isHidden("#form-staff"),     "staff form should start hidden");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("patient can sign in and reaches patient.html", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const errors = [];
+  const page = await open(ctx, "index.html", errors);
+  await page.click("#card-patient");
+  await page.fill("#p-name", "Priya Sharma");
+  await page.fill("#p-phone", "9876543210");
+  await page.click('#patient-form button[type="submit"]');
+  await page.waitForURL(/patient\.html/, { timeout: 3000 });
+  assert.ok(page.url().includes("patient.html"), "expected patient.html, got " + page.url());
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("receptionist can sign in with PIN 1234 and reaches staff.html", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const errors = [];
+  const page = await open(ctx, "index.html", errors);
+  await page.click("#card-staff");
+  await page.fill("#s-name", "Reception Desk 1");
+  await page.fill("#s-pin", "1234");
+  await page.click('#staff-form button[type="submit"]');
+  await page.waitForURL(/staff\.html/, { timeout: 3000 });
+  assert.ok(page.url().includes("staff.html"), "expected staff.html, got " + page.url());
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("wrong PIN shows an error and does not navigate", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const errors = [];
+  const page = await open(ctx, "index.html", errors);
+  await page.click("#card-staff");
+  await page.fill("#s-name", "Reception");
+  await page.fill("#s-pin", "9999");
+  await page.click('#staff-form button[type="submit"]');
+  const errText = await page.textContent("#s-pin-err");
+  assert.match(errText, /incorrect/i);
+  assert.ok(page.url().includes("index.html"), "should stay on index.html");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("patient.html without a session redirects to index.html", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(APP + "patient.html");
+  await page.waitForURL(/index\.html/, { timeout: 3000 });
+  assert.ok(page.url().includes("index.html"), "expected redirect to index.html");
+  await ctx.close();
+});
+
+test("staff.html without a session redirects to index.html", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  await page.goto(APP + "staff.html");
+  await page.waitForURL(/index\.html/, { timeout: 3000 });
+  assert.ok(page.url().includes("index.html"), "expected redirect to index.html");
+  await ctx.close();
+});
+
+test("patient session pre-fills name in the token form", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const session = JSON.stringify({ role: "patient", name: "Priya Sharma", phone: "9876543210", timestamp: Date.now() });
+  await ctx.addInitScript(`localStorage.setItem("carequeue-session", '${session}');`);
+  const errors = [];
+  const page = await open(ctx, "patient.html", errors);
+  const nameVal = await page.inputValue("#name");
+  assert.equal(nameVal, "Priya Sharma");
   assert.deepEqual(errors, []);
   await ctx.close();
 });

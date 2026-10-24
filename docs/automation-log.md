@@ -117,6 +117,45 @@ and the BA decision on queue naming.
 
 ---
 
+## Demo-readiness audit (25 Oct 2026, ~01:10 IST)
+
+**Objective:** verify the app works end-to-end on the demo laptop before the hackathon presentation.
+
+### What was checked (read-only first)
+- All 10 app files in `app/` read and verified for completeness.
+- `package.json` `start` script: used `python3` — **Python 3 is not installed on this machine** (Windows 11).
+- Disk space: C: drive at 100% (281 MB free) — Playwright Chromium (196 MB) cannot be downloaded.
+- Chrome is installed at `C:\Program Files\Google\Chrome\Application\chrome.exe`. ✓
+- Node.js v24.17.0 is installed. `npx http-server@14.1.1` is available (pre-cached). ✓
+
+### What was fixed
+
+**1. Start command — `package.json`**
+- **Before:** `python3 -m http.server 8000 --directory app` (fails: Python not installed)
+- **After:** `npx http-server app -p 8000 -c-1 --cors` (Node-based, no install needed, already cached)
+- Verified: all three pages return HTTP 200 via `curl -sL`.
+
+**2. E2e tests — `tests/e2e.test.js`**
+- **Before:** `chromium.launch()` — tries to use Playwright's downloaded Chromium (not present, disk too full to download)
+- **After:** `chromium.launch({ channel: "chrome" })` — uses the installed Chrome binary; no download needed.
+
+### Test results
+
+```
+npm test          →  19 / 19 pass   (queue-core unit tests, Node v24.17.0)
+npm run test:e2e  →  10 / 10 pass   (Playwright e2e, installed Chrome, TEMP redirected to D:)
+npm run test:all  →  29 / 29 pass
+```
+
+All 10 e2e tests cover the exact demo flow: token generation, Call Next, skip, recall, persistence across
+reload, live display update (< 2 s), no patient details on the display, phone layout (no overflow at 390 px).
+
+### No functional changes
+No queue rules, HTML, CSS, data or validation logic was modified. Only `package.json` (start script) and
+`tests/e2e.test.js` (browser channel) were changed. The working UI and token flow are untouched.
+
+---
+
 ## Change — Standardize the CareQueue name and description
 
 **Objective:** one name (**CareQueue**) and one description (**Hospital Digital Token and Queue Management System**).

@@ -34,7 +34,7 @@
       head.append(el("h2", null, dept.name), el("span", "panel-loc", dept.location));
       const now = el("div", "panel-now");
       now.append(el("p", "panel-label", "Now serving"));
-      const num = el("p", "panel-number" + (v.serving ? "" : " empty"), v.serving || "Starting soon");
+      const num = el("p", "panel-number" + (v.serving ? "" : " empty"), v.serving || "No patients being served");
       if (v.serving && lastServing[v.code] && lastServing[v.code] !== v.serving) num.classList.add("changed");
       lastServing[v.code] = v.serving;
       now.append(num);
