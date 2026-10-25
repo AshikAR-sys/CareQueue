@@ -46,7 +46,7 @@ Open http://127.0.0.1:8000.
 ```
 npm test              →  25 / 25 pass  (queue-rule unit tests)
 npm run test:backend  →  11 / 11 pass  (Flask API + SQLite)
-npm run test:e2e      →  24 / 24 pass  (browser tests against an isolated test database; 3 consecutive runs)
+npm run test:e2e      →  26 / 26 pass  (browser tests against an isolated test database; 3 consecutive runs)
 ```
 
 ## Role-wise backlog
@@ -65,6 +65,9 @@ npm run test:e2e      →  24 / 24 pass  (browser tests against an isolated test
 1. **Architecture diagram and ERD** (`docs/architecture/`) still show the earlier browser-only version; they need
    updating for the Flask + SQLite design.
 2. **GitHub repository description** (Blocked from the cloud session): set it in GitHub → About.
+3. **Server-side PIN check** (QA fix 3, not applied): `/api/queue/state` and the queue actions are open to anyone
+   who calls the API directly. The patient page no longer loads other patients' details.
+4. **Live site not yet QA-tested** from the cloud session (network policy blocks `carequeue-demo.onrender.com`).
 
 ## Safety note
 

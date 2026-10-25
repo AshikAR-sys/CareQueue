@@ -439,3 +439,34 @@ test("US-04 patients can choose Billing directly; no doctor is needed", async ()
   assert.equal(await issue(tok, "bill", "Ravi Kumar"), "B001");
   await ctx.close();
 });
+
+// --- Privacy: only the staff console may load patient details ---
+
+test("patient page loads only the public queue, never other patients' details", async () => {
+  const { ctx, open } = await setup();
+  const other = await open("patient.html");
+  await issue(other, "gen", "Ravi Kumar");                 // another patient's token
+  const tok = await ctx.newPage();
+  const urls = [];
+  const bodies = [];
+  tok.on("request", (r) => { if (r.url().includes("/api/queue/")) urls.push(new URL(r.url()).pathname); });
+  tok.on("response", async (r) => { if (r.url().includes("/api/queue/")) bodies.push(await r.text().catch(() => "")); });
+  await tok.goto(APP + "patient.html");
+  await tok.waitForLoadState("load");
+  assert.equal(await issue(tok, "gen", "Priya Sharma"), "G002");
+  await tok.waitForFunction(() => /1 person ahead/.test(document.getElementById("t-wait").textContent), null, { timeout: 3000 });
+  await tok.waitForTimeout(1200);                          // at least one periodic refresh
+  assert.ok(urls.length > 0, "the patient page should refresh the queue");
+  assert.deepEqual([...new Set(urls)], ["/api/queue/public-state"]);
+  assert.ok(!bodies.join("").includes("Ravi"), "another patient's name reached the patient page");
+  await ctx.close();
+});
+
+test("staff console still loads full queue details", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Ravi Kumar");
+  const staff = await open("staff.html");
+  await staff.waitForFunction(() => /Ravi Kumar/.test(document.getElementById("waiting-rows").textContent), null, { timeout: 3000 });
+  await ctx.close();
+});

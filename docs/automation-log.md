@@ -278,3 +278,21 @@ backlog stories.
 - **Deck:** slide 4 no longer lists "Server and database" as cut (now built); cut list is multiple counters, QR
   tracking, voice announcement. Notes say to start the app with `npm start`.
 - **Not yet updated:** `docs/architecture/` diagrams (marked out of date).
+
+---
+
+## QA fixes 1 and 2 (approved by the team)
+
+From the QA report (deployed branch tested locally under gunicorn; the live URL was blocked by the session's network
+policy, so it was not tested directly).
+
+- **Fix 1 — deploy `main`:** `render.yaml` deployed `refactor/organize-frontend-backend-database` (commit `91195c7`),
+  which still shows "Called undefined." / "Recalled undefined." on the staff console and lacks Send to Billing.
+  `branch:` is now `main`; README deploy step updated. Takes effect when Render redeploys from `main`.
+- **Fix 2 — patient privacy:** root cause: `frontend/js/queue.js` treated every page except the display as a staff
+  screen, so the patient page downloaded `/api/queue/state` with every patient's name and phone. Now only the staff
+  console (`body.screen-staff`) loads `/api/queue/state`; the patient page and display load `/api/queue/public-state`.
+  - RED: new e2e test failed (`actual: ['/api/queue/state']`); GREEN after the one-line change.
+  - Results: `npm test` 25/25 · backend 11/11 · e2e 26/26 · QA run under gunicorn 45/46.
+- **Still open (fix 3, not applied):** `/api/queue/state` and the queue actions are still callable by anyone who
+  sends the request directly, because the PIN is checked only in the browser.
