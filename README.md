@@ -67,6 +67,7 @@ PW_CHANNEL=chromium npm run test:e2e   # same tests on Playwright's Chromium
 How this was built, stage by stage with test evidence: [`docs/automation-log.md`](docs/automation-log.md).
 Role-wise backlog: [`docs/project-status.md`](docs/project-status.md).
 Claude Code role conversation names and starter prompts: [`docs/role-conversations.md`](docs/role-conversations.md).
+Architecture diagram and ERD: [`docs/architecture/`](docs/architecture/README.md).
 Demo deck (Team 12): [`docs/deck/CareQueue_Team12_Demo_Deck.pptx`](docs/deck/CareQueue_Team12_Demo_Deck.pptx). Backup recording: [`docs/demo/CareQueue-backup-demo.webm`](docs/demo/CareQueue-backup-demo.webm).
 
 ## Project structure
