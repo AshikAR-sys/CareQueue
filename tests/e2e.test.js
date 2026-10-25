@@ -1,19 +1,57 @@
 // End-to-end browser tests: token page, staff console and display working together.
 // Run: npm run test:e2e   (needs Playwright: npm install && npx playwright install chromium)
-// Each test gets a fresh browser context, so localStorage (the queue) starts empty.
+// Each test resets the test database through /api/test/reset and gets a fresh browser context.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
+const os = require("node:os");
+const fs = require("node:fs");
+const { spawn } = require("node:child_process");
 const { chromium } = require("playwright");
 
-const APP = "file://" + path.resolve(__dirname, "../app") + "/";
+const APP = "http://127.0.0.1:8765/";
 let browser;
+let server;
+let tempDir;
+let serverError = "";
 
-// Uses installed Google Chrome by default. Set PW_CHANNEL=chromium to use Playwright's own Chromium instead
-// (for example on machines or CI without Chrome).
-const CHANNEL = process.env.PW_CHANNEL === "chromium" ? undefined : (process.env.PW_CHANNEL || "chrome");
-test.before(async () => { browser = await chromium.launch(CHANNEL ? { channel: CHANNEL } : {}); });
-test.after(async () => { await browser.close(); });
+async function waitForServer() {
+  for (let i = 0; i < 60; i++) {
+    if (server && server.exitCode !== null) throw new Error("CareQueue server exited: " + serverError);
+    try {
+      const response = await fetch(APP + "api/health");
+      if (response.ok) return;
+    } catch (_) {}
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error("CareQueue API did not become ready. " + serverError);
+}
+
+test.before(async () => {
+  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "carequeue-e2e-"));
+  const python = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
+  server = spawn(python, ["backend/app.py"], {
+    cwd: path.resolve(__dirname, ".."),
+    env: { ...process.env, CAREQUEUE_PORT: "8765", CAREQUEUE_TEST_MODE: "1",
+      CAREQUEUE_DB_PATH: path.join(tempDir, "carequeue.sqlite3") },
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+  server.stdout.on("data", (chunk) => { serverError += chunk.toString(); });
+  server.stderr.on("data", (chunk) => { serverError += chunk.toString(); });
+  await waitForServer();
+  browser = await chromium.launch();
+});
+test.after(async () => {
+  if (browser) await browser.close();
+  if (server && server.exitCode === null) {
+    await new Promise((resolve) => {
+      const timeout = setTimeout(resolve, 3000);
+      server.once("exit", () => { clearTimeout(timeout); resolve(); });
+      server.kill();
+    });
+  }
+  if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
+});
 
 async function open(ctx, file, errors) {
   const page = await ctx.newPage();
@@ -38,6 +76,8 @@ async function issue(page, dept, name) {
 // Default role is "admin" — bypasses all auth guards so queue tests work unchanged.
 // Opens a throwaway page to set localStorage reliably before any guarded page loads.
 async function setup(viewport = { width: 1440, height: 900 }, role = "admin") {
+  const reset = await fetch(APP + "api/test/reset", { method: "POST" });
+  assert.equal(reset.status, 200, "the test server should reset the database before each test");
   const ctx = await browser.newContext({ viewport });
   const seed = await ctx.newPage();
   await seed.goto(APP + "index.html");
@@ -101,6 +141,17 @@ test("AC-05.1 / AC-06.1 Call Next updates the display within 2 seconds, without 
   await ctx.close();
 });
 
+test("AC-05.1 Call Next confirms which token was called", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  assert.equal(await staff.textContent("#serving-hint"), "Called G001. It is now on the display.");
+  await ctx.close();
+});
+
 test("AC-05.2 with nobody waiting, Call Next is disabled and says no one is waiting", async () => {
   const { ctx, errors, open } = await setup();
   const staff = await open("staff.html");
@@ -117,6 +168,10 @@ test("AC-05.3 a called token leaves the waiting list", async () => {
   await issue(tok, "gen", "Ravi Kumar");
   const staff = await open("staff.html");
   await staff.click("#call-next");
+  await staff.waitForFunction(() =>
+    document.getElementById("serving-number").textContent === "G001" &&
+    Array.from(document.querySelectorAll("#waiting-rows .token")).map((e) => e.textContent).join(",") === "G002"
+  );
   const waiting = await staff.$$eval("#waiting-rows .token", (els) => els.map((e) => e.textContent));
   assert.deepEqual(waiting, ["G002"]);
   assert.equal(await staff.textContent("#serving-number"), "G001");
@@ -150,11 +205,15 @@ test("AC-07.1 / AC-07.2 skip moves a token to Missed and recall serves it again"
   const staff = await open("staff.html");
   const disp = await open("display.html");
   await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
   await staff.click("#skip");
+  await staff.waitForFunction(() => document.getElementById("missed-card").hidden === false);
   assert.equal(await staff.isVisible("#missed-card"), true);
   assert.equal(await staff.textContent("#missed-rows .token"), "G001");
   await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G002");
   await staff.click("#recall-G001");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
   assert.equal(await staff.textContent("#serving-number"), "G001");
   await disp.waitForFunction(() => document.querySelector(".panel-number")?.textContent === "G001", null, { timeout: 2000 });
   assert.equal(await staff.isVisible("#missed-card"), false);
@@ -173,11 +232,23 @@ test("AC-09.2 / AC-09.3 estimates show on the token, staff screen and display, a
   const disp = await open("display.html");
   await staff.click("#call-next");                  // G001 serving, default AST 3 min
   await tok.waitForFunction(() => document.getElementById("t-wait").textContent.includes("1 person ahead"), null, { timeout: 2000 });
+  await staff.waitForFunction(() =>
+    Array.from(document.querySelectorAll("#waiting-rows tr td:last-child")).map((e) => e.textContent).join(",") === "3 min,6 min"
+  );
   const est = await staff.$$eval("#waiting-rows tr td:last-child", (els) => els.map((e) => e.textContent));
   assert.deepEqual(est, ["3 min", "6 min"]);
-  const shown = await disp.$$eval(".next-wait", (els) => els.map((e) => e.textContent));
+  await disp.waitForFunction(() =>
+    Array.from(document.querySelectorAll(".next-wait"))
+      .map((e) => e.textContent)
+      .filter((text) => text.startsWith("about "))
+      .join(",") === "about 3 min,about 6 min"
+  );
+  const shown = await disp.$$eval(".next-wait", (els) =>
+    els.map((e) => e.textContent).filter((text) => text.startsWith("about "))
+  );
   assert.deepEqual(shown, ["about 3 min", "about 6 min"]);
   await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G002");
   await staff.click("#call-next");                  // G003 is now serving
   await tok.waitForFunction(() => document.getElementById("t-wait").textContent === "It's your turn now", null, { timeout: 2000 });
   await ctx.close();
@@ -189,7 +260,9 @@ test("the queue survives a reload (persistence)", async () => {
   await issue(tok, "gen", "Priya Sharma");
   const staff = await open("staff.html");
   await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
   await staff.reload();
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
   assert.equal(await staff.textContent("#serving-number"), "G001");
   await ctx.close();
 });
@@ -300,7 +373,9 @@ test("AC-04.1 Send to Billing completes the served token and creates a billing t
   await issue(tok, "gen", "Priya Sharma");
   const staff = await open("staff.html");
   await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
   await staff.click("#send-billing");
+  await staff.waitForFunction(() => /sent to Billing/.test(document.getElementById("serving-hint").textContent));
   assert.match(await staff.textContent("#serving-hint"), /G001 sent to Billing as B001/);
   assert.equal(await staff.textContent("#serving-number"), "—");
   await staff.click('.dept-tab[data-code="B"]');
@@ -316,11 +391,13 @@ test("AC-04.2 the billing token shows the token it came from", async () => {
   await issue(tok, "gen", "Priya Sharma");
   const staff = await open("staff.html");
   await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
   await staff.click("#send-billing");
+  await staff.waitForFunction(() => /sent to Billing/.test(document.getElementById("serving-hint").textContent));
   await staff.click('.dept-tab[data-code="B"]');
   assert.match(await staff.textContent("#waiting-rows tr"), /from G001/);
   await staff.click("#call-next");
-  assert.equal(await staff.textContent("#serving-number"), "B001");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "B001");
   assert.match(await staff.textContent("#serving-meta"), /from G001/);
   await ctx.close();
 });
@@ -332,6 +409,7 @@ test("US-04 display shows the billing queue (numbers only) and the patient's pag
   const staff = await open("staff.html");
   const disp = await open("display.html");
   await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
   await staff.click("#send-billing");
   await disp.waitForFunction(() => [...document.querySelectorAll(".display-panel h2")].some((h) => h.textContent === "Billing"), null, { timeout: 2000 });
   const next = await disp.$$eval(".next-number", (els) => els.map((e) => e.textContent));

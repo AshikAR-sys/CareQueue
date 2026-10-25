@@ -1,97 +1,57 @@
 # CareQueue Demo Checklist
 
-**Event:** JJCET AI-PDLC Hackathon · 25 October 2026
+**Event:** JJCET AI-PDLC Hackathon · 25 October 2026  
 **Team:** Future Coders (Sam Austin, Ashik Rasool, Nishandhini, Rogasree)
-**Last updated:** 25 Oct 2026 by the Demo-Readiness audit
 
----
+## Pre-demo setup
 
-## Pre-demo setup (do before the judges arrive)
+- [ ] Install Python and Node.js.
+- [ ] From the repository root, run `python -m pip install -r backend/requirements.txt`.
+- [ ] Run `npm install` and, for browser tests, `npx playwright install chromium`.
+- [ ] Start CareQueue using `npm start`.
+- [ ] Open http://127.0.0.1:8000 in Chrome or Edge.
+- [ ] Sign in through the demo Patient Portal or Receptionist Portal.
+- [ ] Open the waiting-room display from the login page or navigate to `http://127.0.0.1:8000/display.html`.
 
-- [ ] Laptop is plugged in (no power-saving throttle)
-- [ ] Browser zoom set to 100 %
-- [ ] `npm start` running (`cd CareQueue && npm start`)
-- [ ] Three tabs open in the **same browser window**:
-  - Tab 1 — Token page: `http://localhost:8000`
-  - Tab 2 — Staff console: `http://localhost:8000/staff.html`
-  - Tab 3 — Display: `http://localhost:8000/display.html`
-- [ ] (Optional) Display tab moved to a second monitor / TV
-- [ ] localStorage cleared for a clean demo start (DevTools → Application → Storage → Clear site data)
+All screens must connect to the same running CareQueue server. By default, it listens on `127.0.0.1` and is intended for a single demo computer.
 
----
-
-## Core demo flow (steps 1–8 from the Phase 3 spec)
+## Core demo flow
 
 | # | Action | Expected result | Pass / Fail |
-|---|--------|----------------|-------------|
-| 1 | Submit a token request with valid details (dept: General Medicine, name: any, age: 30, gender: Male, phone: 9876543210) | Token card shows a unique token number (e.g. G001) with "Issued" status and an estimated wait | |
-| 2 | Confirm unique token | Token number displayed — no two tokens share the same number in the same department per day | |
-| 3 | Switch to the Staff console tab | G001 appears in the Waiting list for General Medicine | |
-| 4 | Press **Call Next** on the Staff console | G001 moves to "Now serving"; Waiting list shrinks; Display tab shows G001 under "Now serving" without a browser refresh | |
-| 5 | Switch back to Token page | The wait estimate on the G001 card updates to "It's your turn now" within 2 seconds | |
-| 6 | Refresh the Staff console tab (F5) | G001 remains in "Now serving"; no data loss | |
-| 7a | Submit the token form with all fields empty | Five inline error messages appear; token card stays at "Sample preview" state | |
-| 7b | Try to submit a second token in the same session after changing the form | A new unique token (e.g. G002) is issued; it does not reuse G001 | |
-| 8 | Press **Skip** on the Staff console while G001 is serving | G001 moves to the Missed list; now-serving shows "—" | |
-| 9 | Press **Call Next** again | G002 (or next waiting token) is now serving | |
-| 10 | Press **Recall G001** from the Missed list | G001 becomes serving again; missed list is empty | |
+|---|---|---|---|
+| 1 | Sign in as patient and submit valid details (General Medicine, name, age 30, gender, phone 9876543210) | Token card shows a unique token such as G001 | |
+| 2 | Issue a second token in the same department | Number increments (for example G002) without duplicates | |
+| 3 | Open the receptionist console and select General Medicine | New tokens appear in the waiting list | |
+| 4 | Press **Call Next** | First waiting token becomes serving; display updates without manual refresh | |
+| 5 | Refresh the staff tab | Serving and waiting status remains, loaded from SQLite | |
+| 6 | Press **Skip** on the serving token | Token appears in Missed | |
+| 7 | Press **Call Next**, then **Recall** the missed token | Recalled token becomes serving; prior serving token is completed | |
+| 8 | Check the public display | It shows token numbers/status only, not patient names or phone numbers | |
+| 9 | Check print/download on the patient token card | Print and PNG download still work after the architecture change | |
 
----
+## Automated test commands
 
-## Automated test evidence (run before the demo)
-
-```
-npm test          → 19 / 19 unit tests pass   (queue rules: issue, callNext, skip, recall, estimate)
-npm run test:e2e  → 10 / 10 e2e tests pass    (all three screens, persistence, phone layout)
+```bash
+npm test
+npm run test:backend
+npm run test:e2e
+npm run test:all
 ```
 
-Run `npm run test:all` to execute both suites in one command and confirm **29/29 pass**.
+Record the actual command output before declaring the migration verified.
 
----
-
-## Validation error states
-
-| Input | Expected error message |
-|-------|----------------------|
-| Empty department | "Select a department." |
-| Empty name | "Enter the patient's name." |
-| Empty age | "Enter the age." |
-| No gender selected | "Select a gender." |
-| Empty phone | "Enter a mobile number." |
-| Phone: 1234567890 (starts with 1) | "Enter a 10-digit mobile number starting with 6, 7, 8 or 9." |
-| Name: "A" (1 char) | "Name must be at least 2 letters." |
-| Age: 150 | "Enter an age from 0 to 120." |
-
----
-
-## Persistence check
-
-1. Generate two tokens (G001, G002) and call G001.
-2. Close the Staff console tab and reopen `http://localhost:8000/staff.html`.
-3. G001 must still appear as "Now serving". ✓ Verified by automated e2e persistence test.
-
----
-
-## Known limitations (state openly to judges)
+## Known limitations
 
 | Limitation | Explanation |
-|-----------|-------------|
-| **No server/backend** | The queue lives in this browser's `localStorage`. Other computers on the network cannot see the queue. All three screens must be open in the same browser on the same computer. |
-| **No login** | The staff console is open to anyone with the URL. Login was out of scope in the PRD. |
-| **Single counter per queue** | One patient served at a time per department (US-11 not built). |
-| **No voice announcement** | US-08 not built. |
-| **No QR tracking** | US-13 not built. |
-| **Queue resets daily** | Each calendar day starts fresh (by design — `YYYY-MM-DD` key in localStorage). |
-| **Google Fonts dependency** | The Inter font loads from Google Fonts. If there is no internet, the fallback system font is used — UI is slightly different but fully functional. |
+|---|---|
+| Demo authentication | The PIN is checked client-side. Do not treat it as secure authentication. |
+| Local host binding | The server listens on `127.0.0.1`; other devices cannot connect by default. |
+| Sample departments and doctors | Data is demo content; configure for the target hospital before any real use. |
+| Single counter per department | Multiple counters (US-11) are not implemented. |
+| No voice announcement | US-08 is not built. |
+| No QR phone tracking | US-13 is not built. |
+| No production safeguards | Do not use real patient data or expose publicly without security/privacy review. |
 
----
+## Clean demo database
 
-## Fallback if the server fails
-
-The app runs without a server. Open the HTML files directly in Chrome:
-
-- `app/index.html` — patient token page
-- `app/staff.html` — staff console
-- `app/display.html` — display
-
-All features work identically via `file://`.
+The local database is stored at `database/carequeue.sqlite3` and is intentionally ignored by Git. To start with a fresh demo queue, stop the server and remove that file; the schema and sample departments are recreated at the next startup. Do not delete the database while the server is running.

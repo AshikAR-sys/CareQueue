@@ -1,8 +1,8 @@
-// Unit tests for the queue rules in app/queue-core.js.
+// Unit tests for the queue rules in frontend/js/queue-core.js.
 // Run: node --test tests/
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const Q = require("../app/queue-core.js");
+const Q = require("../frontend/js/queue-core.js");
 
 const MIN = 60 * 1000;
 const T0 = Date.UTC(2026, 9, 25, 4, 0); // 25 Oct 2026, 09:30 IST

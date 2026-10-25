@@ -1,64 +1,73 @@
-# Project status (role-wise backlog)
+# CareQueue Project Status
 
-Updated: 25 Oct 2026 — added E5 / US-14 (sign-in); demo-readiness audit · Demo: 25 Oct, 10:00 IST.
+Updated: 25 Oct 2026, after merging PR #6 (Flask backend + SQLite) with Send to Billing (US-04) and sign-in (US-14).
+Demo: 25 Oct, 10:00 IST.
 Status labels: **Completed** (with evidence) · **In Progress** · **Pending** · **Blocked** · **Needs Verification**.
 
----
+## Architecture
 
-## DEMO READINESS: READY ✓
+| Layer | Files | Responsibility |
+|---|---|---|
+| Frontend | `frontend/*.html`, `frontend/css/`, `frontend/js/`, `frontend/assets/` | Screens and styling; calls the API through `frontend/js/queue.js` |
+| Backend | `backend/app.py`, `backend/db.py`, `backend/services/queue_service.py` | Flask routes, SQLite connection lifecycle, validation, token issue / call / skip / recall / send-to actions |
+| Database | `database/schema.sql`, `database/seed.sql` | Tables, constraints, indexes, sample departments (including Billing) |
+| Backend tests | `backend/tests/test_api.py` | Flask API and SQLite integration tests |
+| Frontend tests | `tests/` | Queue-rule unit tests and browser workflows against the live API |
 
-All 48 automated tests pass (25 unit, 23 browser). End-to-end demo flow verified. Start command fixed for Windows (no Python required).
-
-**Start command:** `cd CareQueue && npm start`
-**URLs:** Token → `http://localhost:8000` · Staff → `http://localhost:8000/staff.html` · Display → `http://localhost:8000/display.html`
-
----
-
-## Feature status
+## Features
 
 | Feature | Stories | Status | Evidence |
 |---|---|---|---|
-| Token generation (form, validation, order) | US-01, US-02, US-03 | **Completed** | e2e tests AC-01.1, AC-02.1, AC-03.1; 29/29 pass 25 Oct |
-| Call Next, Skip, Recall (staff console) | US-05, US-07 | **Completed** | e2e AC-05.1–05.3, AC-07.1–07.2 |
-| Now-Serving display | US-06 | **Completed** | e2e AC-06.1–06.4 (display updates <2 s, 158 px number, no names) |
-| Estimated waiting time | US-09, US-10 | **Completed** | unit tests AC-09.1 (23 min example), AC-10.1–10.2; e2e AC-09.2–09.3 |
-| Print / download slip | US-12 | **Completed** | e2e download test |
-| Queue persists across page reload | — | **Completed** | e2e persistence test |
-| Phone layout (no overflow) | — | **Completed** | e2e layout test at 390 px |
-| Send to Billing | US-04 | **Completed** | unit tests AC-04.1 (+4); e2e AC-04.1, AC-04.2 (+3) |
+| Token generation and per-department numbering (server allocates numbers, stored in SQLite) | US-01–US-03 | **Completed** | backend tests; e2e AC-01.1, AC-02.1, AC-03.1 |
+| Receptionist Call Next, Skip, Recall (through the API) | US-05, US-07 | **Completed** | backend transition test; e2e AC-05.1–05.3, AC-07.1–07.2 |
+| Waiting-room display (public endpoint without patient details) | US-06 | **Completed** | backend public-state test; e2e AC-06.1–06.4 |
+| Estimated waiting time | US-09, US-10 | **Completed** | unit tests AC-09.1, AC-10.1–10.2; e2e AC-09.2–09.3 |
+| Send to Billing (server endpoint, linked tokens) | US-04 | **Completed** | 5 backend tests; 6 unit tests; e2e AC-04.1, AC-04.2 (+3) |
+| Patient / receptionist sign-in | US-14 | **Completed (demo-level)** | e2e AC-14.1–14.4; PIN is checked in the browser, not secure |
+| Print token and download PNG | US-12 | **Completed** | verified in the browser before the migration; no automated test after it |
+| Persistent queue across reloads (SQLite) | — | **Completed** | e2e persistence test |
 | Voice announcement | US-08 | Pending | not built |
 | Multiple counters | US-11 | Pending | not built |
 | QR phone tracking | US-13 | Pending | not built |
-| Sign-in and access (patient / receptionist) | US-14 (E5, PRD S6) | **Completed** | e2e AC-14.1–14.4 (7 tests) |
-| Backend / database | none in PRD | Pending (out of scope) | browser localStorage by design; documented |
 
----
+## How to run
+
+```bash
+python -m pip install -r backend/requirements.txt
+npm install
+npx playwright install chromium
+npm start
+```
+
+Open http://127.0.0.1:8000.
+
+## Test results (after the merge, 25 Oct 2026)
+
+```
+npm test              →  25 / 25 pass  (queue-rule unit tests)
+npm run test:backend  →  11 / 11 pass  (Flask API + SQLite)
+npm run test:e2e      →  24 / 24 pass  (browser tests against an isolated test database; 3 consecutive runs)
+```
 
 ## Role-wise backlog
 
-| Role | Owner | Completed (evidence) | Pending | Next action |
-|---|---|---|---|---|
-| Business Analyst / PM | Sam Austin | MRD, PRD, epics, stories (`docs/*.pdf`); F1 spec | Decide: departments vs Registration/Billing queues | Make the queue-naming decision |
-| UI/UX Designer | Nishandhini | Token page, staff console, display designs | Demo deck (6 slides) | Fill slides 1–4 from MRD/PRD |
-| Frontend Developer | Ashik Rasool | All three screens (29/29 tests pass) | US-08 voice (optional) | — |
-| Backend Developer | Ashik Rasool | Queue rules in `app/queue-core.js` (19 unit tests) | — | — |
-| Database Developer | Ashik Rasool | Daily queue record in browser localStorage | — | — |
-| QA Engineer | Rogasree | 29 automated tests pass (`npm run test:all`) | Manual checklist in `docs/testing/demo-checklist.md` | Run the manual checklist on the demo laptop |
-| Integration / Demo | Ashik + Sam | Three screens integrated; demo flow verified | Demo script (see below) | Rehearse demo once |
+| Role | Owner | Next action |
+|---|---|---|
+| Business Analyst / PM | Sam Austin | Decide whether to add a separate Registration (R) queue before Billing |
+| UI/UX Designer | Nishandhini | Final look at the screens on the demo laptop |
+| Frontend Developer | Ashik Rasool | Rehearse the demo with `npm start`; print/download check by hand |
+| Backend Developer | Ashik Rasool | Review demo-only authentication limitation before any public deployment |
+| Database Developer | Ashik Rasool | Existing local databases are upgraded automatically (new link columns) |
+| QA Engineer | Rogasree | Run all test commands and the manual checklist in `docs/testing/demo-checklist.md` |
 
----
+## Open items
 
-## Open decisions (need a human)
+1. **Architecture diagram and ERD** (`docs/architecture/`) still show the earlier browser-only version; they need
+   updating for the Flask + SQLite design.
+2. **GitHub repository description** (Blocked from the cloud session): set it in GitHub → About.
 
-1. **Queue naming** (BA): keep departments or switch `app/data.js` to Registration (R) and Billing (B). The engine supports both; it is a 2-line data change.
-2. **GitHub repository description** (Blocked): HTTP 403 from this environment. Set manually in GitHub → Settings → Repository description.
+## Safety note
 
----
-
-## Test results (25 Oct 2026, ~01:10 IST)
-
-```
-npm test          →  25 / 25 pass  (queue-core unit tests)
-npm run test:e2e  →  23 / 23 pass  (Playwright e2e; PW_CHANNEL=chromium in the cloud session)
-npm run test:all  →  48 / 48 pass
-```
+CareQueue is a hackathon prototype. Do not expose it to the public internet or use real patient information until
+server-side authentication, authorization, HTTPS, rate limiting, logging, and privacy requirements have been
+implemented and reviewed.

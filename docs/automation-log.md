@@ -252,3 +252,29 @@ backlog stories.
   (US-08, not built). Speaker notes updated. Validation passed; slide re-rendered.
 - **Limits:** one counter per queue still; the PRD's separate Registration (R) queue is not used (departments act as
   the first stop).
+
+---
+
+## Merge — PR #6 (Flask backend + SQLite) with everything since
+
+**Objective:** bring Ashik's open PR #6 into `main` without losing the work merged after it was branched
+(PRs #7–#10: form fix, demo deck, architecture, US-14, Send to Billing).
+
+- **Trial merge** of `main` into the PR branch: 6 files changed on both sides merged automatically through the
+  `app/` → `frontend/` move; 4 conflicts: `README.md`, `docs/project-status.md`, `tests/e2e.test.js` (test startup),
+  and `app/queue.js` (deleted in PR #6, extended with Send to Billing on `main`).
+- **Send to Billing ported to the server** (tests first): 5 new backend tests failed, then passed after adding
+  `linked_from` / `forwarded_to` columns, an automatic upgrade for existing databases, Billing in `seed.sql`,
+  `send_to()` in `queue_service.py`, route `POST /api/queue/<code>/send-to/<target>`, and `sendTo` in
+  `frontend/js/queue.js`.
+- **Bug found in PR #6:** the staff console confirmed "Called undefined." because `act()` did not wait for the
+  server. A new test reproduced it (`actual: 'Called undefined. It is now on the display.'`); `act()` now awaits the
+  call and shows server errors. Test passes.
+- **Test fix:** three billing browser tests clicked twice without waiting for the server; they now wait for the
+  expected state, as PR #6's own tests do.
+- **Results:** `npm test` 25/25 · `npm run test:backend` 11/11 · `npm run test:e2e` 24/24 (three consecutive runs).
+- **Re-measured:** display update after Call Next on the server version: 0.11–0.70 s over 10 calls (median 0.35 s),
+  replacing the 28 ms figure from the browser-only version on deck slide 4.
+- **Deck:** slide 4 no longer lists "Server and database" as cut (now built); cut list is multiple counters, QR
+  tracking, voice announcement. Notes say to start the app with `npm start`.
+- **Not yet updated:** `docs/architecture/` diagrams (marked out of date).

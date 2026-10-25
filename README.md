@@ -13,33 +13,51 @@
 
 ![Token page](docs/screenshots/desktop-sample.png)
 
-## Run it (under 5 minutes)
+## Run locally
 
-No install and no build step for the app. It is plain HTML, CSS and JavaScript.
+CareQueue uses a Flask API and SQLite database. Run the frontend and API together from the repository root. A Render Blueprint configuration is included in `render.yaml` for a quick public demo deployment.
 
 1. Clone the repo:
    ```bash
    git clone https://github.com/AshikAR-sys/CareQueue.git
    cd CareQueue
    ```
-2. Open `app/index.html` in Chrome, Edge or Safari and choose a role:
-   - **Patient:** enter a name and phone number → token page (`patient.html`)
-   - **Receptionist:** enter a name and the demo PIN **1234** → staff console (`staff.html`)
-   - **Waiting-room display:** open `app/display.html` (no sign-in; put it on the TV)
-3. Get a few tokens as a patient, sign out, sign in as receptionist, press **Call Next** and watch the display.
+2. Install backend and test dependencies:
+   ```bash
+   python -m pip install -r backend/requirements.txt
+   npm install
+   npx playwright install chromium
+   ```
+3. Start the application:
+   ```bash
+   npm start
+   ```
+4. Open http://127.0.0.1:8000 and choose a role:
+   - **Patient:** enter a name and phone number → token page
+   - **Receptionist:** enter a name and the demo PIN **1234** → staff console (Call Next, Skip, Recall, Send to Billing)
+   - **Waiting-room display:** the display link (no sign-in; put it on the TV)
+
    The browser keeps one sign-in at a time, so use **Sign out** to switch roles.
 
-Optional, to serve it locally instead: `npm start` (or `python3 -m http.server 8000 --directory app`), then open
-http://localhost:8000.
+The database file is created automatically at `database/carequeue.sqlite3`. It is ignored by Git, so local queue data is not committed to the repository.
+
+### Deploy a public demo on Render
+
+1. Open [Render](https://render.com/) and sign in.
+2. In the dashboard choose **New → Blueprint** and connect the `AshikAR-sys/CareQueue` GitHub repository.
+3. Select branch `refactor/organize-frontend-backend-database` (or merge this branch first, then select `main`).
+4. Let Render read `render.yaml` and create the web service. Wait for its deploy to show **Live**.
+5. Open the `onrender.com` URL shown by Render and test the patient, receptionist, and display flows using sample data.
+
+**Demo-only hosting notes:** the included Render config uses SQLite at `/tmp/carequeue.sqlite3`. Render's free web-service filesystem is ephemeral and the service can spin down when idle, so queue data can be lost on a restart/redeploy/idle spin-down and the first visit after idle may be slow. Do not enter real patient data. For data that must survive, move to a persistent managed database such as PostgreSQL before a longer-lived demo. The current PIN/login is client-side only; it is not secure access control.
 
 ### Run the tests
 
 ```bash
-npm install                      # installs Playwright for the browser tests
-npx playwright install chromium  # once
-npm test                         # 25 unit tests for the queue rules
-npm run test:e2e                 # browser tests (uses installed Google Chrome)
-PW_CHANNEL=chromium npm run test:e2e   # same tests on Playwright's Chromium
+npm test                         # 25 queue-rule unit tests
+npm run test:backend             # 11 Flask API + SQLite integration tests
+npm run test:e2e                 # 24 browser tests against an isolated test database
+npm run test:all                 # all three suites
 ```
 
 ## What works today
@@ -58,14 +76,13 @@ PW_CHANNEL=chromium npm run test:e2e   # same tests on Playwright's Chromium
 
 ## Honest limits
 
-- **No server or database.** The queue lives in this browser's `localStorage` and is shared live between the three
-  screens open in the same browser on one computer. Other computers do not see it.
-- **Demo-level sign-in.** The PIN (1234) is checked in the browser, and sessions live in `localStorage`; it keeps
-  patients out of the staff console during the demo but is not real security. One sign-in per browser at a time.
+- **Prototype authentication only.** The PIN check is client-side (demo PIN `1234`), not secure server-side authentication. Do not expose this prototype to the public internet or use real patient information.
+- **Local server by default.** The app binds to `127.0.0.1`, so all screens on the same computer share the SQLite-backed queue. Other devices will need a deliberately configured, secured deployment.
+- **Sample hospital data.** Departments, doctors and locations in `frontend/js/data.js` are sample data.
 - **Queues are departments plus Billing** (G, C, O, P, D, E, and B). Patients finish at their department and are sent on
   to Billing; a separate Registration (R) queue from the PRD is not used.
 - **Not built yet:** voice announcement (US-08), multiple counters (US-11), QR phone tracking (US-13).
-- Departments, doctors and room locations in `app/data.js` are **sample data**.
+- A public display endpoint returns token numbers and status only; it excludes patient names and contact details.
 
 How this was built, stage by stage with test evidence: [`docs/automation-log.md`](docs/automation-log.md).
 Role-wise backlog: [`docs/project-status.md`](docs/project-status.md).
@@ -76,36 +93,32 @@ Demo deck (Team 12): [`docs/deck/CareQueue_Team12_Demo_Deck.pptx`](docs/deck/Car
 ## Project structure
 
 ```
-app/
-  index.html     landing page and sign-in   (auth.js)
-  patient.html   patient token page          (app.js)
-  staff.html     staff console          (staff.js)
-  display.html   waiting-room display   (display.js)
-  queue-core.js  queue rules: issue, call next, skip, recall, estimated wait
-  queue.js       shared store in localStorage with live sync between screens
-  app.js         token form, validation, preview states, print and download
-  screens.js     helpers shared by staff and display
-  styles.css     Liquid Glass styling (token page)
-  screens.css    staff console and display styling
-  data.js        sample departments and doctors
-  assets/        background illustration
-tests/
-  queue-core.test.js   unit tests (node:test)
-  e2e.test.js          browser tests (Playwright)
-docs/
-  CareQueue_MRD.pdf            Market Requirements Document
-  CareQueue_PRD.pdf            Product Requirements Document
-  CareQueue_Epics.pdf          5 epics with traceability
-  CareQueue_User_Stories.pdf   14 stories, 39 acceptance criteria, test checklist
-  features/                    feature specs and design decisions
-  automation-log.md            how each feature was built and tested
-  project-status.md            role-wise backlog
-  role-conversations.md        CareQueue role conversation names and starter prompts
-  screenshots/
+CareQueue/
+├── frontend/
+│   ├── index.html, patient.html, staff.html, display.html
+│   ├── css/                 styles.css, screens.css
+│   ├── js/                  UI, auth demo, queue API adapter, queue rules
+│   └── assets/              hospital illustration
+├── backend/
+│   ├── app.py               Flask API + static frontend server
+│   ├── db.py                SQLite connection and initialization
+│   ├── services/
+│   │   └── queue_service.py token issue and queue transitions
+│   ├── tests/                API integration tests
+│   └── requirements.txt
+├── database/
+│   ├── schema.sql            table constraints and indexes
+│   └── seed.sql              sample departments and doctors
+├── tests/
+│   ├── queue-core.test.js
+│   └── e2e.test.js
+├── docs/                     MRD, PRD, 5 epics, 14 stories, feature specs, architecture,
+│                             demo deck, backup recording, automation log, screenshots
+├── render.yaml               Render demo deployment blueprint
+├── package.json
+├── package-lock.json
+├── .gitignore
+└── README.md
 ```
 
-## Connecting a real queue
-
-`app/queue.js` keeps the same function names a backend would need (`issue`, `callNext`, `skip`, `recall`, `view`,
-`publicView`, `subscribe`). Replace its `load`/`save` with API calls and server push, and the three screens keep
-working. The rules in `app/queue-core.js` can run on the server unchanged (they are plain functions with tests).
+The browser UI calls the Flask API; queue state is persisted in SQLite. The folder boundaries are functional, not placeholders.

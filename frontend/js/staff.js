@@ -122,9 +122,14 @@
     else if (focusedCode) { const t = document.querySelector('.dept-tab[data-code="' + focusedCode + '"]'); if (t) t.focus(); }
   }
 
-  function act(fn, message) {
-    const result = fn();
-    $("serving-hint").textContent = message(result) || "";
+  // Queue actions go to the server and return promises: wait for the result before confirming it.
+  async function act(fn, message) {
+    try {
+      const result = await fn();
+      $("serving-hint").textContent = message(result) || "";
+    } catch (error) {
+      $("serving-hint").textContent = (error && error.message) || "The queue action failed. Try again.";
+    }
     render(true);
   }
 
@@ -146,5 +151,8 @@
   $("storage-note").hidden = Q.isPersistent();
   startClock();
   render(true);
-  Q.subscribe(() => render(false));
+  Q.subscribe(() => {
+    $("storage-note").hidden = Q.isPersistent();
+    render(false);
+  });
 })();

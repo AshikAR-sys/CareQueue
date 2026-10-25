@@ -1,5 +1,9 @@
 # CareQueue architecture and ERD
 
+> **Out of date since PR #6.** These diagrams show the earlier browser-only version (queue in `localStorage`, no
+> server, no database). The app now runs on a **Flask API with an SQLite database** (`backend/`, `database/`), and
+> the files moved from `app/` to `frontend/`. See `database/schema.sql` for the current tables. Update pending.
+
 CareQueue (Hospital Digital Token and Queue Management System) as built on 25 Oct 2026.
 Images: [`architecture.png`](architecture.png) · [`erd.png`](erd.png) · both in one PDF:
 [`CareQueue_Architecture_and_ERD.pdf`](CareQueue_Architecture_and_ERD.pdf). The diagrams below are the same
