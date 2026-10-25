@@ -26,7 +26,7 @@ Status labels: **Completed** (with evidence) · **In Progress** · **Pending** �
 | Patient / receptionist sign-in | US-14 | **Completed (demo-level)** | e2e AC-14.1–14.4; PIN is checked in the browser, not secure |
 | Print token and download PNG | US-12 | **Completed** | verified in the browser before the migration; no automated test after it |
 | Persistent queue across reloads (SQLite) | — | **Completed** | e2e persistence test |
-| Voice announcement | US-08 | Pending | not built |
+| Voice announcement (sound switch, chime + speech on each call and recall) | US-08 | **Completed** | 9 unit tests; e2e AC-08.1, AC-08.2 (+2) |
 | Multiple counters | US-11 | Pending | not built |
 | QR phone tracking | US-13 | Pending | not built |
 
@@ -44,9 +44,9 @@ Open http://127.0.0.1:8000.
 ## Test results (after the merge, 25 Oct 2026)
 
 ```
-npm test              →  25 / 25 pass  (queue-rule unit tests)
+npm test              →  34 / 34 pass  (queue rules + announcements)
 npm run test:backend  →  11 / 11 pass  (Flask API + SQLite)
-npm run test:e2e      →  26 / 26 pass  (browser tests against an isolated test database; 3 consecutive runs)
+npm run test:e2e      →  30 / 30 pass  (browser tests against an isolated test database; 3 consecutive runs)
 ```
 
 ## Role-wise backlog

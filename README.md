@@ -54,9 +54,9 @@ The database file is created automatically at `database/carequeue.sqlite3`. It i
 ### Run the tests
 
 ```bash
-npm test                         # 25 queue-rule unit tests
+npm test                         # 34 unit tests (queue rules + announcements)
 npm run test:backend             # 11 Flask API + SQLite integration tests
-npm run test:e2e                 # 24 browser tests against an isolated test database
+npm run test:e2e                 # 30 browser tests against an isolated test database
 npm run test:all                 # all three suites
 ```
 
@@ -68,6 +68,7 @@ npm run test:all                 # all three suites
 | Staff console: Call Next, Skip, Recall, waiting list, missed list | US-05, US-07 | e2e |
 | Send to Billing: one click finishes the patient's visit and adds them to the Billing queue (B001…), linked both ways | US-04 | unit + e2e |
 | Waiting-room display: now serving + next 5 per department, live (< 2 s), token numbers only | US-06 | e2e |
+| Voice announcement: press **Turn on sound** on the display; each call (and recall) plays a chime and says "Token G 0 0 1, please come to General Medicine" | US-08 | unit + e2e |
 | Estimated waiting time: EWT = R + N × AST, default 3 min until 3 are served, then the average of the last 10 | US-09, US-10 | unit + e2e |
 | Live estimate on the patient's token card ("About 6 min · 2 people ahead") | US-09 | e2e |
 | Print token (one A5 page) and download (PNG) | US-12 | browser test |
@@ -81,7 +82,7 @@ npm run test:all                 # all three suites
 - **Sample hospital data.** Departments, doctors and locations in `frontend/js/data.js` are sample data.
 - **Queues are departments plus Billing** (G, C, O, P, D, E, and B). Patients finish at their department and are sent on
   to Billing; a separate Registration (R) queue from the PRD is not used.
-- **Not built yet:** voice announcement (US-08), multiple counters (US-11), QR phone tracking (US-13).
+- **Not built yet:** multiple counters (US-11), QR phone tracking (US-13).
 - A public display endpoint returns token numbers and status only; it excludes patient names and contact details.
 
 How this was built, stage by stage with test evidence: [`docs/automation-log.md`](docs/automation-log.md).

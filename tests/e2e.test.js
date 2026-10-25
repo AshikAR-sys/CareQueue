@@ -440,6 +440,79 @@ test("US-04 patients can choose Billing directly; no doctor is needed", async ()
   await ctx.close();
 });
 
+// --- US-08 Voice announcement ---
+
+async function soundOnDisplay(open) {
+  const disp = await open("display.html");
+  await disp.click("#sound-toggle");
+  await disp.waitForFunction(() => document.getElementById("sound-toggle").getAttribute("aria-pressed") === "true");
+  return disp;
+}
+const heard = (disp) => disp.evaluate(() => window.CareQueueAnnouncer.history.map((h) => h.text));
+
+test("US-08 the display has a sound switch that starts off", async () => {
+  const { ctx, errors, open } = await setup();
+  const disp = await open("display.html");
+  assert.equal(await disp.getAttribute("#sound-toggle", "aria-pressed"), "false");
+  assert.match(await disp.textContent("#sound-toggle"), /Turn on sound/);
+  await disp.click("#sound-toggle");
+  assert.equal(await disp.getAttribute("#sound-toggle", "aria-pressed"), "true");
+  assert.match(await disp.textContent("#sound-toggle"), /Sound on/);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-08.1 with sound on, a called token is announced with a chime", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const disp = await soundOnDisplay(open);
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await disp.waitForFunction(() => window.CareQueueAnnouncer.history.length > 0, null, { timeout: 3000 });
+  const h = await disp.evaluate(() => window.CareQueueAnnouncer.history[0]);
+  assert.equal(h.text, "Token G 0 0 1, please come to General Medicine.");
+  assert.equal(h.chime, true);
+  assert.ok(!JSON.stringify(await heard(disp)).includes("Priya"));
+  await ctx.close();
+});
+
+test("AC-08.2 a recalled token is announced again", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  const disp = await soundOnDisplay(open);
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await disp.waitForFunction(() => window.CareQueueAnnouncer.history.length === 1, null, { timeout: 3000 });
+  await staff.click("#skip");
+  await staff.waitForFunction(() => !document.getElementById("missed-card").hidden);
+  await staff.click("#recall-G001");
+  await disp.waitForFunction(() => window.CareQueueAnnouncer.history.length === 2, null, { timeout: 3000 });
+  assert.deepEqual(await heard(disp), ["Token G 0 0 1, please come to General Medicine.", "Token G 0 0 1, please come to General Medicine."]);
+  await ctx.close();
+});
+
+test("US-08 nothing is announced while sound is off, or for tokens already serving when the display opens", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  const disp = await soundOnDisplay(open);                 // G001 already serving: not announced
+  const quiet = await open("display.html");                // sound stays off on this one
+  await disp.waitForTimeout(1500);
+  assert.deepEqual(await heard(disp), []);
+  await staff.click("#call-next");                         // G002
+  await disp.waitForFunction(() => window.CareQueueAnnouncer.history.length === 1, null, { timeout: 3000 });
+  await quiet.waitForFunction(() => document.querySelector(".panel-number")?.textContent === "G002", null, { timeout: 3000 });
+  assert.deepEqual(await heard(quiet), []);
+  await ctx.close();
+});
+
 // --- Privacy: only the staff console may load patient details ---
 
 test("patient page loads only the public queue, never other patients' details", async () => {
