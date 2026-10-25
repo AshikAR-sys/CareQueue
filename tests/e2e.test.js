@@ -510,6 +510,9 @@ test("US-08 nothing is announced while sound is off, or for tokens already servi
   await disp.waitForFunction(() => window.CareQueueAnnouncer.history.length === 1, null, { timeout: 3000 });
   await quiet.waitForFunction(() => document.querySelector(".panel-number")?.textContent === "G002", null, { timeout: 3000 });
   assert.deepEqual(await heard(quiet), []);
+  await ctx.close();
+});
+
 // --- Privacy: only the staff console may load patient details ---
 
 test("patient page loads only the public queue, never other patients' details", async () => {

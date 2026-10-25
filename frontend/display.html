@@ -14,6 +14,8 @@
 <body class="screen-display">
   <!-- Lucide icons (ISC licence), inlined as a sprite so the page needs no icon package. -->
   <svg class="sprite" aria-hidden="true">
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.364 18.364a9 9 0 0 0 0-12.728"/></symbol>
+    <symbol id="i-volume-off" viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/></symbol>
     <symbol id="i-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></symbol>
     <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
@@ -48,7 +50,12 @@
       <span class="brand-name">CareQueue</span>
     </span>
     <h1 class="display-title">Now serving</h1>
-    <time class="display-clock" id="clock-time">&nbsp;</time>
+    <div class="display-tools">
+      <button class="sound-toggle" type="button" id="sound-toggle" aria-pressed="false">
+        <svg class="ic" aria-hidden="true"><use href="#i-volume-off"/></svg><span class="sound-label">Turn on sound</span>
+      </button>
+      <time class="display-clock" id="clock-time">&nbsp;</time>
+    </div>
   </header>
 
   <main class="display-grid" id="display-grid" aria-live="polite"></main>
@@ -62,6 +69,7 @@
   <script src="js/queue-core.js"></script>
   <script src="js/queue.js"></script>
   <script src="js/screens.js"></script>
+  <script src="js/announce.js"></script>
   <script src="js/display.js"></script>
 </body>
 </html>

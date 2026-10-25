@@ -54,7 +54,39 @@
     }
   }
 
+  // ---------- US-08 voice announcements ----------
+  const A = window.CareQueueAnnouncer;
+  const soundBtn = document.getElementById("sound-toggle");
+  let lastCalls = null;   // previous snapshot; null until the first queue state arrives (opening is silent)
+
+  function setSoundButton(on) {
+    soundBtn.setAttribute("aria-pressed", String(on));
+    soundBtn.querySelector(".sound-label").textContent = on ? "Sound on" : "Turn on sound";
+    soundBtn.querySelector("use").setAttribute("href", on ? "#i-volume" : "#i-volume-off");
+    soundBtn.title = on ? "Announcements are on. Press to mute." : "Press to hear each called token announced.";
+  }
+  soundBtn.addEventListener("click", () => {
+    A.setEnabled(!A.isEnabled());
+    setSoundButton(A.isEnabled());
+  });
+  setSoundButton(false);
+
+  function announceNewCalls() {
+    const snapshot = {};
+    for (const d of DATA.departments) {
+      const serving = Q.view(d.code).serving;
+      snapshot[d.code] = serving ? { number: serving.number, calledAt: serving.calledAt } : null;
+    }
+    // Skip the empty state before the first server response, so tokens already serving are not announced.
+    const loaded = Q.codesInUse().length > 0 || Q.isPersistent();
+    if (!loaded) return;
+    for (const call of A.newCalls(lastCalls, snapshot)) {
+      A.announce(A.announcementText(call.number, deptByCode(call.code).name));
+    }
+    lastCalls = snapshot;
+  }
+
   startClock();
   render();
-  Q.subscribe(render);
+  Q.subscribe(() => { render(); announceNewCalls(); });
 })();

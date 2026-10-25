@@ -296,3 +296,25 @@ policy, so it was not tested directly).
   - Results: `npm test` 25/25 · backend 11/11 · e2e 26/26 · QA run under gunicorn 45/46.
 - **Still open (fix 3, not applied):** `/api/queue/state` and the queue actions are still callable by anyone who
   sends the request directly, because the PIN is checked only in the browser.
+
+---
+
+## Feature F3 — Voice announcement (US-08, PRD S2)
+
+**Objective:** announce each called token on the waiting-room display, for patients who are not watching the screen.
+Chosen by the team as the next story for the live demo.
+
+- **BA:** `docs/features/F3-voice-announcement.md` (AC-08.1, AC-08.2, seven rules: sound starts off because browsers
+  block sound until someone clicks; a call = new token or same token with a new call time, so Recall is announced;
+  opening the display is silent; names are never spoken).
+- **Developer (TDD):** 9 unit tests and 4 browser tests written first and watched fail (`Cannot find module
+  announce.js`; no `#sound-toggle`). Then `frontend/js/announce.js` (rules + Web Audio chime + speechSynthesis,
+  queued one at a time), a **Turn on sound** switch in the display header, and call detection in `display.js`.
+- **Debugging (systematic-debugging):** after merging `main` into the branch, the browser test file failed with
+  `SyntaxError: Unexpected end of input`. Root cause: both sides ended with the same two closing lines, which git kept
+  once outside the conflict, so joining the two blocks dropped the US-08 test's closing lines. Restored; the file
+  then held exactly the branch's lines plus main's 31 new lines.
+- **QA (webapp-testing, Python Playwright via gunicorn):** announcement heard as "Token G 0 0 1, please come to
+  General Medicine." with chime; no page errors; no sideways scroll at 390 px. Results: `npm test` 34/34 ·
+  backend 11/11 · e2e 30/30 (three consecutive runs).
+- **Deck:** slide 4's cut list no longer lists voice announcement; replaced with online booking (PRD Won't-Have).
