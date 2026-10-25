@@ -45,7 +45,7 @@ The database file is created automatically at `database/carequeue.sqlite3`. It i
 
 1. Open [Render](https://render.com/) and sign in.
 2. In the dashboard choose **New → Blueprint** and connect the `AshikAR-sys/CareQueue` GitHub repository.
-3. Select branch `refactor/organize-frontend-backend-database` (or merge this branch first, then select `main`).
+3. Select branch `main`.
 4. Let Render read `render.yaml` and create the web service. Wait for its deploy to show **Live**.
 5. Open the `onrender.com` URL shown by Render and test the patient, receptionist, and display flows using sample data.
 
