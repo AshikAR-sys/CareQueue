@@ -9,7 +9,10 @@ const { chromium } = require("playwright");
 const APP = "file://" + path.resolve(__dirname, "../app") + "/";
 let browser;
 
-test.before(async () => { browser = await chromium.launch({ channel: "chrome" }); });
+// Uses installed Google Chrome by default. Set PW_CHANNEL=chromium to use Playwright's own Chromium instead
+// (for example on machines or CI without Chrome).
+const CHANNEL = process.env.PW_CHANNEL === "chromium" ? undefined : (process.env.PW_CHANNEL || "chrome");
+test.before(async () => { browser = await chromium.launch(CHANNEL ? { channel: CHANNEL } : {}); });
 test.after(async () => { await browser.close(); });
 
 async function open(ctx, file, errors) {
@@ -57,6 +60,17 @@ test("AC-03.1 empty form is refused with a message on each field", async () => {
   assert.equal(msgs.length, 5);
   assert.equal(await tok.getAttribute("#token-card", "data-state"), "sample");
   assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("after a token is issued, entering the next patient shows no errors until submit", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await tok.fill("#name", "");
+  await tok.fill("#phone", "98");
+  assert.equal(await tok.isVisible("#form-error"), false);
+  assert.equal(await tok.textContent("#phone-err"), "");
   await ctx.close();
 });
 

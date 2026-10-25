@@ -288,6 +288,7 @@
     try {
       const [result] = await Promise.all([window.TokenQueue.issue(v), sleep(MIN_LOADING_MS)]);
       issued = Object.assign({}, v, result);
+      submitted = false; // the next patient's entry is checked only when they submit
       renderIssued(issued);
       if (window.matchMedia("(max-width: 1180px)").matches) {
         card.scrollIntoView({ behavior: "smooth", block: "start" });

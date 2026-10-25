@@ -175,3 +175,31 @@ No queue rules, HTML, CSS, data or validation logic was modified. Only `package.
   this environment). Manual action needed.
 - **Open:** the MRD content still targets small clinics as its market; whether to reword it for hospitals is a BA
   decision, not a naming fix.
+
+---
+
+## Demo deck, backup recording and a form fix
+
+**Deck:** `docs/deck/CareQueue_Team12_Demo_Deck.pptx`, built from the official team template
+(`JJCET_Hackathon_Team_Demo_Template_1.pptx`) by replacing only the bracketed placeholder text inside the template's
+own text runs; every shape, colour, font size and position is unchanged. Team 12, Future Coders; BA Sam Austin,
+UI/UX Nishandhini, Dev Ashik Rasool, QA Rogasree. Speaker notes rewritten as a presenter script per slide.
+Checks: `validate.py --original template` → all validations passed; leftover-placeholder search → none; every slide
+rendered and reviewed. First render showed text auto-shrinking in seven boxes (sentences longer than the template
+boxes allow); text shortened to fit at the template's own sizes, re-rendered and confirmed.
+
+**Backup recording:** `docs/demo/CareQueue-backup-demo.webm` (47 s, 1440×900), recorded with Playwright from the real
+app: patient sign-in → tokens issued → sign out → receptionist sign-in (PIN 1234) → Call Next → display → Skip →
+Call Next → display. No page errors during the run. One frame at ~33 s is a mid-navigation paint (blank panel); a
+DOM check and a screenshot of the same step confirmed the display shows the token correctly.
+
+**Bug found by the recording:** after a token was issued, typing the next patient's details showed
+"Please fix 1 field below" while still typing (validate-as-you-type stayed on after a successful submit).
+- RED: new e2e test "after a token is issued, entering the next patient shows no errors until submit" failed
+  (`expected: false, actual: true`).
+- Fix: `app/app.js` resets the flag after a successful issue.
+- GREEN: `npm test` 19/19; `PW_CHANNEL=chromium npm run test:e2e` 18/18 (Ashik's 7 login tests included).
+
+**Test setup note:** commit `4e0bd53` switched the browser tests to installed Google Chrome (`channel: "chrome"`),
+which this cloud session does not have. Chrome stays the default; `PW_CHANNEL=chromium` now runs the same tests on
+Playwright's own Chromium.
