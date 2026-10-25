@@ -203,3 +203,23 @@ DOM check and a screenshot of the same step confirmed the display shows the toke
 **Test setup note:** commit `4e0bd53` switched the browser tests to installed Google Chrome (`channel: "chrome"`),
 which this cloud session does not have. Chrome stays the default; `PW_CHANNEL=chromium` now runs the same tests on
 Playwright's own Chromium.
+
+---
+
+## New epic and story: E5 Sign-in and access / US-14
+
+**Why:** sign-in (landing page, patient sign-in, receptionist PIN, page guards) was built in commit `4e0bd53` and
+tested, but no PRD feature, epic or story covered it, which breaks the demo → story → epic → PRD → need chain.
+
+- **PRD:** added Should-Have **S6 Role-based sign-in** (demo-level security, no server).
+- **Epics:** added **E5 Sign-in and access** (Should; traces to S6, MR-1, MR-2) with user need, goal and definition
+  of done; added to the traceability chain and build order.
+- **Stories:** added **US-14 Sign in as patient or receptionist** with four acceptance criteria:
+  AC-14.1 role choice on the landing page · AC-14.2 patient sign-in opens the token page with the name filled in ·
+  AC-14.3 correct PIN opens the staff console, wrong PIN is refused · AC-14.4 pages redirect when nobody is signed in.
+- **Regenerated:** PRD, Epics and User Stories PDFs from their generator scripts. A line-by-line text check shows
+  every previous line is still present; the only changed line is the count ("5 epics and 14 user stories").
+  Backlog checks in the script passed: 5 epics, 14 stories, 39 acceptance criteria, every story traced.
+- **Tests:** the 7 existing sign-in tests were renamed with their AC-14 IDs (no logic changed).
+  `npm test` 19/19; `PW_CHANNEL=chromium npm run test:e2e` 18/18 — AC-14.1 to AC-14.4 all pass.
+- **Docs:** README no longer says "No login"; run steps start at the landing page. Project status marks US-14 Completed.

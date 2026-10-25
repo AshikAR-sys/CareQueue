@@ -207,7 +207,7 @@ test("all three screens fit a phone without sideways scrolling", async () => {
 
 // --- auth-specific tests ---
 
-test("landing page shows patient and receptionist role cards", async () => {
+test("AC-14.1 landing page shows patient and receptionist role cards", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const errors = [];
   const page = await open(ctx, "index.html", errors);
@@ -219,7 +219,7 @@ test("landing page shows patient and receptionist role cards", async () => {
   await ctx.close();
 });
 
-test("patient can sign in and reaches patient.html", async () => {
+test("AC-14.2 patient can sign in and reaches patient.html", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const errors = [];
   const page = await open(ctx, "index.html", errors);
@@ -233,7 +233,7 @@ test("patient can sign in and reaches patient.html", async () => {
   await ctx.close();
 });
 
-test("receptionist can sign in with PIN 1234 and reaches staff.html", async () => {
+test("AC-14.3 receptionist can sign in with PIN 1234 and reaches staff.html", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const errors = [];
   const page = await open(ctx, "index.html", errors);
@@ -247,7 +247,7 @@ test("receptionist can sign in with PIN 1234 and reaches staff.html", async () =
   await ctx.close();
 });
 
-test("wrong PIN shows an error and does not navigate", async () => {
+test("AC-14.3 wrong PIN shows an error and does not navigate", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const errors = [];
   const page = await open(ctx, "index.html", errors);
@@ -262,7 +262,7 @@ test("wrong PIN shows an error and does not navigate", async () => {
   await ctx.close();
 });
 
-test("patient.html without a session redirects to index.html", async () => {
+test("AC-14.4 patient.html without a session redirects to index.html", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
   await page.goto(APP + "patient.html");
@@ -271,7 +271,7 @@ test("patient.html without a session redirects to index.html", async () => {
   await ctx.close();
 });
 
-test("staff.html without a session redirects to index.html", async () => {
+test("AC-14.4 staff.html without a session redirects to index.html", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
   await page.goto(APP + "staff.html");
@@ -280,7 +280,7 @@ test("staff.html without a session redirects to index.html", async () => {
   await ctx.close();
 });
 
-test("patient session pre-fills name in the token form", async () => {
+test("AC-14.2 patient session pre-fills name in the token form", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const session = JSON.stringify({ role: "patient", name: "Priya Sharma", phone: "9876543210", timestamp: Date.now() });
   await ctx.addInitScript(`localStorage.setItem("carequeue-session", '${session}');`);
