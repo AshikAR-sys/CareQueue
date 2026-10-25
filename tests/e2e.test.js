@@ -291,3 +291,73 @@ test("AC-14.2 patient session pre-fills name in the token form", async () => {
   assert.deepEqual(errors, []);
   await ctx.close();
 });
+
+// --- US-04 Send to Billing ---
+
+test("AC-04.1 Send to Billing completes the served token and creates a billing token", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await staff.click("#send-billing");
+  assert.match(await staff.textContent("#serving-hint"), /G001 sent to Billing as B001/);
+  assert.equal(await staff.textContent("#serving-number"), "—");
+  await staff.click('.dept-tab[data-code="B"]');
+  const waiting = await staff.$$eval("#waiting-rows .token", (els) => els.map((e) => e.textContent));
+  assert.deepEqual(waiting, ["B001"]);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-04.2 the billing token shows the token it came from", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await staff.click("#send-billing");
+  await staff.click('.dept-tab[data-code="B"]');
+  assert.match(await staff.textContent("#waiting-rows tr"), /from G001/);
+  await staff.click("#call-next");
+  assert.equal(await staff.textContent("#serving-number"), "B001");
+  assert.match(await staff.textContent("#serving-meta"), /from G001/);
+  await ctx.close();
+});
+
+test("US-04 display shows the billing queue (numbers only) and the patient's page shows the billing token", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const staff = await open("staff.html");
+  const disp = await open("display.html");
+  await staff.click("#call-next");
+  await staff.click("#send-billing");
+  await disp.waitForFunction(() => [...document.querySelectorAll(".display-panel h2")].some((h) => h.textContent === "Billing"), null, { timeout: 2000 });
+  const next = await disp.$$eval(".next-number", (els) => els.map((e) => e.textContent));
+  assert.ok(next.includes("B001"));
+  assert.ok(!(await disp.content()).includes("Priya"));
+  await tok.waitForFunction(() => document.getElementById("t-wait").textContent.includes("B001"), null, { timeout: 2000 });
+  await ctx.close();
+});
+
+test("US-04 Send to Billing is disabled with nobody served and hidden on the Billing queue", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const staff = await open("staff.html");
+  assert.equal(await staff.isDisabled("#send-billing"), true);
+  await staff.click('.dept-tab[data-code="B"]');
+  assert.equal(await staff.isHidden("#send-billing"), true);
+  await ctx.close();
+});
+
+test("US-04 patients can choose Billing directly; no doctor is needed", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await tok.selectOption("#department", "bill");
+  assert.equal(await tok.isDisabled("#doctor"), true);
+  assert.equal(await tok.textContent("#doctor-hint"), "No doctor needed for Billing.");
+  assert.equal(await issue(tok, "bill", "Ravi Kumar"), "B001");
+  await ctx.close();
+});

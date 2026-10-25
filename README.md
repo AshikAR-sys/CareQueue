@@ -37,7 +37,7 @@ http://localhost:8000.
 ```bash
 npm install                      # installs Playwright for the browser tests
 npx playwright install chromium  # once
-npm test                         # 19 unit tests for the queue rules
+npm test                         # 25 unit tests for the queue rules
 npm run test:e2e                 # browser tests (uses installed Google Chrome)
 PW_CHANNEL=chromium npm run test:e2e   # same tests on Playwright's Chromium
 ```
@@ -48,6 +48,7 @@ PW_CHANNEL=chromium npm run test:e2e   # same tests on Playwright's Chromium
 |---|---|---|
 | Token form with validation; tokens in order per department per day (`G001`, `G002`, `C001`) | US-01–US-03 | e2e |
 | Staff console: Call Next, Skip, Recall, waiting list, missed list | US-05, US-07 | e2e |
+| Send to Billing: one click finishes the patient's visit and adds them to the Billing queue (B001…), linked both ways | US-04 | unit + e2e |
 | Waiting-room display: now serving + next 5 per department, live (< 2 s), token numbers only | US-06 | e2e |
 | Estimated waiting time: EWT = R + N × AST, default 3 min until 3 are served, then the average of the last 10 | US-09, US-10 | unit + e2e |
 | Live estimate on the patient's token card ("About 6 min · 2 people ahead") | US-09 | e2e |
@@ -61,10 +62,9 @@ PW_CHANNEL=chromium npm run test:e2e   # same tests on Playwright's Chromium
   screens open in the same browser on one computer. Other computers do not see it.
 - **Demo-level sign-in.** The PIN (1234) is checked in the browser, and sessions live in `localStorage`; it keeps
   patients out of the staff console during the demo but is not real security. One sign-in per browser at a time.
-- **Queues are departments** (G, C, O, P, D, E). The PRD names Registration (R) and Billing (B); switching is a data
-  change in `app/data.js` and is an open team decision.
-- **Not built yet:** Send to Billing (US-04), voice announcement (US-08), multiple counters (US-11), QR phone
-  tracking (US-13).
+- **Queues are departments plus Billing** (G, C, O, P, D, E, and B). Patients finish at their department and are sent on
+  to Billing; a separate Registration (R) queue from the PRD is not used.
+- **Not built yet:** voice announcement (US-08), multiple counters (US-11), QR phone tracking (US-13).
 - Departments, doctors and room locations in `app/data.js` are **sample data**.
 
 How this was built, stage by stage with test evidence: [`docs/automation-log.md`](docs/automation-log.md).

@@ -7,7 +7,7 @@ Status labels: **Completed** (with evidence) · **In Progress** · **Pending** �
 
 ## DEMO READINESS: READY ✓
 
-All 37 automated tests pass (19 unit, 18 browser). End-to-end demo flow verified. Start command fixed for Windows (no Python required).
+All 48 automated tests pass (25 unit, 23 browser). End-to-end demo flow verified. Start command fixed for Windows (no Python required).
 
 **Start command:** `cd CareQueue && npm start`
 **URLs:** Token → `http://localhost:8000` · Staff → `http://localhost:8000/staff.html` · Display → `http://localhost:8000/display.html`
@@ -25,7 +25,7 @@ All 37 automated tests pass (19 unit, 18 browser). End-to-end demo flow verified
 | Print / download slip | US-12 | **Completed** | e2e download test |
 | Queue persists across page reload | — | **Completed** | e2e persistence test |
 | Phone layout (no overflow) | — | **Completed** | e2e layout test at 390 px |
-| Send to Billing | US-04 | Pending | not built |
+| Send to Billing | US-04 | **Completed** | unit tests AC-04.1 (+4); e2e AC-04.1, AC-04.2 (+3) |
 | Voice announcement | US-08 | Pending | not built |
 | Multiple counters | US-11 | Pending | not built |
 | QR phone tracking | US-13 | Pending | not built |
@@ -58,7 +58,7 @@ All 37 automated tests pass (19 unit, 18 browser). End-to-end demo flow verified
 ## Test results (25 Oct 2026, ~01:10 IST)
 
 ```
-npm test          →  19 / 19 pass  (queue-core unit tests)
-npm run test:e2e  →  18 / 18 pass  (Playwright e2e; PW_CHANNEL=chromium in the cloud session)
-npm run test:all  →  37 / 37 pass
+npm test          →  25 / 25 pass  (queue-core unit tests)
+npm run test:e2e  →  23 / 23 pass  (Playwright e2e; PW_CHANNEL=chromium in the cloud session)
+npm run test:all  →  48 / 48 pass
 ```
