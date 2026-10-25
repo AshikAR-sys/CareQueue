@@ -37,7 +37,8 @@ http://localhost:8000.
 npm install                      # installs Playwright for the browser tests
 npx playwright install chromium  # once
 npm test                         # 19 unit tests for the queue rules
-npm run test:e2e                 # 10 browser tests across all three screens
+npm run test:e2e                 # browser tests (uses installed Google Chrome)
+PW_CHANNEL=chromium npm run test:e2e   # same tests on Playwright's Chromium
 ```
 
 ## What works today
@@ -66,6 +67,7 @@ npm run test:e2e                 # 10 browser tests across all three screens
 How this was built, stage by stage with test evidence: [`docs/automation-log.md`](docs/automation-log.md).
 Role-wise backlog: [`docs/project-status.md`](docs/project-status.md).
 Claude Code role conversation names and starter prompts: [`docs/role-conversations.md`](docs/role-conversations.md).
+Demo deck (Team 12): [`docs/deck/CareQueue_Team12_Demo_Deck.pptx`](docs/deck/CareQueue_Team12_Demo_Deck.pptx). Backup recording: [`docs/demo/CareQueue-backup-demo.webm`](docs/demo/CareQueue-backup-demo.webm).
 
 ## Project structure
 
