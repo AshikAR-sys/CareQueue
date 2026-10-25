@@ -223,3 +223,32 @@ tested, but no PRD feature, epic or story covered it, which breaks the demo → 
 - **Tests:** the 7 existing sign-in tests were renamed with their AC-14 IDs (no logic changed).
   `npm test` 19/19; `PW_CHANNEL=chromium npm run test:e2e` 18/18 — AC-14.1 to AC-14.4 all pass.
 - **Docs:** README no longer says "No login"; run steps start at the landing page. Project status marks US-14 Completed.
+
+---
+
+## Feature F2 — Send to Billing (US-04, PRD S4)
+
+**Objective:** a patient finishing at a department counter joins the Billing queue in one click, keeping their
+details, so the system covers both halves of "registration and billing". Chosen by the team from the four unbuilt
+backlog stories.
+
+- **BA:** `docs/features/F2-send-to-billing.md`: story, AC-04.1/04.2, seven business rules, edge cases.
+  Decision: Billing is a queue of its own (code B), shown on the staff console and the display; patients can also
+  choose it directly.
+- **Developer (TDD):**
+  - RED: 6 new unit tests failed with `Q.sendTo is not a function`; 5 new browser tests failed (no button, no Billing
+    queue). Existing 19 unit and 18 browser tests still passed.
+  - GREEN: `QueueCore.sendTo(day, from, to, now)` completes the serving token, issues a linked token at the end of
+    Billing with the patient's details (doctor cleared), links both ways (`linkedFrom`, `forwardedTo`).
+    `TokenQueue.sendTo`, a Billing entry in `app/data.js`, a **Send to Billing** button on the staff console
+    ("from G001" on billing tokens), and the patient's token page shows "Sent to Billing: your billing token is B00x".
+  - Files: `app/queue-core.js`, `app/queue.js`, `app/data.js`, `app/app.js`, `app/staff.html`, `app/staff.js`,
+    `app/screens.css`, `tests/queue-core.test.js`, `tests/e2e.test.js`.
+- **QA:** `npm test` **25/25**; `PW_CHANNEL=chromium npm run test:e2e` **23/23**. Screens reviewed in the browser
+  (staff before/after, Billing tab, display with the Billing queue, patient card); no page errors; no sideways scroll
+  at 390 px.
+- **Integration:** the display shows the Billing queue live; patient names stay off the display (unit + e2e test).
+- **Demo deck:** slide 4's cut list no longer lists Send to Billing (now built); replaced with voice announcement
+  (US-08, not built). Speaker notes updated. Validation passed; slide re-rendered.
+- **Limits:** one counter per queue still; the PRD's separate Registration (R) queue is not used (departments act as
+  the first stop).

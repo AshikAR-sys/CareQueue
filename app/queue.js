@@ -74,6 +74,7 @@
     issue,
     callNext: (code) => change((day, now) => Core.callNext(day, code, now)),
     skip: (code) => change((day, now) => Core.skip(day, code, now)),
+    sendTo: (fromCode, toCode) => change((day, now) => Core.sendTo(day, fromCode, toCode, now)),
     recall: (number) => change((day, now) => Core.recall(day, number, now)),
     estimate: (number) => Core.estimate(load(), number, Date.now()),
     view: (code) => Core.view(load(), code, Date.now()),

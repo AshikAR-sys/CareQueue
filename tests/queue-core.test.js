@@ -157,3 +157,60 @@ test("public view never contains patient details (AC-06.3)", () => {
   assert.ok(!json.includes("Priya") && !json.includes("Ravi") && !json.includes("98765"));
   assert.equal(Q.publicView(day, "G", T0).serving, "G001");
 });
+
+// ---- US-04 Send to Billing ----
+
+test("Send to Billing completes the serving token and issues a linked billing token (AC-04.1)", () => {
+  const day = Q.emptyDay("2026-10-25");
+  Q.issue(day, { code: "G", patient: { name: "Priya Sharma", age: "34", gender: "Female", phone: "9876543210", doctor: "Dr. Anjali Rao" } }, T0);
+  Q.callNext(day, "G", T0 + MIN);
+  const b = Q.sendTo(day, "G", "B", T0 + 5 * MIN);
+  assert.equal(b.number, "B001");
+  assert.equal(b.status, "waiting");
+  assert.equal(b.linkedFrom, "G001");
+  assert.equal(b.patient.name, "Priya Sharma");
+  assert.equal(b.patient.phone, "9876543210");
+  const g = day.tokens.find((t) => t.number === "G001");
+  assert.equal(g.status, "done");
+  assert.equal(g.doneAt, T0 + 5 * MIN);
+  assert.equal(g.forwardedTo, "B001");
+});
+
+test("Send to Billing with nobody serving changes nothing", () => {
+  const day = dayWith("G", 1);
+  assert.equal(Q.sendTo(day, "G", "B", T0), null);
+  assert.equal(day.tokens.length, 1);
+});
+
+test("Send to Billing cannot send a queue to itself", () => {
+  const day = dayWith("B", 1);
+  Q.callNext(day, "B", T0);
+  assert.equal(Q.sendTo(day, "B", "B", T0 + MIN), null);
+  assert.equal(day.tokens[0].status, "serving");
+});
+
+test("billing tokens join the end of the billing queue and number on their own", () => {
+  const day = Q.emptyDay("2026-10-25");
+  Q.issue(day, { code: "B", patient: { name: "Walk-in" } }, T0);       // B001, paying a bill directly
+  Q.issue(day, { code: "G", patient: { name: "Ravi" } }, T0);
+  Q.callNext(day, "G", T0);
+  assert.equal(Q.sendTo(day, "G", "B", T0 + MIN).number, "B002");
+  assert.deepEqual(Q.view(day, "B", T0 + MIN).waiting.map((t) => t.number), ["B001", "B002"]);
+});
+
+test("a forwarded token's estimate points to its billing token", () => {
+  const day = dayWith("G", 1);
+  Q.callNext(day, "G", T0);
+  Q.sendTo(day, "G", "B", T0 + MIN);
+  assert.deepEqual(Q.estimate(day, "G001", T0 + MIN), { status: "done", forwardedTo: "B001" });
+});
+
+test("the billing display shows numbers only, not the copied patient details", () => {
+  const day = Q.emptyDay("2026-10-25");
+  Q.issue(day, { code: "G", patient: { name: "Priya Sharma", phone: "9876543210" } }, T0);
+  Q.callNext(day, "G", T0);
+  Q.sendTo(day, "G", "B", T0 + MIN);
+  const json = JSON.stringify(Q.publicView(day, "B", T0 + MIN));
+  assert.ok(!json.includes("Priya") && !json.includes("98765") && !json.includes("G001"));
+  assert.deepEqual(Q.publicView(day, "B", T0 + MIN).waiting.map((t) => t.number), ["B001"]);
+});

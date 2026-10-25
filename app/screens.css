@@ -85,7 +85,9 @@
 .serving-number.empty { font-size: 48px; color: var(--ink-3); }
 .serving-name { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; }
 .serving-meta { font-size: 14px; color: var(--ink-2); }
-.serving-actions { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; align-items: center; }
+.serving-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: center; }
+.serving-actions .btn-primary { grid-column: 1 / -1; }
+.serving-actions.no-billing #skip { grid-column: 1 / -1; }
 .serving-actions .btn-primary { margin-top: 0; }
 .serving-actions .btn-secondary { height: 56px; }
 .btn-primary:disabled { cursor: not-allowed; filter: grayscale(0.7) brightness(1.05); opacity: 0.7; transform: none; }
