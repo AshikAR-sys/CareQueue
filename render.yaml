@@ -3,7 +3,7 @@ services:
     name: carequeue-demo
     runtime: python
     plan: free
-    branch: refactor/organize-frontend-backend-database
+    branch: main
     buildCommand: pip install -r backend/requirements.txt
     startCommand: gunicorn --workers 1 --threads 4 --bind 0.0.0.0:$PORT "backend.app:create_app()"
     healthCheckPath: /api/health

@@ -3,7 +3,8 @@
   "use strict";
   const Core = window.QueueCore;
   const listeners = new Set();
-  const isPublicScreen = document.body.classList.contains("screen-display");
+  // Only the staff console may load patient details; every other page (patient, display) gets the public state.
+  const isStaffScreen = document.body.classList.contains("screen-staff");
   let day = Core.emptyDay(Core.dayKey(new Date()));
   let connected = false;
   let refreshInFlight = null;
@@ -15,7 +16,7 @@
     }
     refreshInFlight = (async () => {
       try {
-        const path = isPublicScreen ? "/api/queue/public-state" : "/api/queue/state";
+        const path = isStaffScreen ? "/api/queue/state" : "/api/queue/public-state";
         const response = await fetch(path, { cache: "no-store" });
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.error || "Queue service is unavailable.");
