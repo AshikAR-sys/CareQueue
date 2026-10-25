@@ -1,13 +1,13 @@
 # Project status (role-wise backlog)
 
-Updated: 25 Oct 2026, ~01:10 IST — Demo-readiness audit complete · Demo: 25 Oct, 10:00 IST.
+Updated: 25 Oct 2026 — added E5 / US-14 (sign-in); demo-readiness audit · Demo: 25 Oct, 10:00 IST.
 Status labels: **Completed** (with evidence) · **In Progress** · **Pending** · **Blocked** · **Needs Verification**.
 
 ---
 
 ## DEMO READINESS: READY ✓
 
-All 29 automated tests pass. End-to-end demo flow verified. Start command fixed for Windows (no Python required).
+All 37 automated tests pass (19 unit, 18 browser). End-to-end demo flow verified. Start command fixed for Windows (no Python required).
 
 **Start command:** `cd CareQueue && npm start`
 **URLs:** Token → `http://localhost:8000` · Staff → `http://localhost:8000/staff.html` · Display → `http://localhost:8000/display.html`
@@ -29,7 +29,7 @@ All 29 automated tests pass. End-to-end demo flow verified. Start command fixed 
 | Voice announcement | US-08 | Pending | not built |
 | Multiple counters | US-11 | Pending | not built |
 | QR phone tracking | US-13 | Pending | not built |
-| Login / authentication | none in PRD | Pending (out of scope) | by design |
+| Sign-in and access (patient / receptionist) | US-14 (E5, PRD S6) | **Completed** | e2e AC-14.1–14.4 (7 tests) |
 | Backend / database | none in PRD | Pending (out of scope) | browser localStorage by design; documented |
 
 ---
@@ -59,6 +59,6 @@ All 29 automated tests pass. End-to-end demo flow verified. Start command fixed 
 
 ```
 npm test          →  19 / 19 pass  (queue-core unit tests)
-npm run test:e2e  →  10 / 10 pass  (Playwright e2e, installed Chrome)
-npm run test:all  →  29 / 29 pass
+npm run test:e2e  →  18 / 18 pass  (Playwright e2e; PW_CHANNEL=chromium in the cloud session)
+npm run test:all  →  37 / 37 pass
 ```

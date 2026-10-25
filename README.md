@@ -22,11 +22,12 @@ No install and no build step for the app. It is plain HTML, CSS and JavaScript.
    git clone https://github.com/AshikAR-sys/CareQueue.git
    cd CareQueue
    ```
-2. Open these three files in **the same browser** (Chrome, Edge or Safari), side by side:
-   - `app/index.html`: patient token page
-   - `app/staff.html`: staff console (Call Next, Skip, Recall)
-   - `app/display.html`: waiting-room display (put it on the TV)
-3. Generate a few tokens, press **Call Next** on the staff console, and watch the display change.
+2. Open `app/index.html` in Chrome, Edge or Safari and choose a role:
+   - **Patient:** enter a name and phone number → token page (`patient.html`)
+   - **Receptionist:** enter a name and the demo PIN **1234** → staff console (`staff.html`)
+   - **Waiting-room display:** open `app/display.html` (no sign-in; put it on the TV)
+3. Get a few tokens as a patient, sign out, sign in as receptionist, press **Call Next** and watch the display.
+   The browser keeps one sign-in at a time, so use **Sign out** to switch roles.
 
 Optional, to serve it locally instead: `npm start` (or `python3 -m http.server 8000 --directory app`), then open
 http://localhost:8000.
@@ -51,13 +52,15 @@ PW_CHANNEL=chromium npm run test:e2e   # same tests on Playwright's Chromium
 | Estimated waiting time: EWT = R + N × AST, default 3 min until 3 are served, then the average of the last 10 | US-09, US-10 | unit + e2e |
 | Live estimate on the patient's token card ("About 6 min · 2 people ahead") | US-09 | e2e |
 | Print token (one A5 page) and download (PNG) | US-12 | browser test |
+| Sign in as patient (name + phone) or receptionist (demo PIN); each page opens only for its role | US-14 | e2e |
 | Responsive Liquid Glass design; phone, tablet, desktop, TV | — | e2e (no overflow at 390 px) |
 
 ## Honest limits
 
 - **No server or database.** The queue lives in this browser's `localStorage` and is shared live between the three
   screens open in the same browser on one computer. Other computers do not see it.
-- **No login.** The staff console is open to anyone with the page. Login was not in the PRD.
+- **Demo-level sign-in.** The PIN (1234) is checked in the browser, and sessions live in `localStorage`; it keeps
+  patients out of the staff console during the demo but is not real security. One sign-in per browser at a time.
 - **Queues are departments** (G, C, O, P, D, E). The PRD names Registration (R) and Billing (B); switching is a data
   change in `app/data.js` and is an open team decision.
 - **Not built yet:** Send to Billing (US-04), voice announcement (US-08), multiple counters (US-11), QR phone
@@ -74,7 +77,8 @@ Demo deck (Team 12): [`docs/deck/CareQueue_Team12_Demo_Deck.pptx`](docs/deck/Car
 
 ```
 app/
-  index.html     patient token page
+  index.html     landing page and sign-in   (auth.js)
+  patient.html   patient token page          (app.js)
   staff.html     staff console          (staff.js)
   display.html   waiting-room display   (display.js)
   queue-core.js  queue rules: issue, call next, skip, recall, estimated wait
@@ -91,8 +95,8 @@ tests/
 docs/
   CareQueue_MRD.pdf            Market Requirements Document
   CareQueue_PRD.pdf            Product Requirements Document
-  CareQueue_Epics.pdf          4 epics with traceability
-  CareQueue_User_Stories.pdf   13 stories, 35 acceptance criteria, test checklist
+  CareQueue_Epics.pdf          5 epics with traceability
+  CareQueue_User_Stories.pdf   14 stories, 39 acceptance criteria, test checklist
   features/                    feature specs and design decisions
   automation-log.md            how each feature was built and tested
   project-status.md            role-wise backlog
