@@ -14,7 +14,10 @@ window.CAREQUEUE_DATA = {
     { id: "derm",  code: "D", name: "Dermatology",      location: "Second floor, Block B",
       doctors: ["Dr. Farah Siddiqui"] },
     { id: "ent",   code: "E", name: "ENT",              location: "Second floor, Block A",
-      doctors: ["Dr. Naveen Kumar", "Dr. Divya Shankar"] }
+      doctors: ["Dr. Naveen Kumar", "Dr. Divya Shankar"] },
+    // Billing is a queue of its own (US-04): staff send patients here after their visit, or patients join directly.
+    { id: "bill",  code: "B", name: "Billing",          location: "Ground floor, Main reception",
+      doctors: [], billing: true }
   ],
   // Shown only in the "Sample" state, before a visitor generates a token.
   sampleToken: {

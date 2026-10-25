@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS tokens (
   called_at INTEGER,
   done_at INTEGER,
   skipped_at INTEGER,
+  linked_from TEXT,
+  forwarded_to TEXT,
   UNIQUE(queue_date, number),
   UNIQUE(queue_date, code, seq)
 );

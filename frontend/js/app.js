@@ -78,6 +78,11 @@
       setText("doctor-hint", "Choose a department first.");
       return;
     }
+    if (!dept.doctors.length) {
+      fields.doctor.disabled = true;
+      setText("doctor-hint", "No doctor needed for " + dept.name + ".");
+      return;
+    }
     for (const name of dept.doctors) {
       const o = document.createElement("option");
       o.value = name; o.textContent = name;
@@ -156,6 +161,7 @@
     if (!estimate) return null;
     if (estimate.status === "serving") return "It's your turn now";
     if (estimate.status === "missed") return "Missed. Please tell the reception desk";
+    if (estimate.forwardedTo) return "Sent to Billing: your billing token is " + estimate.forwardedTo;
     if (estimate.status === "done") return "Visit completed";
     if (estimate.minutes === 0) return "You're next";
     const ahead = estimate.ahead === 1 ? "1 person ahead" : estimate.ahead + " people ahead";
@@ -288,6 +294,7 @@
     try {
       const [result] = await Promise.all([window.TokenQueue.issue(v), sleep(MIN_LOADING_MS)]);
       issued = Object.assign({}, v, result);
+      submitted = false; // the next patient's entry is checked only when they submit
       renderIssued(issued);
       if (window.matchMedia("(max-width: 1180px)").matches) {
         card.scrollIntoView({ behavior: "smooth", block: "start" });

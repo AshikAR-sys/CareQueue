@@ -32,7 +32,12 @@ CareQueue uses a Flask API and SQLite database. Run the frontend and API togethe
    ```bash
    npm start
    ```
-4. Open http://127.0.0.1:8000. Use the Patient Portal to issue tokens, the Receptionist Portal to manage queues, and the display link for the waiting-room screen.
+4. Open http://127.0.0.1:8000 and choose a role:
+   - **Patient:** enter a name and phone number → token page
+   - **Receptionist:** enter a name and the demo PIN **1234** → staff console (Call Next, Skip, Recall, Send to Billing)
+   - **Waiting-room display:** the display link (no sign-in; put it on the TV)
+
+   The browser keeps one sign-in at a time, so use **Sign out** to switch roles.
 
 The database file is created automatically at `database/carequeue.sqlite3`. It is ignored by Git, so local queue data is not committed to the repository.
 
@@ -49,9 +54,9 @@ The database file is created automatically at `database/carequeue.sqlite3`. It i
 ### Run the tests
 
 ```bash
-npm test                         # queue-rule unit tests
-npm run test:backend             # Flask API + SQLite integration tests
-npm run test:e2e                 # browser tests against an isolated test database
+npm test                         # 25 queue-rule unit tests
+npm run test:backend             # 11 Flask API + SQLite integration tests
+npm run test:e2e                 # 24 browser tests against an isolated test database
 npm run test:all                 # all three suites
 ```
 
@@ -61,10 +66,12 @@ npm run test:all                 # all three suites
 |---|---|---|
 | Token form with validation; tokens in order per department per day (`G001`, `G002`, `C001`) | US-01–US-03 | e2e |
 | Staff console: Call Next, Skip, Recall, waiting list, missed list | US-05, US-07 | e2e |
+| Send to Billing: one click finishes the patient's visit and adds them to the Billing queue (B001…), linked both ways | US-04 | unit + e2e |
 | Waiting-room display: now serving + next 5 per department, live (< 2 s), token numbers only | US-06 | e2e |
 | Estimated waiting time: EWT = R + N × AST, default 3 min until 3 are served, then the average of the last 10 | US-09, US-10 | unit + e2e |
 | Live estimate on the patient's token card ("About 6 min · 2 people ahead") | US-09 | e2e |
 | Print token (one A5 page) and download (PNG) | US-12 | browser test |
+| Sign in as patient (name + phone) or receptionist (demo PIN); each page opens only for its role | US-14 | e2e |
 | Responsive Liquid Glass design; phone, tablet, desktop, TV | — | e2e (no overflow at 390 px) |
 
 ## Honest limits
@@ -72,12 +79,16 @@ npm run test:all                 # all three suites
 - **Prototype authentication only.** The PIN check is client-side (demo PIN `1234`), not secure server-side authentication. Do not expose this prototype to the public internet or use real patient information.
 - **Local server by default.** The app binds to `127.0.0.1`, so all screens on the same computer share the SQLite-backed queue. Other devices will need a deliberately configured, secured deployment.
 - **Sample hospital data.** Departments, doctors and locations in `frontend/js/data.js` are sample data.
-- **Not built yet:** Send to Billing (US-04), voice announcement (US-08), multiple counters (US-11), QR phone tracking (US-13).
+- **Queues are departments plus Billing** (G, C, O, P, D, E, and B). Patients finish at their department and are sent on
+  to Billing; a separate Registration (R) queue from the PRD is not used.
+- **Not built yet:** voice announcement (US-08), multiple counters (US-11), QR phone tracking (US-13).
 - A public display endpoint returns token numbers and status only; it excludes patient names and contact details.
 
 How this was built, stage by stage with test evidence: [`docs/automation-log.md`](docs/automation-log.md).
 Role-wise backlog: [`docs/project-status.md`](docs/project-status.md).
 Claude Code role conversation names and starter prompts: [`docs/role-conversations.md`](docs/role-conversations.md).
+Architecture diagram and ERD: [`docs/architecture/`](docs/architecture/README.md).
+Demo deck (Team 12): [`docs/deck/CareQueue_Team12_Demo_Deck.pptx`](docs/deck/CareQueue_Team12_Demo_Deck.pptx). Backup recording: [`docs/demo/CareQueue-backup-demo.webm`](docs/demo/CareQueue-backup-demo.webm).
 
 ## Project structure
 
@@ -101,7 +112,8 @@ CareQueue/
 ├── tests/
 │   ├── queue-core.test.js
 │   └── e2e.test.js
-├── docs/                     requirements, feature specs, screenshots
+├── docs/                     MRD, PRD, 5 epics, 14 stories, feature specs, architecture,
+│                             demo deck, backup recording, automation log, screenshots
 ├── render.yaml               Render demo deployment blueprint
 ├── package.json
 ├── package-lock.json

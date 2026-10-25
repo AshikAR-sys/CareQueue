@@ -175,3 +175,106 @@ No queue rules, HTML, CSS, data or validation logic was modified. Only `package.
   this environment). Manual action needed.
 - **Open:** the MRD content still targets small clinics as its market; whether to reword it for hospitals is a BA
   decision, not a naming fix.
+
+---
+
+## Demo deck, backup recording and a form fix
+
+**Deck:** `docs/deck/CareQueue_Team12_Demo_Deck.pptx`, built from the official team template
+(`JJCET_Hackathon_Team_Demo_Template_1.pptx`) by replacing only the bracketed placeholder text inside the template's
+own text runs; every shape, colour, font size and position is unchanged. Team 12, Future Coders; BA Sam Austin,
+UI/UX Nishandhini, Dev Ashik Rasool, QA Rogasree. Speaker notes rewritten as a presenter script per slide.
+Checks: `validate.py --original template` → all validations passed; leftover-placeholder search → none; every slide
+rendered and reviewed. First render showed text auto-shrinking in seven boxes (sentences longer than the template
+boxes allow); text shortened to fit at the template's own sizes, re-rendered and confirmed.
+
+**Backup recording:** `docs/demo/CareQueue-backup-demo.webm` (47 s, 1440×900), recorded with Playwright from the real
+app: patient sign-in → tokens issued → sign out → receptionist sign-in (PIN 1234) → Call Next → display → Skip →
+Call Next → display. No page errors during the run. One frame at ~33 s is a mid-navigation paint (blank panel); a
+DOM check and a screenshot of the same step confirmed the display shows the token correctly.
+
+**Bug found by the recording:** after a token was issued, typing the next patient's details showed
+"Please fix 1 field below" while still typing (validate-as-you-type stayed on after a successful submit).
+- RED: new e2e test "after a token is issued, entering the next patient shows no errors until submit" failed
+  (`expected: false, actual: true`).
+- Fix: `app/app.js` resets the flag after a successful issue.
+- GREEN: `npm test` 19/19; `PW_CHANNEL=chromium npm run test:e2e` 18/18 (Ashik's 7 login tests included).
+
+**Test setup note:** commit `4e0bd53` switched the browser tests to installed Google Chrome (`channel: "chrome"`),
+which this cloud session does not have. Chrome stays the default; `PW_CHANNEL=chromium` now runs the same tests on
+Playwright's own Chromium.
+
+---
+
+## New epic and story: E5 Sign-in and access / US-14
+
+**Why:** sign-in (landing page, patient sign-in, receptionist PIN, page guards) was built in commit `4e0bd53` and
+tested, but no PRD feature, epic or story covered it, which breaks the demo → story → epic → PRD → need chain.
+
+- **PRD:** added Should-Have **S6 Role-based sign-in** (demo-level security, no server).
+- **Epics:** added **E5 Sign-in and access** (Should; traces to S6, MR-1, MR-2) with user need, goal and definition
+  of done; added to the traceability chain and build order.
+- **Stories:** added **US-14 Sign in as patient or receptionist** with four acceptance criteria:
+  AC-14.1 role choice on the landing page · AC-14.2 patient sign-in opens the token page with the name filled in ·
+  AC-14.3 correct PIN opens the staff console, wrong PIN is refused · AC-14.4 pages redirect when nobody is signed in.
+- **Regenerated:** PRD, Epics and User Stories PDFs from their generator scripts. A line-by-line text check shows
+  every previous line is still present; the only changed line is the count ("5 epics and 14 user stories").
+  Backlog checks in the script passed: 5 epics, 14 stories, 39 acceptance criteria, every story traced.
+- **Tests:** the 7 existing sign-in tests were renamed with their AC-14 IDs (no logic changed).
+  `npm test` 19/19; `PW_CHANNEL=chromium npm run test:e2e` 18/18 — AC-14.1 to AC-14.4 all pass.
+- **Docs:** README no longer says "No login"; run steps start at the landing page. Project status marks US-14 Completed.
+
+---
+
+## Feature F2 — Send to Billing (US-04, PRD S4)
+
+**Objective:** a patient finishing at a department counter joins the Billing queue in one click, keeping their
+details, so the system covers both halves of "registration and billing". Chosen by the team from the four unbuilt
+backlog stories.
+
+- **BA:** `docs/features/F2-send-to-billing.md`: story, AC-04.1/04.2, seven business rules, edge cases.
+  Decision: Billing is a queue of its own (code B), shown on the staff console and the display; patients can also
+  choose it directly.
+- **Developer (TDD):**
+  - RED: 6 new unit tests failed with `Q.sendTo is not a function`; 5 new browser tests failed (no button, no Billing
+    queue). Existing 19 unit and 18 browser tests still passed.
+  - GREEN: `QueueCore.sendTo(day, from, to, now)` completes the serving token, issues a linked token at the end of
+    Billing with the patient's details (doctor cleared), links both ways (`linkedFrom`, `forwardedTo`).
+    `TokenQueue.sendTo`, a Billing entry in `app/data.js`, a **Send to Billing** button on the staff console
+    ("from G001" on billing tokens), and the patient's token page shows "Sent to Billing: your billing token is B00x".
+  - Files: `app/queue-core.js`, `app/queue.js`, `app/data.js`, `app/app.js`, `app/staff.html`, `app/staff.js`,
+    `app/screens.css`, `tests/queue-core.test.js`, `tests/e2e.test.js`.
+- **QA:** `npm test` **25/25**; `PW_CHANNEL=chromium npm run test:e2e` **23/23**. Screens reviewed in the browser
+  (staff before/after, Billing tab, display with the Billing queue, patient card); no page errors; no sideways scroll
+  at 390 px.
+- **Integration:** the display shows the Billing queue live; patient names stay off the display (unit + e2e test).
+- **Demo deck:** slide 4's cut list no longer lists Send to Billing (now built); replaced with voice announcement
+  (US-08, not built). Speaker notes updated. Validation passed; slide re-rendered.
+- **Limits:** one counter per queue still; the PRD's separate Registration (R) queue is not used (departments act as
+  the first stop).
+
+---
+
+## Merge — PR #6 (Flask backend + SQLite) with everything since
+
+**Objective:** bring Ashik's open PR #6 into `main` without losing the work merged after it was branched
+(PRs #7–#10: form fix, demo deck, architecture, US-14, Send to Billing).
+
+- **Trial merge** of `main` into the PR branch: 6 files changed on both sides merged automatically through the
+  `app/` → `frontend/` move; 4 conflicts: `README.md`, `docs/project-status.md`, `tests/e2e.test.js` (test startup),
+  and `app/queue.js` (deleted in PR #6, extended with Send to Billing on `main`).
+- **Send to Billing ported to the server** (tests first): 5 new backend tests failed, then passed after adding
+  `linked_from` / `forwarded_to` columns, an automatic upgrade for existing databases, Billing in `seed.sql`,
+  `send_to()` in `queue_service.py`, route `POST /api/queue/<code>/send-to/<target>`, and `sendTo` in
+  `frontend/js/queue.js`.
+- **Bug found in PR #6:** the staff console confirmed "Called undefined." because `act()` did not wait for the
+  server. A new test reproduced it (`actual: 'Called undefined. It is now on the display.'`); `act()` now awaits the
+  call and shows server errors. Test passes.
+- **Test fix:** three billing browser tests clicked twice without waiting for the server; they now wait for the
+  expected state, as PR #6's own tests do.
+- **Results:** `npm test` 25/25 · `npm run test:backend` 11/11 · `npm run test:e2e` 24/24 (three consecutive runs).
+- **Re-measured:** display update after Call Next on the server version: 0.11–0.70 s over 10 calls (median 0.35 s),
+  replacing the 28 ms figure from the browser-only version on deck slide 4.
+- **Deck:** slide 4 no longer lists "Server and database" as cut (now built); cut list is multiple counters, QR
+  tracking, voice announcement. Notes say to start the app with `npm start`.
+- **Not yet updated:** `docs/architecture/` diagrams (marked out of date).

@@ -25,10 +25,19 @@ def init_database(app) -> None:
     try:
         with conn:
             conn.executescript(SCHEMA.read_text(encoding="utf-8"))
+            upgrade_schema(conn)
             if SEED.exists():
                 conn.executescript(SEED.read_text(encoding="utf-8"))
     finally:
         conn.close()
+
+
+def upgrade_schema(conn: sqlite3.Connection) -> None:
+    """Add columns introduced after a database was first created (CREATE TABLE IF NOT EXISTS skips them)."""
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(tokens)")}
+    for name in ("linked_from", "forwarded_to"):  # US-04 Send to Billing
+        if name not in columns:
+            conn.execute(f"ALTER TABLE tokens ADD COLUMN {name} TEXT")
 
 
 def get_db() -> sqlite3.Connection:

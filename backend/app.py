@@ -13,7 +13,7 @@ if str(Path(__file__).resolve().parent) not in sys.path:
 
 from db import close_db, get_db, init_database
 from services.queue_service import (
-    call_next, get_day, issue_token, list_departments, recall_token, skip_current,
+    call_next, get_day, issue_token, list_departments, recall_token, send_to, skip_current,
 )
 
 
@@ -76,6 +76,15 @@ def create_app(test_config: dict | None = None) -> Flask:
     def skip_route(code: str):
         try:
             token = skip_current(get_db(), code)
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+        return jsonify({"token": token})
+
+    @app.post("/api/queue/<code>/send-to/<target>")
+    def send_to_route(code: str, target: str):
+        # US-04 Send to Billing: token is null when nobody is being served in <code>.
+        try:
+            token = send_to(get_db(), code, target)
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
         return jsonify({"token": token})

@@ -1,6 +1,6 @@
 // End-to-end browser tests: token page, staff console and display working together.
 // Run: npm run test:e2e   (needs Playwright: npm install && npx playwright install chromium)
-// Each test gets a fresh browser context, so localStorage (the queue) starts empty.
+// Each test resets the test database through /api/test/reset and gets a fresh browser context.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
@@ -103,6 +103,17 @@ test("AC-03.1 empty form is refused with a message on each field", async () => {
   await ctx.close();
 });
 
+test("after a token is issued, entering the next patient shows no errors until submit", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await tok.fill("#name", "");
+  await tok.fill("#phone", "98");
+  assert.equal(await tok.isVisible("#form-error"), false);
+  assert.equal(await tok.textContent("#phone-err"), "");
+  await ctx.close();
+});
+
 test("AC-01.1 / AC-02.1 tokens are issued in order per department", async () => {
   const { ctx, errors, open } = await setup();
   const tok = await open("patient.html");
@@ -127,6 +138,17 @@ test("AC-05.1 / AC-06.1 Call Next updates the display within 2 seconds, without 
   await staff.click("#call-next");
   await disp.waitForFunction(() => document.querySelector(".panel-number")?.textContent === "G002", null, { timeout: 2000 });
   assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-05.1 Call Next confirms which token was called", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  assert.equal(await staff.textContent("#serving-hint"), "Called G001. It is now on the display.");
   await ctx.close();
 });
 
@@ -258,7 +280,7 @@ test("all three screens fit a phone without sideways scrolling", async () => {
 
 // --- auth-specific tests ---
 
-test("landing page shows patient and receptionist role cards", async () => {
+test("AC-14.1 landing page shows patient and receptionist role cards", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const errors = [];
   const page = await open(ctx, "index.html", errors);
@@ -270,7 +292,7 @@ test("landing page shows patient and receptionist role cards", async () => {
   await ctx.close();
 });
 
-test("patient can sign in and reaches patient.html", async () => {
+test("AC-14.2 patient can sign in and reaches patient.html", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const errors = [];
   const page = await open(ctx, "index.html", errors);
@@ -284,7 +306,7 @@ test("patient can sign in and reaches patient.html", async () => {
   await ctx.close();
 });
 
-test("receptionist can sign in with PIN 1234 and reaches staff.html", async () => {
+test("AC-14.3 receptionist can sign in with PIN 1234 and reaches staff.html", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const errors = [];
   const page = await open(ctx, "index.html", errors);
@@ -298,7 +320,7 @@ test("receptionist can sign in with PIN 1234 and reaches staff.html", async () =
   await ctx.close();
 });
 
-test("wrong PIN shows an error and does not navigate", async () => {
+test("AC-14.3 wrong PIN shows an error and does not navigate", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const errors = [];
   const page = await open(ctx, "index.html", errors);
@@ -313,7 +335,7 @@ test("wrong PIN shows an error and does not navigate", async () => {
   await ctx.close();
 });
 
-test("patient.html without a session redirects to index.html", async () => {
+test("AC-14.4 patient.html without a session redirects to index.html", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
   await page.goto(APP + "patient.html");
@@ -322,7 +344,7 @@ test("patient.html without a session redirects to index.html", async () => {
   await ctx.close();
 });
 
-test("staff.html without a session redirects to index.html", async () => {
+test("AC-14.4 staff.html without a session redirects to index.html", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await ctx.newPage();
   await page.goto(APP + "staff.html");
@@ -331,7 +353,7 @@ test("staff.html without a session redirects to index.html", async () => {
   await ctx.close();
 });
 
-test("patient session pre-fills name in the token form", async () => {
+test("AC-14.2 patient session pre-fills name in the token form", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const session = JSON.stringify({ role: "patient", name: "Priya Sharma", phone: "9876543210", timestamp: Date.now() });
   await ctx.addInitScript(`localStorage.setItem("carequeue-session", '${session}');`);
@@ -340,5 +362,80 @@ test("patient session pre-fills name in the token form", async () => {
   const nameVal = await page.inputValue("#name");
   assert.equal(nameVal, "Priya Sharma");
   assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+// --- US-04 Send to Billing ---
+
+test("AC-04.1 Send to Billing completes the served token and creates a billing token", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  await staff.click("#send-billing");
+  await staff.waitForFunction(() => /sent to Billing/.test(document.getElementById("serving-hint").textContent));
+  assert.match(await staff.textContent("#serving-hint"), /G001 sent to Billing as B001/);
+  assert.equal(await staff.textContent("#serving-number"), "—");
+  await staff.click('.dept-tab[data-code="B"]');
+  const waiting = await staff.$$eval("#waiting-rows .token", (els) => els.map((e) => e.textContent));
+  assert.deepEqual(waiting, ["B001"]);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-04.2 the billing token shows the token it came from", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  await staff.click("#send-billing");
+  await staff.waitForFunction(() => /sent to Billing/.test(document.getElementById("serving-hint").textContent));
+  await staff.click('.dept-tab[data-code="B"]');
+  assert.match(await staff.textContent("#waiting-rows tr"), /from G001/);
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "B001");
+  assert.match(await staff.textContent("#serving-meta"), /from G001/);
+  await ctx.close();
+});
+
+test("US-04 display shows the billing queue (numbers only) and the patient's page shows the billing token", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const staff = await open("staff.html");
+  const disp = await open("display.html");
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  await staff.click("#send-billing");
+  await disp.waitForFunction(() => [...document.querySelectorAll(".display-panel h2")].some((h) => h.textContent === "Billing"), null, { timeout: 2000 });
+  const next = await disp.$$eval(".next-number", (els) => els.map((e) => e.textContent));
+  assert.ok(next.includes("B001"));
+  assert.ok(!(await disp.content()).includes("Priya"));
+  await tok.waitForFunction(() => document.getElementById("t-wait").textContent.includes("B001"), null, { timeout: 2000 });
+  await ctx.close();
+});
+
+test("US-04 Send to Billing is disabled with nobody served and hidden on the Billing queue", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const staff = await open("staff.html");
+  assert.equal(await staff.isDisabled("#send-billing"), true);
+  await staff.click('.dept-tab[data-code="B"]');
+  assert.equal(await staff.isHidden("#send-billing"), true);
+  await ctx.close();
+});
+
+test("US-04 patients can choose Billing directly; no doctor is needed", async () => {
+  const { ctx, open } = await setup();
+  const tok = await open("patient.html");
+  await tok.selectOption("#department", "bill");
+  assert.equal(await tok.isDisabled("#doctor"), true);
+  assert.equal(await tok.textContent("#doctor-hint"), "No doctor needed for Billing.");
+  assert.equal(await issue(tok, "bill", "Ravi Kumar"), "B001");
   await ctx.close();
 });

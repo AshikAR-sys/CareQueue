@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1110" viewBox="0 0 1600 1110" font-family="Inter, -apple-system, 'Segoe UI', Arial, sans-serif">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6b82"/></marker></defs>
+<rect width="1600" height="1110" fill="#f7fafc"/>
+<text x="50" y="56" font-size="30" font-weight="800" fill="#0b1b33" text-anchor="start">CareQueue: system architecture</text>
+<text x="50" y="86" font-size="16" font-weight="400" fill="#33445e" text-anchor="start">Hospital Digital Token and Queue Management System · static web app, no build step · as built on 25 Oct 2026</text>
+<rect x="495" y="118" width="225" height="58" rx="29" fill="#0b1b33"/>
+<text x="607" y="143" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">Patient</text>
+<text x="607" y="163" font-size="12" font-weight="400" fill="#c9d6ee" text-anchor="middle">phone, kiosk or desk browser</text>
+<rect x="880" y="118" width="225" height="58" rx="29" fill="#0b1b33"/>
+<text x="992" y="143" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">Receptionist</text>
+<text x="992" y="163" font-size="12" font-weight="400" fill="#c9d6ee" text-anchor="middle">reception PC</text>
+<rect x="1265" y="118" width="225" height="58" rx="29" fill="#0b1b33"/>
+<text x="1377" y="143" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">Waiting-room TV</text>
+<text x="1377" y="163" font-size="12" font-weight="400" fill="#c9d6ee" text-anchor="middle">full-screen browser</text>
+<text x="50" y="150" font-size="15" font-weight="700" fill="#5b6b82" text-anchor="start">People</text>
+<text x="50" y="222" font-size="15" font-weight="700" fill="#5b6b82" text-anchor="start">Pages  (app/*.html)</text>
+<rect x="50" y="236" width="345" height="150" rx="14" fill="#e6efff" stroke="#b9cdf5" stroke-width="1.5"/>
+<text x="68" y="266" font-size="17" font-weight="700" fill="#1458e6" text-anchor="start">index.html</text>
+<text x="68" y="292" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Landing and sign-in</text>
+<text x="68" y="313" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">script: auth.js</text>
+<text x="68" y="334" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Patient: name + phone</text>
+<text x="68" y="355" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Receptionist: name + PIN (demo)</text>
+<rect x="435" y="236" width="345" height="150" rx="14" fill="#e6efff" stroke="#b9cdf5" stroke-width="1.5"/>
+<text x="453" y="266" font-size="17" font-weight="700" fill="#1458e6" text-anchor="start">patient.html</text>
+<text x="453" y="292" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Token form + token card</text>
+<text x="453" y="313" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">script: app.js</text>
+<text x="453" y="334" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Validate → issue token</text>
+<text x="453" y="355" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Live estimate · print · download</text>
+<rect x="820" y="236" width="345" height="150" rx="14" fill="#e6efff" stroke="#b9cdf5" stroke-width="1.5"/>
+<text x="838" y="266" font-size="17" font-weight="700" fill="#1458e6" text-anchor="start">staff.html</text>
+<text x="838" y="292" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Staff console</text>
+<text x="838" y="313" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">script: staff.js</text>
+<text x="838" y="334" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Call Next · Skip · Recall</text>
+<text x="838" y="355" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Waiting and missed lists</text>
+<rect x="1205" y="236" width="345" height="150" rx="14" fill="#e6efff" stroke="#b9cdf5" stroke-width="1.5"/>
+<text x="1223" y="266" font-size="17" font-weight="700" fill="#1458e6" text-anchor="start">display.html</text>
+<text x="1223" y="292" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Waiting-room display</text>
+<text x="1223" y="313" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">script: display.js</text>
+<text x="1223" y="334" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Now serving + next 5</text>
+<text x="1223" y="355" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Token numbers only, no names</text>
+<line x1="607" y1="176" x2="607" y2="234" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/>
+<line x1="992" y1="176" x2="992" y2="234" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/>
+<line x1="1377" y1="176" x2="1377" y2="234" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/>
+<line x1="540" y1="176" x2="330" y2="234" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/><text x="360" y="200" font-size="12.5" font-weight="500" fill="#5b6b82" text-anchor="start">1. sign in</text>
+<line x1="905" y1="176" x2="380" y2="240" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/>
+<text x="50" y="446" font-size="15" font-weight="700" fill="#5b6b82" text-anchor="start">Shared modules</text>
+<rect x="50" y="460" width="276" height="140" rx="14" fill="#dff4f8" stroke="#a9dde8" stroke-width="1.5"/>
+<text x="68" y="490" font-size="17" font-weight="700" fill="#0a7e9b" text-anchor="start">auth.js</text>
+<text x="68" y="516" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">CareAuth</text>
+<text x="68" y="537" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Session, 8-hour expiry</text>
+<text x="68" y="558" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Demo PIN check (1234)</text>
+<text x="68" y="579" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Page guard by role</text>
+<rect x="356" y="460" width="276" height="140" rx="14" fill="#dff4f8" stroke="#a9dde8" stroke-width="1.5"/>
+<text x="374" y="490" font-size="17" font-weight="700" fill="#0a7e9b" text-anchor="start">data.js</text>
+<text x="374" y="516" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Sample hospital data</text>
+<text x="374" y="537" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Departments + codes</text>
+<text x="374" y="558" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Doctors per department</text>
+<text x="374" y="579" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Room locations</text>
+<rect x="662" y="460" width="276" height="140" rx="14" fill="#dff4f8" stroke="#a9dde8" stroke-width="1.5"/>
+<text x="680" y="490" font-size="17" font-weight="700" fill="#0a7e9b" text-anchor="start">queue.js</text>
+<text x="680" y="516" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">TokenQueue (store)</text>
+<text x="680" y="537" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Load / save today&#x27;s queue</text>
+<text x="680" y="558" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Live sync between tabs</text>
+<text x="680" y="579" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">API a backend would keep</text>
+<rect x="968" y="460" width="276" height="140" rx="14" fill="#dff4f8" stroke="#a9dde8" stroke-width="1.5"/>
+<text x="986" y="490" font-size="17" font-weight="700" fill="#0a7e9b" text-anchor="start">queue-core.js</text>
+<text x="986" y="516" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">QueueCore (rules)</text>
+<text x="986" y="537" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">issue · callNext · skip · recall</text>
+<text x="986" y="558" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">EWT = R + N × AST</text>
+<text x="986" y="579" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Pure functions, unit-tested</text>
+<rect x="1274" y="460" width="276" height="140" rx="14" fill="#dff4f8" stroke="#a9dde8" stroke-width="1.5"/>
+<text x="1292" y="490" font-size="17" font-weight="700" fill="#0a7e9b" text-anchor="start">screens.js</text>
+<text x="1292" y="516" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Screen helpers</text>
+<text x="1292" y="537" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Clock, time formats</text>
+<text x="1292" y="558" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Shared by staff</text>
+<text x="1292" y="579" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">and display</text>
+<line x1="240" y1="386" x2="240" y2="458" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/><text x="250" y="428" font-size="12.5" font-weight="500" fill="#5b6b82" text-anchor="start">uses</text>
+<line x1="607" y1="386" x2="800" y2="458" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/>
+<line x1="992" y1="386" x2="800" y2="458" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/>
+<line x1="1377" y1="386" x2="800" y2="458" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/>
+<text x="330" y="420" font-size="12.5" font-weight="500" fill="#5b6b82" text-anchor="start">patient, staff and display all use queue.js</text>
+<line x1="938" y1="530" x2="966" y2="530" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/>
+<text x="930" y="520" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="end">rules</text>
+<text x="50" y="650" font-size="15" font-weight="700" fill="#5b6b82" text-anchor="start">Storage</text>
+<rect x="50" y="664" width="1500" height="176" rx="18" fill="#fff4dc" stroke="#ecd29a" stroke-width="1.5"/>
+<rect x="80" y="684" width="428" height="104" rx="14" fill="#fff" stroke="#ecd29a" stroke-width="1.5"/>
+<text x="98" y="714" font-size="17" font-weight="700" fill="#8a5300" text-anchor="start">carequeue-session</text>
+<text x="98" y="740" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Who is signed in: role, name, time</text>
+<text x="98" y="761" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">One sign-in per browser</text>
+<rect x="586" y="684" width="428" height="104" rx="14" fill="#fff" stroke="#ecd29a" stroke-width="1.5"/>
+<text x="604" y="714" font-size="17" font-weight="700" fill="#8a5300" text-anchor="start">carequeue-queue:YYYY-MM-DD</text>
+<text x="604" y="740" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Today&#x27;s queue: counters + tokens</text>
+<text x="604" y="761" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">New key each day → numbers restart</text>
+<rect x="1092" y="684" width="428" height="104" rx="14" fill="#fff" stroke="#ecd29a" stroke-width="1.5"/>
+<text x="1110" y="714" font-size="17" font-weight="700" fill="#8a5300" text-anchor="start">carequeue-staff-dept</text>
+<text x="1110" y="740" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Staff console&#x27;s chosen department</text>
+<text x="1110" y="761" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Convenience only</text>
+<text x="80" y="818" font-size="13.5" font-weight="500" fill="#33445e" text-anchor="start">Browser localStorage, on this computer only. Live sync: a change in one tab reaches the others through the storage event (instant), with a 1-second check as a fallback.</text>
+<line x1="240" y1="600" x2="240" y2="682" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/><text x="250" y="648" font-size="12.5" font-weight="500" fill="#5b6b82" text-anchor="start">session</text>
+<line x1="800" y1="600" x2="800" y2="682" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/><text x="808" y="648" font-size="12.5" font-weight="500" fill="#5b6b82" text-anchor="start">read / write</text>
+<polyline points="1140,386 1259,420 1259,682" fill="none" stroke="#5b6b82" stroke-width="1.8" stroke-dasharray="5 5" marker-end="url(#ah)"/>
+<text x="1268" y="640" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">staff.js: chosen department</text>
+<rect x="50" y="880" width="735" height="170" rx="14" fill="#fff" stroke="#c9d6e3" stroke-width="1.5"/>
+<text x="68" y="910" font-size="17" font-weight="700" fill="#0b1b33" text-anchor="start">Automated tests  (tests/)</text>
+<text x="68" y="936" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">node:test, 19 unit tests → queue-core.js</text>
+<text x="68" y="957" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Numbering, Call Next, Skip, Recall, EWT incl. the PRD&#x27;s 23-minute example</text>
+<text x="68" y="978" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">Playwright, 18 browser tests → all four pages together</text>
+<text x="68" y="999" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Display &lt; 2 s, no names on display, sign-in and guards, phone layout</text>
+<rect x="815" y="880" width="735" height="170" rx="14" fill="#fff" stroke="#9aa9bd" stroke-width="1.5" stroke-dasharray="7 6"/>
+<text x="833" y="910" font-size="17" font-weight="700" fill="#5b6b82" text-anchor="start">Not built  (by design, for the 1.5-day hackathon)</text>
+<text x="833" y="936" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">No server and no database: the queue is shared only between tabs</text>
+<text x="833" y="957" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">of one browser on one computer.</text>
+<text x="833" y="978" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">To scale: keep TokenQueue&#x27;s functions, replace load/save with</text>
+<text x="833" y="999" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">API calls and server push; run queue-core.js on the server unchanged.</text>
+</svg>

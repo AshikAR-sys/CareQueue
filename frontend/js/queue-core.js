@@ -62,6 +62,21 @@
     return current;
   }
 
+  // Send to Billing (US-04): the patient being served in one queue is completed there and joins the end of
+  // another queue (Billing) with a new token carrying the same patient details. The two tokens are linked.
+  function sendTo(day, fromCode, toCode, now) {
+    if (fromCode === toCode) return null;
+    const current = servingIn(day, fromCode);
+    if (!current) return null;
+    const patient = current.patient ? Object.assign({}, current.patient, { doctor: "" }) : null;
+    const next = issue(day, { code: toCode, patient }, now);
+    next.linkedFrom = current.number;
+    current.status = "done";
+    current.doneAt = now;
+    current.forwardedTo = next.number;
+    return next;
+  }
+
   function recall(day, number, now) {
     const token = day.tokens.find((t) => t.number === number && t.status === "missed");
     if (!token) return null;
@@ -85,7 +100,9 @@
     const token = day.tokens.find((t) => t.number === number);
     if (!token) return null;
     if (token.status === "serving") return { status: "serving" };
-    if (token.status !== "waiting") return { status: token.status };
+    if (token.status !== "waiting") {
+      return token.forwardedTo ? { status: token.status, forwardedTo: token.forwardedTo } : { status: token.status };
+    }
     const ast = averageServiceMs(day, token.code);
     const queue = waitingIn(day, token.code);
     const ahead = queue.indexOf(token);
@@ -118,7 +135,7 @@
     };
   }
 
-  const api = { DEFAULT_AST_MS, dayKey, emptyDay, issue, callNext, skip, recall, averageServiceMs, estimate, view, publicView };
+  const api = { DEFAULT_AST_MS, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.QueueCore = api;
 })(typeof window !== "undefined" ? window : globalThis);

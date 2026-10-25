@@ -8,6 +8,7 @@
   const Q = window.TokenQueue;
   const $ = (id) => document.getElementById(id);
   const PREF_KEY = "carequeue-staff-dept";
+  const BILLING = DATA.departments.find((d) => d.billing) || null;   // US-04: the queue patients are sent on to
 
   let code = readPref() || DATA.departments[0].code;
   let lastSignature = "";
@@ -22,6 +23,9 @@
     if (p.gender) bits.push(p.gender);
     return bits.join(", ");
   }
+
+  // "from G001" on a token that was sent on from another queue (AC-04.2).
+  function fromText(t) { return t && t.linkedFrom ? " · from " + t.linkedFrom : ""; }
 
   function renderTabs() {
     const box = $("dept-tabs");
@@ -61,7 +65,7 @@
       $("serving-name").textContent = patientLine(v.serving.patient) || "Patient";
       const since = minutes(now - v.serving.calledAt);
       $("serving-meta").textContent = "Called at " + time(new Date(v.serving.calledAt)) + " · " + since + " min at the counter" +
-        (v.serving.patient && v.serving.patient.doctor ? " · " + v.serving.patient.doctor : "");
+        (v.serving.patient && v.serving.patient.doctor ? " · " + v.serving.patient.doctor : "") + fromText(v.serving);
     } else {
       $("serving-number").textContent = "—";
       $("serving-number").classList.add("empty");
@@ -74,6 +78,12 @@
     callBtn.querySelector(".btn-label").textContent = v.waiting.length ? "Call Next · " + v.waiting[0].number : (v.serving ? "Finish " + v.serving.number : "Call Next");
     $("skip").disabled = !v.serving;
     $("skip").title = v.serving ? "Move " + v.serving.number + " to Missed" : "Nobody is being served";
+    const sendBtn = $("send-billing");
+    const canSend = !!BILLING && code !== BILLING.code;
+    sendBtn.hidden = !canSend;
+    sendBtn.closest(".serving-actions").classList.toggle("no-billing", !canSend);
+    sendBtn.disabled = !v.serving;
+    sendBtn.title = v.serving ? "Finish " + v.serving.number + " here and add the patient to Billing" : "Nobody is being served";
 
     $("stat-waiting").textContent = String(v.waiting.length);
     $("stat-served").textContent = String(v.served);
@@ -89,7 +99,7 @@
     }
     v.waiting.forEach((t, i) => {
       const tr = el("tr");
-      tr.append(el("td", "num", String(i + 1)), el("td", "token", t.number), el("td", null, patientLine(t.patient)),
+      tr.append(el("td", "num", String(i + 1)), el("td", "token", t.number), el("td", null, patientLine(t.patient) + fromText(t)),
         el("td", "num", minutes(now - t.createdAt) + " min"), el("td", "num", t.minutes === 0 ? "Next" : t.minutes + " min"));
       rows.append(tr);
     });
@@ -112,9 +122,14 @@
     else if (focusedCode) { const t = document.querySelector('.dept-tab[data-code="' + focusedCode + '"]'); if (t) t.focus(); }
   }
 
-  function act(fn, message) {
-    const result = fn();
-    $("serving-hint").textContent = message(result) || "";
+  // Queue actions go to the server and return promises: wait for the result before confirming it.
+  async function act(fn, message) {
+    try {
+      const result = await fn();
+      $("serving-hint").textContent = message(result) || "";
+    } catch (error) {
+      $("serving-hint").textContent = (error && error.message) || "The queue action failed. Try again.";
+    }
     render(true);
   }
 
@@ -122,6 +137,8 @@
     (r) => r ? "Called " + r.number + ". It is now on the display." : "No one is waiting."));
   $("skip").addEventListener("click", () => act(() => Q.skip(code),
     (r) => r ? r.number + " moved to Missed. Recall it when the patient arrives." : ""));
+  $("send-billing").addEventListener("click", () => act(() => (BILLING ? Q.sendTo(code, BILLING.code) : null),
+    (r) => r ? r.linkedFrom + " sent to Billing as " + r.number + "." : "Nobody is being served."));
 
   const session = window.CareAuth ? window.CareAuth.get() : null;
   const sessionChip = $("session-chip"), soBtn = $("signout-btn");

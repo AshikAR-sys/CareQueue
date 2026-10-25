@@ -76,6 +76,13 @@
     return result.token;
   }
 
+  // US-04 Send to Billing: finish the patient being served in fromCode and add them to toCode.
+  async function sendTo(fromCode, toCode) {
+    const result = await request("/api/queue/" + encodeURIComponent(fromCode) + "/send-to/" + encodeURIComponent(toCode), {});
+    await refresh(true);
+    return result.token;
+  }
+
   async function recall(number) {
     const result = await request("/api/tokens/" + encodeURIComponent(number) + "/recall", {});
     await refresh(true);
@@ -95,6 +102,7 @@
     callNext,
     skip,
     recall,
+    sendTo,
     estimate: (number) => Core.estimate(day, number, Date.now()),
     view: (code) => Core.view(day, code, Date.now()),
     publicView: (code) => Core.publicView(day, code, Date.now()),

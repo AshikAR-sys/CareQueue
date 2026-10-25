@@ -4,4 +4,5 @@ INSERT OR IGNORE INTO departments (id, code, name, location, doctors_json, activ
 ('ortho', 'O', 'Orthopaedics', 'First floor, Block A', '["Dr. Arjun Nair", "Dr. Kavya Reddy"]', 1, 3),
 ('paed', 'P', 'Paediatrics', 'Ground floor, Block C', '["Dr. Lakshmi Prasad", "Dr. Rahul Varma"]', 1, 4),
 ('derm', 'D', 'Dermatology', 'Second floor, Block B', '["Dr. Farah Siddiqui"]', 1, 5),
-('ent', 'E', 'ENT', 'Second floor, Block A', '["Dr. Naveen Kumar", "Dr. Divya Shankar"]', 1, 6);
+('ent', 'E', 'ENT', 'Second floor, Block A', '["Dr. Naveen Kumar", "Dr. Divya Shankar"]', 1, 6),
+('bill', 'B', 'Billing', 'Ground floor, Main reception', '[]', 1, 7);

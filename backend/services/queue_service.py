@@ -21,6 +21,7 @@ def token_from_row(row, include_patient: bool = True) -> dict:
         "status": row["status"], "createdAt": row["created_at"],
         "calledAt": row["called_at"], "doneAt": row["done_at"],
         "skippedAt": row["skipped_at"],
+        "linkedFrom": row["linked_from"], "forwardedTo": row["forwarded_to"],
     }
     if include_patient:
         token["patient"] = {
@@ -184,3 +185,47 @@ def recall_token(conn: Connection, number: str) -> dict | None:
             (now, missed["id"]),
         )
     return token_from_row(conn.execute("SELECT * FROM tokens WHERE id = ?", (missed["id"],)).fetchone())
+
+
+def send_to(conn: Connection, from_code: str, to_code: str) -> dict | None:
+    """US-04 Send to Billing: complete the patient being served in one queue and add them to the end of another
+    queue with a new token carrying the same details. Returns the new token, or None if nobody is being served."""
+    from_code, to_code = from_code.strip().upper(), to_code.strip().upper()
+    if not department(conn, from_code) or not department(conn, to_code):
+        raise ValueError("Unknown department.")
+    if from_code == to_code:
+        raise ValueError("A queue cannot send a patient to itself.")
+    day, now = today_key(), now_ms()
+    with conn:
+        conn.execute("BEGIN IMMEDIATE")
+        current = conn.execute(
+            """SELECT * FROM tokens WHERE queue_date = ? AND code = ? AND status = 'serving'
+               ORDER BY seq LIMIT 1""", (day, from_code),
+        ).fetchone()
+        if not current:
+            return None
+        counter = conn.execute(
+            "SELECT last_seq FROM queue_counters WHERE queue_date = ? AND code = ?", (day, to_code),
+        ).fetchone()
+        seq = (counter["last_seq"] if counter else 0) + 1
+        if seq > 999:
+            raise ValueError("Today's token limit for this department has been reached.")
+        conn.execute(
+            """INSERT INTO queue_counters(queue_date, code, last_seq) VALUES (?, ?, ?)
+               ON CONFLICT(queue_date, code) DO UPDATE SET last_seq = excluded.last_seq""",
+            (day, to_code, seq),
+        )
+        number = to_code + str(seq).zfill(3)
+        conn.execute(
+            """INSERT INTO tokens
+               (queue_date, number, code, seq, status, patient_name, age, gender, phone, doctor, created_at, linked_from)
+               VALUES (?, ?, ?, ?, 'waiting', ?, ?, ?, ?, '', ?, ?)""",
+            (day, number, to_code, seq, current["patient_name"], current["age"], current["gender"],
+             current["phone"], now, current["number"]),
+        )
+        conn.execute(
+            "UPDATE tokens SET status = 'done', done_at = ?, forwarded_to = ? WHERE id = ?",
+            (now, number, current["id"]),
+        )
+    return token_from_row(conn.execute(
+        "SELECT * FROM tokens WHERE queue_date = ? AND number = ?", (day, number)).fetchone())
