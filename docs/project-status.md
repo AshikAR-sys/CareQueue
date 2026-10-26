@@ -1,6 +1,6 @@
 # CareQueue Project Status
 
-Updated: 25 Oct 2026, after merging PR #6 (Flask backend + SQLite) with Send to Billing (US-04) and sign-in (US-14).
+Updated: 26 Oct 2026, after adding QR phone tracking (US-13).
 Demo: 25 Oct, 10:00 IST.
 Status labels: **Completed** (with evidence) · **In Progress** · **Pending** · **Blocked** · **Needs Verification**.
 
@@ -28,7 +28,7 @@ Status labels: **Completed** (with evidence) · **In Progress** · **Pending** �
 | Persistent queue across reloads (SQLite) | — | **Completed** | e2e persistence test |
 | Voice announcement (sound switch, chime + speech on each call and recall) | US-08 | **Completed** | 9 unit tests; e2e AC-08.1, AC-08.2 (+2) |
 | Multiple counters | US-11 | Pending | not built |
-| QR phone tracking | US-13 | Pending | not built |
+| QR phone tracking (live phone page, "Almost your turn") | US-13 | **Completed** | 6 unit tests; e2e US-13, AC-13.1–13.3 (+1) |
 
 ## How to run
 
@@ -44,9 +44,9 @@ Open http://127.0.0.1:8000.
 ## Test results (after the merge, 25 Oct 2026)
 
 ```
-npm test              →  34 / 34 pass  (queue rules + announcements)
+npm test              →  40 / 40 pass  (queue rules + announcements + phone tracking)
 npm run test:backend  →  11 / 11 pass  (Flask API + SQLite)
-npm run test:e2e      →  30 / 30 pass  (browser tests against an isolated test database; 3 consecutive runs)
+npm run test:e2e      →  34 / 34 pass  (browser tests against an isolated test database)
 ```
 
 ## Role-wise backlog
@@ -67,7 +67,7 @@ npm run test:e2e      →  30 / 30 pass  (browser tests against an isolated test
 2. **GitHub repository description** (Blocked from the cloud session): set it in GitHub → About.
 3. **Server-side PIN check** (QA fix 3, not applied): `/api/queue/state` and the queue actions are open to anyone
    who calls the API directly. The patient page no longer loads other patients' details.
-4. **Live site not yet QA-tested** from the cloud session (network policy blocks `carequeue-demo.onrender.com`).
+4. **Live site:** now reachable from the cloud session; read-only checks confirmed `main` is deployed. Full live QA not yet run.
 
 ## Safety note
 

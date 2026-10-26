@@ -108,6 +108,7 @@
     view: (code) => Core.view(day, code, Date.now()),
     publicView: (code) => Core.publicView(day, code, Date.now()),
     codesInUse: () => Object.keys(day.counters),
+    day: () => day,
     isPersistent: () => connected,
     subscribe
   };

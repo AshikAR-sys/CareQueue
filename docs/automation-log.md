@@ -318,3 +318,23 @@ Chosen by the team as the next story for the live demo.
   General Medicine." with chime; no page errors; no sideways scroll at 390 px. Results: `npm test` 34/34 ·
   backend 11/11 · e2e 30/30 (three consecutive runs).
 - **Deck:** slide 4's cut list no longer lists voice announcement; replaced with online booking (PRD Won't-Have).
+
+---
+
+## Feature F4 — Track my token on my phone (US-13, PRD S3)
+
+**Objective:** let patients follow their token on their own phone by scanning a QR code on the slip, so they do
+not have to watch the display. Chosen by the team as the next story (best live demo: judges scan with their phones).
+
+- **BA:** `docs/features/F4-qr-phone-tracking.md` (AC-13.1–13.3, seven rules: QR code on card, print and PNG; no
+  sign-in; numbers only, no patient details; live every second; waiting / almost / your turn / missed / sent to
+  Billing / completed; slips from another day are recognised).
+- **Developer (TDD):** 6 unit tests (`tests/track.test.js`) written first and watched fail (`Q.trackPath is not a
+  function`). Then `QueueCore.track()` and `trackPath()`, the phone page `frontend/track.html` + `js/track.js`, and
+  the QR code on the token card, print and download (`js/vendor/qrcode.js`, qrcode-generator 1.4.4, MIT, Kazuhiko
+  Arase). No backend change: the page uses the existing public endpoint.
+- **QA (webapp-testing):** 4 browser tests (QR shown with the right link; AC-13.1 on a 390 px phone with no
+  sign-in and no patient details; AC-13.2/13.3 live updates and alert; invalid / unknown / old links). Decoded the
+  card QR and the downloaded PNG's QR with OpenCV: both read `…/track.html?t=G004&d=<today>`. Print stays one A5
+  page. Results: `npm test` 40/40 · backend 11/11 · e2e 34/34.
+- **Deck:** slide 4's cut list no longer lists QR phone tracking; replaced with secure staff login (demo PIN only).
