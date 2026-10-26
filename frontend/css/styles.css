@@ -584,4 +584,11 @@ a { color: inherit; }
   .number { color: #000 !important; text-shadow: none; }
   .wait { background: #fff; border: 1px solid #999; box-shadow: none; }
   .instructions li, .muted, .label, .slip-meta dt { color: #000; }
+  .slip-qr a { display: none; }
 }
+
+/* the QR code on the token slip (patient page) */
+.slip-qr { display: flex; align-items: center; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(70, 86, 110, 0.3); }
+.slip-qr canvas { width: 96px; height: 96px; flex: none; border-radius: 8px; background: #fff; padding: 6px; }
+.slip-qr p { font-size: 13px; color: var(--ink-2); }
+.slip-qr a { color: var(--blue-deep); font-weight: 600; }

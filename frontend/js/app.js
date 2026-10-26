@@ -140,6 +140,38 @@
   }
 
   /* ---------- token card ---------- */
+  /* ---------- US-13: QR code that opens the phone tracking page ---------- */
+  function trackUrl(t) {
+    return new URL(window.QueueCore.trackPath(t.number, window.TokenQueue.day().date), window.location.href).href;
+  }
+
+  // Draws a QR code of text into a square of the given size on a 2D canvas context (white quiet zone included).
+  function drawQr(g, text, x, y, size) {
+    const qr = window.qrcode(0, "M");
+    qr.addData(text);
+    qr.make();
+    const n = qr.getModuleCount();
+    const cell = size / (n + 8);           // 4-module quiet zone on each side
+    g.fillStyle = "#ffffff"; g.fillRect(x, y, size, size);
+    g.fillStyle = "#0b1b33";
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (qr.isDark(r, c)) g.fillRect(x + (c + 4) * cell, y + (r + 4) * cell, Math.ceil(cell), Math.ceil(cell));
+      }
+    }
+  }
+
+  function setQr(t) {
+    const box = $("t-qr");
+    if (!t || !window.qrcode) { box.hidden = true; return; }
+    const url = trackUrl(t);
+    const canvas = $("t-qr-code");
+    drawQr(canvas.getContext("2d"), url, 0, 0, canvas.width);
+    canvas.dataset.url = url;
+    $("t-track-link").href = url;
+    box.hidden = false;
+  }
+
   function setActionsEnabled(on) {
     printBtn.disabled = !on;
     downloadBtn.disabled = !on;
@@ -194,6 +226,7 @@
     $("t-wait").textContent = s.wait;
     $("t-wait").classList.remove("unavailable");
     setInstructions(dept, null);
+    setQr(null);
     setActionsEnabled(false);
   }
 
@@ -211,6 +244,7 @@
     setText("t-issued", "When you submit");
     setWait(null, "Shown after your token is issued");
     setInstructions(v.department, null);
+    setQr(null);
     setActionsEnabled(false);
   }
 
@@ -232,6 +266,7 @@
     setText("t-issued", issuedFmt.format(t.issuedAt));
     setWait(t.estimate, "Not available yet. Check the display near the department.");
     setInstructions(t.department, t.number);
+    setQr(t);
     $("token-error").hidden = true;
     setActionsEnabled(true);
   }
@@ -243,6 +278,7 @@
     setText("token-error-text", message + " Your details are still in the form.");
     $("retry-btn").hidden = false;
     $("token-error").hidden = false;
+    setQr(null);
     setActionsEnabled(false);
   }
 
@@ -332,7 +368,7 @@
   });
 
   function drawSlip(t) {
-    const W = 720, H = 1000, s = 2;
+    const W = 720, H = 1200, s = 2;
     const c = document.createElement("canvas");
     c.width = W * s; c.height = H * s;
     const g = c.getContext("2d");
@@ -372,6 +408,15 @@
       g.fillStyle = "#56657b"; g.font = F(600, 17); g.fillText(k, 72, y);
       g.fillStyle = "#0b1b33"; g.font = F(700, 22); g.fillText(fit(g, val, W - 144), 72, y + 30);
       y += 72;
+    }
+
+    // QR code to the tracking page (US-13)
+    if (window.qrcode) {
+      drawQr(g, trackUrl(t), 72, y - 10, 170);
+      g.fillStyle = "#0b1b33"; g.font = F(700, 22); g.fillText("Track your token live", 270, y + 60);
+      g.fillStyle = "#56657b"; g.font = F(500, 17);
+      g.fillText("Scan with your phone camera.", 270, y + 92);
+      g.fillText("No app or sign-in needed.", 270, y + 118);
     }
 
     // footer

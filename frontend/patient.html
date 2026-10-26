@@ -204,6 +204,11 @@
             <p class="wait-value" id="t-wait">20–30 min</p>
           </div>
         </div>
+
+        <div class="slip-qr" id="t-qr" hidden>
+          <canvas id="t-qr-code" width="200" height="200" role="img" aria-label="QR code to track this token"></canvas>
+          <p>Scan with your phone to follow this token live. No app or sign-in needed.<br><a id="t-track-link" href="track.html" target="_blank" rel="noopener">Open tracking page</a></p>
+        </div>
       </div>
 
       <div class="card-error" id="token-error" hidden>
@@ -238,6 +243,7 @@
   <script src="js/queue-core.js"></script>
   <script src="js/queue.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/vendor/qrcode.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -543,3 +543,100 @@ test("staff console still loads full queue details", async () => {
   await staff.waitForFunction(() => /Ravi Kumar/.test(document.getElementById("waiting-rows").textContent), null, { timeout: 3000 });
   await ctx.close();
 });
+
+// --- US-13 Track my token on my phone ---
+
+// A phone with no CareQueue sign-in, as when a patient scans the QR code.
+async function phone(url, errors) {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  page.on("pageerror", (e) => errors.push("track: " + e.message));
+  page.on("console", (m) => { if (m.type() === "error") errors.push("track: " + m.text()); });
+  await page.goto(url);
+  return { ctx, page };
+}
+
+test("US-13 an issued token shows a QR code that links to its tracking page", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  assert.equal(await tok.isVisible("#t-qr"), false, "no QR code before a token exists");
+  await issue(tok, "gen", "Priya Sharma");
+  assert.equal(await tok.isVisible("#t-qr"), true);
+  const url = await tok.getAttribute("#t-qr-code", "data-url");
+  assert.match(url, /^http:\/\/127\.0\.0\.1:8765\/track\.html\?t=G001&d=\d{4}-\d{2}-\d{2}$/);
+  assert.equal(await tok.getAttribute("#t-track-link", "href"), url);
+  const dark = await tok.$eval("#t-qr-code", (c) => {
+    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i] < 100) n++;
+    return n;
+  });
+  assert.ok(dark > 1000, "the QR code is drawn (" + dark + " dark pixels)");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-13.1 the tracking page shows my token, now serving, people ahead and wait, with no login", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  for (const n of ["Priya Sharma", "Ravi Kumar", "Anita Das", "Mohan Iyer"]) await issue(tok, "gen", n);
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  const url = await tok.getAttribute("#t-qr-code", "data-url");    // G004
+  const { ctx: pctx, page } = await phone(url, errors);
+  await page.waitForFunction(() => document.getElementById("track-ahead").textContent === "2");
+  assert.equal(page.url(), url, "no redirect to sign-in");
+  assert.equal(await page.textContent("#track-number"), "G004");
+  assert.equal(await page.textContent("#track-dept"), "General Medicine");
+  assert.equal(await page.textContent("#track-serving"), "G001");
+  assert.match(await page.textContent("#track-wait"), /^About \d+ min$/);
+  const html = await page.content();
+  assert.ok(!html.includes("Mohan") && !html.includes("9876543210"), "no patient details on the phone page");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  assert.equal(overflow, false);
+  assert.deepEqual(errors, []);
+  await pctx.close();
+  await ctx.close();
+});
+
+test("AC-13.2 / AC-13.3 the tracking page updates without refresh and warns when 2 or fewer are ahead", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  for (const n of ["Priya Sharma", "Ravi Kumar", "Anita Das", "Mohan Iyer", "Lakshmi Rao"]) await issue(tok, "gen", n);
+  const url = await tok.getAttribute("#t-qr-code", "data-url");    // G005, 4 ahead
+  const { ctx: pctx, page } = await phone(url, errors);
+  await page.waitForFunction(() => document.getElementById("track-ahead").textContent === "4");
+  assert.equal(await page.isVisible("#track-alert"), false);
+  const staff = await open("staff.html");
+  await staff.click("#call-next");                                 // G001 serving, 3 ahead
+  await page.waitForFunction(() => document.getElementById("track-serving").textContent === "G001", null, { timeout: 2000 });
+  assert.equal(await page.isVisible("#track-alert"), false);
+  await staff.click("#call-next");                                 // G002 serving, 2 ahead
+  await page.waitForFunction(() => document.getElementById("track-ahead").textContent === "2", null, { timeout: 2000 });
+  assert.equal(await page.isVisible("#track-alert"), true);
+  assert.match(await page.textContent("#track-alert"), /Almost your turn/);
+  for (let i = 0; i < 3; i++) {
+    await staff.click("#call-next");
+    await staff.waitForFunction((n) => document.getElementById("serving-number").textContent === n, "G00" + (i + 3));
+  }
+  await page.waitForFunction(() => document.getElementById("track-card").dataset.state === "serving", null, { timeout: 2000 });
+  assert.match(await page.textContent("#track-alert"), /your turn now/);
+  assert.deepEqual(errors, []);
+  await pctx.close();
+  await ctx.close();
+});
+
+test("US-13 tracking page explains a missing, unknown or old token", async () => {
+  await setup();
+  const errors = [];
+  const { ctx, page } = await phone(APP + "track.html", errors);
+  await page.waitForFunction(() => document.getElementById("track-card").dataset.state === "invalid");
+  await page.goto(APP + "track.html?t=G999");
+  await page.waitForFunction(() => document.getElementById("track-card").dataset.state === "notfound");
+  await page.goto(APP + "track.html?t=G001&d=2020-01-01");
+  await page.waitForFunction(() => document.getElementById("track-card").dataset.state === "stale");
+  assert.match(await page.textContent("#track-dept"), /2020-01-01/);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});

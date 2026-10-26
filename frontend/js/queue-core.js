@@ -11,6 +11,7 @@
   const DEFAULT_AST_MS = 3 * 60 * 1000; // PRD: default service time until 3 tokens are served
   const MIN_SERVED_FOR_AVERAGE = 3;
   const AVERAGE_WINDOW = 10;           // PRD: average of the last 10 served
+  const ALMOST_AHEAD = 2;              // US-13: "Almost your turn" when 2 or fewer patients are ahead
 
   function dayKey(d) {
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -135,7 +136,25 @@
     };
   }
 
-  const api = { DEFAULT_AST_MS, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView };
+  // What a patient's phone may show for one token (US-13): no patient details, only numbers and the estimate.
+  function track(day, number, now) {
+    const token = day.tokens.find((t) => t.number === number);
+    if (!token) return null;
+    const current = servingIn(day, token.code);
+    const result = Object.assign(
+      { number, code: token.code, serving: current ? current.number : null },
+      estimate(day, number, now)
+    );
+    result.almost = result.status === "waiting" && result.ahead <= ALMOST_AHEAD;
+    return result;
+  }
+
+  // The QR code on a token slip opens this page; the date tells a stale slip from today's token.
+  function trackPath(number, date) {
+    return "track.html?t=" + encodeURIComponent(number) + "&d=" + encodeURIComponent(date);
+  }
+
+  const api = { DEFAULT_AST_MS, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView, track, trackPath };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.QueueCore = api;
 })(typeof window !== "undefined" ? window : globalThis);

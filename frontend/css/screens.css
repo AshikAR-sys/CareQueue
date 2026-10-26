@@ -225,3 +225,42 @@
 }
 
 @media print { .screen-display, .screen-staff { display: none; } }
+
+/* ---------- Track My Token (US-13): the phone page opened from the QR code ---------- */
+.track { max-width: 520px; margin: 0 auto; padding: 16px 16px 32px; display: grid; gap: 16px; }
+.track-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 4px 0; }
+.track-live {
+  font-size: 13px; font-weight: 600; color: var(--positive); background: var(--positive-bg);
+  padding: 6px 12px; border-radius: var(--r-pill);
+}
+.track-live.offline { color: var(--notice-ink); background: var(--notice-bg); }
+.track-card { border-radius: var(--r-panel); padding: 24px 22px; text-align: center; }
+.track-number {
+  margin-top: 4px; font-size: clamp(64px, 22vw, 104px); line-height: 1; font-weight: 700;
+  letter-spacing: -0.04em; color: var(--blue-deep); font-variant-numeric: tabular-nums;
+}
+.track-dept { margin-top: 8px; font-size: 18px; font-weight: 600; color: var(--ink-2); }
+.track-alert {
+  display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 18px; padding: 14px 16px; border-radius: var(--r-field);
+  font-size: 17px; font-weight: 700; color: var(--notice-ink); background: var(--notice-bg);
+}
+.track-card[data-state="serving"] .track-alert { color: var(--positive); background: var(--positive-bg); }
+.track-card[data-state="missed"] .track-alert { color: var(--negative); background: var(--negative-bg); }
+.track-card[data-state="almost"] .track-alert { animation: track-pulse 1.6s var(--ease) infinite; }
+.track-alert a { color: inherit; }
+@keyframes track-pulse { 50% { transform: scale(1.02); } }
+@media (prefers-reduced-motion: reduce) { .track-card[data-state="almost"] .track-alert { animation: none; } }
+.track-stats { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
+.track-stats > div {
+  padding: 12px 14px; border-radius: var(--r-field);
+  background: var(--well-fill); box-shadow: var(--well-shadow);
+}
+.track-stats .wide { grid-column: 1 / -1; }
+.track-stats dt { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--ink-3); }
+.track-stats dd { margin-top: 4px; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+.track-card[data-state="invalid"] .track-stats,
+.track-card[data-state="stale"] .track-stats,
+.track-card[data-state="notfound"] .track-stats { display: none; }
+.track-where { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; color: var(--ink-2); }
+.track-foot { text-align: center; font-size: 13px; color: var(--ink-3); }

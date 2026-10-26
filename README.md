@@ -54,9 +54,9 @@ The database file is created automatically at `database/carequeue.sqlite3`. It i
 ### Run the tests
 
 ```bash
-npm test                         # 34 unit tests (queue rules + announcements)
+npm test                         # 40 unit tests (queue rules, announcements, phone tracking)
 npm run test:backend             # 11 Flask API + SQLite integration tests
-npm run test:e2e                 # 30 browser tests against an isolated test database
+npm run test:e2e                 # 34 browser tests against an isolated test database
 npm run test:all                 # all three suites
 ```
 
@@ -72,6 +72,7 @@ npm run test:all                 # all three suites
 | Estimated waiting time: EWT = R + N × AST, default 3 min until 3 are served, then the average of the last 10 | US-09, US-10 | unit + e2e |
 | Live estimate on the patient's token card ("About 6 min · 2 people ahead") | US-09 | e2e |
 | Print token (one A5 page) and download (PNG) | US-12 | browser test |
+| Track my token on my phone: the token slip has a QR code that opens a live page (no app, no login) with the token being served, people ahead, the estimated wait and an "Almost your turn" alert | US-13 | unit + e2e |
 | Sign in as patient (name + phone) or receptionist (demo PIN); each page opens only for its role | US-14 | e2e |
 | Responsive Liquid Glass design; phone, tablet, desktop, TV | — | e2e (no overflow at 390 px) |
 
@@ -82,7 +83,8 @@ npm run test:all                 # all three suites
 - **Sample hospital data.** Departments, doctors and locations in `frontend/js/data.js` are sample data.
 - **Queues are departments plus Billing** (G, C, O, P, D, E, and B). Patients finish at their department and are sent on
   to Billing; a separate Registration (R) queue from the PRD is not used.
-- **Not built yet:** multiple counters (US-11), QR phone tracking (US-13).
+- **Not built yet:** multiple counters (US-11).
+- **QR tracking needs a reachable server.** A phone cannot open a laptop's `127.0.0.1`; scan the QR code on the deployed (Render) site.
 - A public display endpoint returns token numbers and status only; it excludes patient names and contact details.
 
 How this was built, stage by stage with test evidence: [`docs/automation-log.md`](docs/automation-log.md).
@@ -96,9 +98,9 @@ Demo deck (Team 12): [`docs/deck/CareQueue_Team12_Demo_Deck.pptx`](docs/deck/Car
 ```
 CareQueue/
 ├── frontend/
-│   ├── index.html, patient.html, staff.html, display.html
+│   ├── index.html, patient.html, staff.html, display.html, track.html
 │   ├── css/                 styles.css, screens.css
-│   ├── js/                  UI, auth demo, queue API adapter, queue rules
+│   ├── js/                  UI, auth demo, queue API adapter, queue rules, vendor/qrcode.js (MIT)
 │   └── assets/              hospital illustration
 ├── backend/
 │   ├── app.py               Flask API + static frontend server
@@ -111,7 +113,7 @@ CareQueue/
 │   ├── schema.sql            table constraints and indexes
 │   └── seed.sql              sample departments and doctors
 ├── tests/
-│   ├── queue-core.test.js
+│   ├── queue-core.test.js, announce.test.js, track.test.js
 │   └── e2e.test.js
 ├── docs/                     MRD, PRD, 5 epics, 14 stories, feature specs, architecture,
 │                             demo deck, backup recording, automation log, screenshots
