@@ -1,143 +1,148 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1030" viewBox="0 0 1600 1030" font-family="Inter, -apple-system, 'Segoe UI', Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" font-family="Inter, -apple-system, 'Segoe UI', Arial, sans-serif">
 <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6b82"/></marker></defs>
-<rect width="1600" height="1030" fill="#f7fafc"/>
+<rect width="1600" height="1000" fill="#f7fafc"/>
 <text x="50" y="56" font-size="30" font-weight="800" fill="#0b1b33" text-anchor="start">CareQueue: entity relationship diagram</text>
-<text x="50" y="86" font-size="16" font-weight="400" fill="#33445e" text-anchor="start">Logical model of the data CareQueue stores today. There is no database: records live in app/data.js and the browser&#x27;s localStorage.</text>
-<rect x="60" y="140" width="400" height="196" rx="12" fill="#fff" stroke="#1458e6" stroke-width="1.6"/>
-<path d="M60,186 V152 a12,12 0 0 1 12,-12 H448 a12,12 0 0 1 12,12 V186 Z" fill="#e6efff"/>
-<line x1="60" y1="186" x2="460" y2="186" stroke="#1458e6" stroke-width="1.2"/>
-<text x="76" y="170" font-size="17" font-weight="800" fill="#1458e6" text-anchor="start">DEPARTMENT</text>
+<text x="50" y="86" font-size="16" font-weight="400" fill="#33445e" text-anchor="start">SQLite tables from database/schema.sql (plus the browser session) · as built on 27 Oct 2026</text>
+<rect x="60" y="140" width="430" height="286" rx="12" fill="#fff" stroke="#1458e6" stroke-width="1.6"/>
+<path d="M60,186 V152 a12,12 0 0 1 12,-12 H478 a12,12 0 0 1 12,12 V186 Z" fill="#e6efff"/>
+<line x1="60" y1="186" x2="490" y2="186" stroke="#1458e6" stroke-width="1.2"/>
+<text x="76" y="170" font-size="17" font-weight="800" fill="#1458e6" text-anchor="start">departments</text>
 <text x="76" y="207" font-size="11.5" font-weight="800" fill="#8a5300" text-anchor="start">PK</text>
 <text x="112" y="207" font-size="14.5" font-weight="600" fill="#0b1b33" text-anchor="start">id</text>
-<text x="446" y="207" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">gen, card, ortho…</text>
+<text x="476" y="207" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">gen, card, ortho…</text>
 <text x="76" y="237" font-size="11.5" font-weight="800" fill="#5b6b82" text-anchor="start">UK</text>
 <text x="112" y="237" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">code</text>
-<text x="446" y="237" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">token letter: G, C, O…</text>
+<text x="476" y="237" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">token letter: G, C, B…</text>
 <text x="112" y="267" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">name</text>
-<text x="446" y="267" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">General Medicine</text>
+<text x="476" y="267" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">General Medicine</text>
 <text x="112" y="297" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">location</text>
-<text x="446" y="297" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Ground floor, Block A</text>
-<text x="76" y="325" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">Source: app/data.js (static sample data)</text>
-<rect x="60" y="620" width="400" height="136" rx="12" fill="#fff" stroke="#1458e6" stroke-width="1.6"/>
-<path d="M60,666 V632 a12,12 0 0 1 12,-12 H448 a12,12 0 0 1 12,12 V666 Z" fill="#e6efff"/>
-<line x1="60" y1="666" x2="460" y2="666" stroke="#1458e6" stroke-width="1.2"/>
-<text x="76" y="650" font-size="17" font-weight="800" fill="#1458e6" text-anchor="start">DOCTOR</text>
-<text x="76" y="687" font-size="11.5" font-weight="800" fill="#8a5300" text-anchor="start">PK</text>
-<text x="112" y="687" font-size="14.5" font-weight="600" fill="#0b1b33" text-anchor="start">name</text>
-<text x="446" y="687" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Dr. Anjali Rao</text>
-<text x="76" y="717" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
-<text x="112" y="717" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">department_id</text>
-<text x="446" y="717" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ DEPARTMENT.id</text>
-<text x="76" y="745" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">Source: app/data.js (names listed per department)</text>
-<rect x="600" y="140" width="400" height="136" rx="12" fill="#fff" stroke="#1458e6" stroke-width="1.6"/>
-<path d="M600,186 V152 a12,12 0 0 1 12,-12 H988 a12,12 0 0 1 12,12 V186 Z" fill="#e6efff"/>
-<line x1="600" y1="186" x2="1000" y2="186" stroke="#1458e6" stroke-width="1.2"/>
-<text x="616" y="170" font-size="17" font-weight="800" fill="#1458e6" text-anchor="start">QUEUE_DAY</text>
-<text x="616" y="207" font-size="11.5" font-weight="800" fill="#8a5300" text-anchor="start">PK</text>
-<text x="652" y="207" font-size="14.5" font-weight="600" fill="#0b1b33" text-anchor="start">date</text>
-<text x="986" y="207" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">YYYY-MM-DD, one per day</text>
-<text x="652" y="237" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">counters</text>
-<text x="986" y="237" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">last number per code</text>
-<text x="616" y="265" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">Source: localStorage carequeue-queue:&lt;date&gt;</text>
-<rect x="600" y="430" width="400" height="346" rx="12" fill="#fff" stroke="#0a7e9b" stroke-width="1.6"/>
-<path d="M600,476 V442 a12,12 0 0 1 12,-12 H988 a12,12 0 0 1 12,12 V476 Z" fill="#dff4f8"/>
-<line x1="600" y1="476" x2="1000" y2="476" stroke="#0a7e9b" stroke-width="1.2"/>
-<text x="616" y="460" font-size="17" font-weight="800" fill="#0a7e9b" text-anchor="start">TOKEN</text>
-<text x="616" y="497" font-size="11.5" font-weight="800" fill="#8a5300" text-anchor="start">PK</text>
-<text x="652" y="497" font-size="14.5" font-weight="600" fill="#0b1b33" text-anchor="start">date + number</text>
-<text x="986" y="497" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">G001, unique per day</text>
-<text x="616" y="527" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
-<text x="652" y="527" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">date</text>
-<text x="986" y="527" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ QUEUE_DAY.date</text>
-<text x="616" y="557" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
-<text x="652" y="557" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">code</text>
-<text x="986" y="557" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ DEPARTMENT.code</text>
-<text x="652" y="587" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">seq</text>
-<text x="986" y="587" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">1, 2, 3…</text>
-<text x="652" y="617" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">status</text>
-<text x="986" y="617" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">waiting · serving · done · missed</text>
-<text x="652" y="647" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">createdAt</text>
-<text x="986" y="647" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">issued time</text>
-<text x="652" y="677" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">calledAt</text>
-<text x="986" y="677" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Call Next / Recall</text>
-<text x="652" y="707" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">doneAt</text>
-<text x="986" y="707" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">next call completes</text>
-<text x="652" y="737" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">skippedAt</text>
-<text x="986" y="737" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Skip</text>
-<text x="616" y="765" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">Source: inside QUEUE_DAY.tokens</text>
-<rect x="1140" y="430" width="400" height="256" rx="12" fill="#fff" stroke="#0a7e9b" stroke-width="1.6"/>
-<path d="M1140,476 V442 a12,12 0 0 1 12,-12 H1528 a12,12 0 0 1 12,12 V476 Z" fill="#dff4f8"/>
-<line x1="1140" y1="476" x2="1540" y2="476" stroke="#0a7e9b" stroke-width="1.2"/>
-<text x="1156" y="460" font-size="17" font-weight="800" fill="#0a7e9b" text-anchor="start">PATIENT_DETAILS</text>
-<text x="1156" y="497" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
-<text x="1192" y="497" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">token</text>
-<text x="1526" y="497" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ TOKEN (embedded)</text>
-<text x="1192" y="527" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">name</text>
-<text x="1526" y="527" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Priya Sharma</text>
-<text x="1192" y="557" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">age</text>
-<text x="1526" y="557" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">0–120</text>
-<text x="1192" y="587" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">gender</text>
-<text x="1526" y="587" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Male · Female · Other</text>
-<text x="1192" y="617" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">phone</text>
-<text x="1526" y="617" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">10 digits, starts 6–9</text>
-<text x="1156" y="647" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
-<text x="1192" y="647" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">doctor</text>
-<text x="1526" y="647" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ DOCTOR.name, optional</text>
-<text x="1156" y="675" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">Source: inside each TOKEN (never sent to display)</text>
-<rect x="1140" y="140" width="400" height="196" rx="12" fill="#fff" stroke="#5b6b82" stroke-width="1.6"/>
-<path d="M1140,186 V152 a12,12 0 0 1 12,-12 H1528 a12,12 0 0 1 12,12 V186 Z" fill="#eef2f7"/>
-<line x1="1140" y1="186" x2="1540" y2="186" stroke="#5b6b82" stroke-width="1.2"/>
-<text x="1156" y="170" font-size="17" font-weight="800" fill="#5b6b82" text-anchor="start">SESSION</text>
-<text x="1192" y="207" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">role</text>
-<text x="1526" y="207" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">patient · receptionist · admin</text>
-<text x="1192" y="237" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">name</text>
-<text x="1526" y="237" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">patient or desk name</text>
-<text x="1192" y="267" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">phone</text>
-<text x="1526" y="267" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">patient only</text>
-<text x="1192" y="297" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">timestamp</text>
-<text x="1526" y="297" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">expires after 8 hours</text>
-<text x="1156" y="325" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">Source: localStorage carequeue-session</text>
-<polyline points="260,336 260,620" fill="none" stroke="#33445e" stroke-width="1.8"/>
-<line x1="268.0" y1="346.0" x2="252.0" y2="346.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="268.0" y1="352.0" x2="252.0" y2="352.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="260.0" y1="604.0" x2="251.0" y2="620.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="260.0" y1="604.0" x2="269.0" y2="620.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="260.0" y1="604.0" x2="260.0" y2="620.0" stroke="#33445e" stroke-width="1.8"/>
-<circle cx="260.0" cy="596.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
-<text x="272" y="440" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">has</text>
-<polyline points="460,260 530,260 530,640 600,640" fill="none" stroke="#33445e" stroke-width="1.8"/>
-<line x1="470.0" y1="252.0" x2="470.0" y2="268.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="476.0" y1="252.0" x2="476.0" y2="268.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="584.0" y1="640.0" x2="600.0" y2="649.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="584.0" y1="640.0" x2="600.0" y2="631.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="584.0" y1="640.0" x2="600.0" y2="640.0" stroke="#33445e" stroke-width="1.8"/>
-<circle cx="576.0" cy="640.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
-<text x="474" y="248" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">numbers</text>
-<polyline points="800,276 800,430" fill="none" stroke="#33445e" stroke-width="1.8"/>
-<line x1="808.0" y1="286.0" x2="792.0" y2="286.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="808.0" y1="292.0" x2="792.0" y2="292.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="800.0" y1="414.0" x2="791.0" y2="430.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="800.0" y1="414.0" x2="809.0" y2="430.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="800.0" y1="414.0" x2="800.0" y2="430.0" stroke="#33445e" stroke-width="1.8"/>
-<circle cx="800.0" cy="406.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
-<text x="812" y="330" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">contains</text>
-<polyline points="1000,560 1140,560" fill="none" stroke="#33445e" stroke-width="1.8"/>
-<line x1="1010.0" y1="552.0" x2="1010.0" y2="568.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="1016.0" y1="552.0" x2="1016.0" y2="568.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="1130.0" y1="568.0" x2="1130.0" y2="552.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="1124.0" y1="568.0" x2="1124.0" y2="552.0" stroke="#33445e" stroke-width="1.8"/>
-<text x="1040" y="548" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">embeds</text>
-<polyline points="460,700 560,700 560,990 1340,990 1340,686" fill="none" stroke="#33445e" stroke-width="1.8"/>
-<line x1="470.0" y1="692.0" x2="470.0" y2="708.0" stroke="#33445e" stroke-width="1.8"/>
-<circle cx="482.0" cy="700.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
-<line x1="1340.0" y1="702.0" x2="1349.0" y2="686.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="1340.0" y1="702.0" x2="1331.0" y2="686.0" stroke="#33445e" stroke-width="1.8"/>
-<line x1="1340.0" y1="702.0" x2="1340.0" y2="686.0" stroke="#33445e" stroke-width="1.8"/>
-<circle cx="1340.0" cy="710.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
-<text x="700" y="980" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">requested doctor (optional, by name)</text>
-<rect x="60" y="800" width="440" height="104" rx="12" fill="#fff" stroke="#c9d6e3" stroke-width="1.5"/>
-<text x="76" y="826" font-size="14" font-weight="700" fill="#0b1b33" text-anchor="start">How to read</text>
-<text x="76" y="848" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">PK primary key · UK unique · FK reference (logical)</text>
-<text x="76" y="868" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Bars = exactly one · circle + crow&#x27;s foot = zero or many</text>
-<text x="76" y="888" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">SESSION has no link to tokens (one sign-in per browser)</text>
+<text x="476" y="297" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Ground floor, Block A</text>
+<text x="112" y="327" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">doctors_json</text>
+<text x="476" y="327" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">doctor names (JSON list)</text>
+<text x="112" y="357" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">active</text>
+<text x="476" y="357" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">1 = shown</text>
+<text x="112" y="387" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">sort_order</text>
+<text x="476" y="387" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">display order</text>
+<text x="76" y="415" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">Seeded by database/seed.sql</text>
+<rect x="60" y="520" width="430" height="166" rx="12" fill="#fff" stroke="#5b6b82" stroke-width="1.6"/>
+<path d="M60,566 V532 a12,12 0 0 1 12,-12 H478 a12,12 0 0 1 12,12 V566 Z" fill="#eef2f7"/>
+<line x1="60" y1="566" x2="490" y2="566" stroke="#5b6b82" stroke-width="1.2"/>
+<text x="76" y="550" font-size="17" font-weight="800" fill="#5b6b82" text-anchor="start">queue_counters</text>
+<text x="76" y="587" font-size="11.5" font-weight="800" fill="#8a5300" text-anchor="start">PK</text>
+<text x="112" y="587" font-size="14.5" font-weight="600" fill="#0b1b33" text-anchor="start">queue_date + code</text>
+<text x="476" y="587" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">one row per queue per day</text>
+<text x="76" y="617" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
+<text x="112" y="617" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">code</text>
+<text x="476" y="617" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ departments.code</text>
+<text x="112" y="647" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">last_seq</text>
+<text x="476" y="647" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">1–999, last number issued</text>
+<text x="76" y="675" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">Token numbering: restarts each day</text>
+<rect x="60" y="740" width="430" height="166" rx="12" fill="#fff" stroke="#5b6b82" stroke-width="1.6"/>
+<path d="M60,786 V752 a12,12 0 0 1 12,-12 H478 a12,12 0 0 1 12,12 V786 Z" fill="#eef2f7"/>
+<line x1="60" y1="786" x2="490" y2="786" stroke="#5b6b82" stroke-width="1.2"/>
+<text x="76" y="770" font-size="17" font-weight="800" fill="#5b6b82" text-anchor="start">open_counters</text>
+<text x="76" y="807" font-size="11.5" font-weight="800" fill="#8a5300" text-anchor="start">PK</text>
+<text x="112" y="807" font-size="14.5" font-weight="600" fill="#0b1b33" text-anchor="start">queue_date + code</text>
+<text x="476" y="807" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">one row per queue per day</text>
+<text x="76" y="837" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
+<text x="112" y="837" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">code</text>
+<text x="476" y="837" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ departments.code</text>
+<text x="112" y="867" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">counters</text>
+<text x="476" y="867" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">open counters, e.g. &quot;1,2&quot;</text>
+<text x="76" y="895" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">US-11: no row = Counter 1 open</text>
+<rect x="620" y="140" width="500" height="586" rx="12" fill="#fff" stroke="#0a7e9b" stroke-width="1.6"/>
+<path d="M620,186 V152 a12,12 0 0 1 12,-12 H1108 a12,12 0 0 1 12,12 V186 Z" fill="#dff4f8"/>
+<line x1="620" y1="186" x2="1120" y2="186" stroke="#0a7e9b" stroke-width="1.2"/>
+<text x="636" y="170" font-size="17" font-weight="800" fill="#0a7e9b" text-anchor="start">tokens</text>
+<text x="636" y="207" font-size="11.5" font-weight="800" fill="#8a5300" text-anchor="start">PK</text>
+<text x="672" y="207" font-size="14.5" font-weight="600" fill="#0b1b33" text-anchor="start">id</text>
+<text x="1106" y="207" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">auto number</text>
+<text x="636" y="237" font-size="11.5" font-weight="800" fill="#5b6b82" text-anchor="start">UK</text>
+<text x="672" y="237" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">queue_date + number</text>
+<text x="1106" y="237" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">G001, unique per day</text>
+<text x="636" y="267" font-size="11.5" font-weight="800" fill="#5b6b82" text-anchor="start">UK</text>
+<text x="672" y="267" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">queue_date + code + seq</text>
+<text x="636" y="297" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
+<text x="672" y="297" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">code</text>
+<text x="1106" y="297" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ departments.code</text>
+<text x="672" y="327" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">seq</text>
+<text x="1106" y="327" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">1–999</text>
+<text x="672" y="357" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">status</text>
+<text x="1106" y="357" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">waiting · serving · done · missed</text>
+<text x="672" y="387" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">counter</text>
+<text x="1106" y="387" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">1–3, set when called (US-11)</text>
+<text x="672" y="417" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">patient_name</text>
+<text x="1106" y="417" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">patient details:</text>
+<text x="672" y="447" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">age · gender</text>
+<text x="1106" y="447" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">0–120 · Male/Female/Other</text>
+<text x="672" y="477" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">phone</text>
+<text x="1106" y="477" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">10 digits, starts 6–9</text>
+<text x="672" y="507" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">doctor</text>
+<text x="1106" y="507" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">optional</text>
+<text x="672" y="537" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">created_at</text>
+<text x="1106" y="537" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">issued (ms)</text>
+<text x="672" y="567" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">called_at</text>
+<text x="1106" y="567" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Call Next / Recall</text>
+<text x="672" y="597" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">done_at</text>
+<text x="1106" y="597" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">completed</text>
+<text x="672" y="627" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">skipped_at</text>
+<text x="1106" y="627" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Skip</text>
+<text x="636" y="657" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
+<text x="672" y="657" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">linked_from</text>
+<text x="1106" y="657" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ tokens.number (Billing)</text>
+<text x="636" y="687" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
+<text x="672" y="687" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">forwarded_to</text>
+<text x="1106" y="687" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ tokens.number (Billing)</text>
+<text x="636" y="715" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">One row per token; names and phones never leave via public-state</text>
+<rect x="1240" y="140" width="320" height="196" rx="12" fill="#fff" stroke="#5b6b82" stroke-width="1.6"/>
+<path d="M1240,186 V152 a12,12 0 0 1 12,-12 H1548 a12,12 0 0 1 12,12 V186 Z" fill="#eef2f7"/>
+<line x1="1240" y1="186" x2="1560" y2="186" stroke="#5b6b82" stroke-width="1.2"/>
+<text x="1256" y="170" font-size="17" font-weight="800" fill="#5b6b82" text-anchor="start">session</text>
+<text x="1292" y="207" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">role</text>
+<text x="1546" y="207" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">patient · receptionist</text>
+<text x="1292" y="237" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">name</text>
+<text x="1292" y="267" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">phone</text>
+<text x="1546" y="267" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">patient only</text>
+<text x="1292" y="297" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">timestamp</text>
+<text x="1546" y="297" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">8-hour expiry</text>
+<text x="1256" y="325" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">Browser localStorage, not in SQLite</text>
+<polyline points="490,291 620,291" fill="none" stroke="#33445e" stroke-width="1.8"/>
+<line x1="500.0" y1="283.0" x2="500.0" y2="299.0" stroke="#33445e" stroke-width="1.8"/>
+<line x1="506.0" y1="283.0" x2="506.0" y2="299.0" stroke="#33445e" stroke-width="1.8"/>
+<line x1="604.0" y1="291.0" x2="620.0" y2="300.0" stroke="#33445e" stroke-width="1.8"/>
+<line x1="604.0" y1="291.0" x2="620.0" y2="282.0" stroke="#33445e" stroke-width="1.8"/>
+<line x1="604.0" y1="291.0" x2="620.0" y2="291.0" stroke="#33445e" stroke-width="1.8"/>
+<circle cx="596.0" cy="291.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
+<text x="515" y="281" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">numbers</text>
+<polyline points="275,426 275,520" fill="none" stroke="#33445e" stroke-width="1.8"/>
+<line x1="283.0" y1="436.0" x2="267.0" y2="436.0" stroke="#33445e" stroke-width="1.8"/>
+<line x1="283.0" y1="442.0" x2="267.0" y2="442.0" stroke="#33445e" stroke-width="1.8"/>
+<line x1="275.0" y1="504.0" x2="266.0" y2="520.0" stroke="#33445e" stroke-width="1.8"/>
+<line x1="275.0" y1="504.0" x2="284.0" y2="520.0" stroke="#33445e" stroke-width="1.8"/>
+<line x1="275.0" y1="504.0" x2="275.0" y2="520.0" stroke="#33445e" stroke-width="1.8"/>
+<circle cx="275.0" cy="496.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
+<text x="287" y="476" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">per day</text>
+<polyline points="490,400 550,400 550,830 490,830" fill="none" stroke="#33445e" stroke-width="1.8"/>
+<line x1="500.0" y1="392.0" x2="500.0" y2="408.0" stroke="#33445e" stroke-width="1.8"/>
+<line x1="506.0" y1="392.0" x2="506.0" y2="408.0" stroke="#33445e" stroke-width="1.8"/>
+<line x1="506.0" y1="830.0" x2="490.0" y2="821.0" stroke="#33445e" stroke-width="1.8"/>
+<line x1="506.0" y1="830.0" x2="490.0" y2="839.0" stroke="#33445e" stroke-width="1.8"/>
+<line x1="506.0" y1="830.0" x2="490.0" y2="830.0" stroke="#33445e" stroke-width="1.8"/>
+<circle cx="514.0" cy="830.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
+<text x="556" y="620" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">counters</text>
+<polyline points="1120,651 1180,651 1180,741 1100,741 1100,726" fill="none" stroke="#33445e" stroke-width="1.8"/>
+<line x1="1130.0" y1="643.0" x2="1130.0" y2="659.0" stroke="#33445e" stroke-width="1.8"/>
+<circle cx="1142.0" cy="651.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
+<line x1="1108.0" y1="736.0" x2="1092.0" y2="736.0" stroke="#33445e" stroke-width="1.8"/>
+<circle cx="1100.0" cy="748.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
+<text x="0" y="0" font-size="13" font-weight="600" fill="#33445e" text-anchor="start"></text>
+<text x="1190" y="701" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">Send to Billing:</text>
+<text x="1190" y="721" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">G001 → B001</text>
+<rect x="1240" y="400" width="320" height="150" rx="12" fill="#fff" stroke="#c9d6e3" stroke-width="1.5"/>
+<text x="1256" y="426" font-size="14" font-weight="700" fill="#0b1b33" text-anchor="start">How to read</text>
+<text x="1256" y="450" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">PK primary key · UK unique · FK reference</text>
+<text x="1256" y="470" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Bars = exactly one</text>
+<text x="1256" y="490" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Circle + crow&#x27;s foot = zero or many</text>
+<text x="1256" y="510" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Circle + bar = zero or one</text>
+<text x="1256" y="530" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Doctors are a JSON list in departments</text>
 </svg>

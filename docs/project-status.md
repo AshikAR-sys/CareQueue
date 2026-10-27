@@ -63,8 +63,8 @@ npm run test:e2e      →  46 / 46 pass  (browser tests against an isolated test
 
 ## Open items
 
-1. **Architecture diagram and ERD** (`docs/architecture/`) still show the earlier browser-only version; they need
-   updating for the Flask + SQLite design.
+1. **Architecture diagram and ERD:** updated on 27 Oct 2026 for Flask + SQLite, the six pages, counters, QR
+   tracking, reports and Render hosting (`docs/architecture/`).
 2. **GitHub repository description** (Blocked from the cloud session): set it in GitHub → About.
 3. **Server-side PIN check** (QA fix 3, not applied): `/api/queue/state` and the queue actions are open to anyone
    who calls the API directly. The patient page no longer loads other patients' details.

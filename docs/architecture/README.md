@@ -1,133 +1,152 @@
 # CareQueue architecture and ERD
 
-> **Out of date since PR #6.** These diagrams show the earlier browser-only version (queue in `localStorage`, no
-> server, no database). The app now runs on a **Flask API with an SQLite database** (`backend/`, `database/`), and
-> the files moved from `app/` to `frontend/`. See `database/schema.sql` for the current tables. Update pending.
-
-CareQueue (Hospital Digital Token and Queue Management System) as built on 25 Oct 2026.
+CareQueue (Hospital Digital Token and Queue Management System) as built on 27 Oct 2026.
 Images: [`architecture.png`](architecture.png) · [`erd.png`](erd.png) · both in one PDF:
 [`CareQueue_Architecture_and_ERD.pdf`](CareQueue_Architecture_and_ERD.pdf). The diagrams below are the same
 content as editable Mermaid, which GitHub renders.
 
 ## System architecture
 
-A static web app: four HTML pages share five JavaScript modules and keep their data in the browser's
-`localStorage`. **There is no server and no database**, so the queue is shared only between tabs of one browser on
-one computer.
+Six browser pages share a few JavaScript modules. They talk to a **Flask API**, which stores the queue in an
+**SQLite** database. Every page asks the server for the queue once a second, so a change on one screen reaches the
+others within about a second, on any device that can reach the server.
 
 ```mermaid
 flowchart TB
   subgraph People
     P([Patient])
-    R([Receptionist])
+    R([Receptionist / admin])
     TV([Waiting-room TV])
   end
 
-  subgraph Pages["Pages (app/*.html)"]
-    IDX["index.html<br/>Landing and sign-in<br/><i>auth.js</i>"]
-    PAT["patient.html<br/>Token form + token card<br/><i>app.js</i>"]
-    STF["staff.html<br/>Staff console: Call Next, Skip, Recall<br/><i>staff.js</i>"]
-    DSP["display.html<br/>Now serving + next 5, no names<br/><i>display.js</i>"]
+  subgraph Pages["Browser pages (frontend/*.html)"]
+    IDX["index.html<br/>Landing and sign-in"]
+    PAT["patient.html<br/>Token form, token card,<br/>print, PNG, QR code"]
+    TRK["track.html<br/>Phone tracking from the QR code<br/>no sign-in"]
+    STF["staff.html<br/>Counters 1-3, Call Next,<br/>Skip, Recall, Send to Billing"]
+    REP["reports.html<br/>Today's figures, busiest hour, CSV"]
+    DSP["display.html<br/>Now serving + counter, next 5,<br/>voice announcement"]
   end
 
-  subgraph Modules["Shared modules (app/*.js)"]
+  subgraph Modules["Shared modules (frontend/js/)"]
+    Q["queue.js · TokenQueue<br/>fetch state every 1 s, POST actions"]
+    CORE["queue-core.js · QueueCore<br/>EWT = R + N/C × AST, counters,<br/>tracking, reports"]
     AUTH["auth.js · CareAuth<br/>session, demo PIN, page guard"]
-    DATA["data.js<br/>sample departments, doctors"]
-    Q["queue.js · TokenQueue<br/>load/save, live sync between tabs"]
-    CORE["queue-core.js · QueueCore<br/>issue, callNext, skip, recall<br/>EWT = R + N × AST"]
-    SCR["screens.js<br/>clock, formatting"]
+    ANN["announce.js<br/>chime + speech"]
+    QR["vendor/qrcode.js<br/>QR codes (MIT)"]
   end
 
-  subgraph Storage["Browser localStorage (this computer only)"]
-    KS[("carequeue-session")]
-    KQ[("carequeue-queue:YYYY-MM-DD")]
-    KD[("carequeue-staff-dept")]
+  subgraph Server["Server (backend/)"]
+    API["app.py · Flask<br/>/api/queue/state (staff only)<br/>/api/queue/public-state (numbers only)<br/>/api/tokens, call-next, skip, recall,<br/>send-to, counters"]
+    SVC["services/queue_service.py<br/>validation, numbering, transitions"]
   end
+
+  DB[("SQLite<br/>departments, tokens,<br/>queue_counters, open_counters")]
+  LS[("Browser localStorage<br/>session, staff department + counter")]
 
   P --> IDX
-  R --> IDX
   P --> PAT
+  P -- scans QR --> TRK
+  R --> IDX
   R --> STF
+  R --> REP
   TV --> DSP
-  IDX --> AUTH
   PAT --> Q
+  TRK --> Q
   STF --> Q
+  REP --> Q
   DSP --> Q
-  PAT --> DATA
-  STF --> SCR
-  DSP --> SCR
+  DSP --> ANN
+  PAT --> QR
   Q --> CORE
-  AUTH <--> KS
-  Q <--> KQ
-  STF -.-> KD
+  IDX --> AUTH
+  AUTH <--> LS
+  Q -- HTTP + JSON --> API
+  API --> SVC
+  SVC --> DB
 ```
 
 | Layer | What it does | Files |
 |---|---|---|
-| Pages | What each person sees | `index.html`, `patient.html`, `staff.html`, `display.html` |
-| Page scripts | Behaviour of one page | `app.js`, `staff.js`, `display.js` |
-| Shared modules | Rules, storage, sign-in, sample data | `queue-core.js`, `queue.js`, `auth.js`, `data.js`, `screens.js` |
-| Storage | Today's queue, who is signed in | `localStorage` keys `carequeue-*` |
-| Tests | 19 unit tests on the rules; 18 browser tests on all pages together | `tests/queue-core.test.js`, `tests/e2e.test.js` |
+| Pages | What each person sees | `index.html`, `patient.html`, `track.html`, `staff.html`, `reports.html`, `display.html` |
+| Page scripts | Behaviour of one page | `app.js`, `track.js`, `staff.js`, `reports.js`, `display.js` |
+| Shared modules | Rules, server calls, sign-in, voice, QR, sample data | `queue-core.js`, `queue.js`, `auth.js`, `announce.js`, `vendor/qrcode.js`, `data.js`, `screens.js` |
+| API | Validates and applies every queue change | `backend/app.py`, `backend/services/queue_service.py` |
+| Database | Today's tokens, numbering, open counters | `database/schema.sql`, `database/seed.sql`, `backend/db.py` |
+| Hosting | Public demo | `render.yaml` (Render free web service, gunicorn; deploys on every push to `main`) |
+| Tests | 56 unit, 16 API, 46 browser tests; GitHub Actions on every pull request | `tests/`, `backend/tests/`, `.github/workflows/test.yml` |
 
-**Live sync:** when one tab changes the queue, the browser's `storage` event tells the other tabs at once; a
-1-second check is the fallback. **To scale beyond one computer:** keep `TokenQueue`'s functions, replace its
-`load`/`save` with API calls and server push, and run `queue-core.js` on the server unchanged.
+**Privacy:** only the staff console loads `/api/queue/state`, which includes patient names and phones. The token
+page, phone tracking page, display and reports load `/api/queue/public-state`, which has token numbers, times,
+statuses and counters only. Browser tests check that no name reaches those pages.
+
+**Known limits:** the PIN is checked in the browser only, so the API itself has no login and must not be exposed
+with real patient data. Pages poll every second instead of receiving server push. On the free Render plan the SQLite
+file lives in `/tmp` and is reset on every redeploy or restart. Departments are listed in both `seed.sql` (server)
+and `data.js` (pages), so the two must be kept in step.
 
 ## Entity relationship diagram
 
-A **logical** model of the data CareQueue stores today. Keys are logical (there are no database constraints):
-departments and doctors come from `app/data.js`; queue days, tokens and sessions are JSON in `localStorage`;
-patient details are stored inside each token.
+The SQLite tables from `database/schema.sql`. Patient details are stored on each token row. Doctors are a JSON list
+on the department. The sign-in session is kept in the browser, not in the database.
 
 ```mermaid
 erDiagram
-  DEPARTMENT ||--o{ DOCTOR : has
-  DEPARTMENT ||--o{ TOKEN : "numbers (by code)"
-  QUEUE_DAY ||--o{ TOKEN : contains
-  TOKEN ||--|| PATIENT_DETAILS : embeds
-  DOCTOR |o--o{ PATIENT_DETAILS : "requested (optional, by name)"
+  DEPARTMENTS ||--o{ TOKENS : "numbers (by code)"
+  DEPARTMENTS ||--o{ QUEUE_COUNTERS : "per day"
+  DEPARTMENTS ||--o{ OPEN_COUNTERS : "per day"
+  TOKENS |o--o| TOKENS : "Send to Billing (linked_from / forwarded_to)"
 
-  DEPARTMENT {
-    string id PK "gen, card, ortho"
-    string code UK "token letter G, C, O"
-    string name
-    string location
+  DEPARTMENTS {
+    text id PK "gen, card, ortho, bill"
+    text code UK "token letter G, C, O, B"
+    text name
+    text location
+    text doctors_json "doctor names"
+    int active
+    int sort_order
   }
-  DOCTOR {
-    string name PK
-    string department_id FK
+  QUEUE_COUNTERS {
+    text queue_date PK "YYYY-MM-DD"
+    text code PK,FK "departments.code"
+    int last_seq "last number issued, 1-999"
   }
-  QUEUE_DAY {
-    string date PK "YYYY-MM-DD"
-    map counters "last number per code"
+  OPEN_COUNTERS {
+    text queue_date PK
+    text code PK,FK "departments.code"
+    text counters "open counters, e.g. 1,2 (no row = Counter 1)"
   }
-  TOKEN {
-    string number PK "G001, unique per day"
-    string date FK
-    string code FK
-    int seq
-    string status "waiting, serving, done, missed"
-    datetime createdAt
-    datetime calledAt
-    datetime doneAt
-    datetime skippedAt
-  }
-  PATIENT_DETAILS {
-    string name
+  TOKENS {
+    int id PK
+    text queue_date "UK with number; UK with code + seq"
+    text number "G001"
+    text code FK "departments.code"
+    int seq "1-999"
+    text status "waiting, serving, done, missed"
+    int counter "1-3, set when called"
+    text patient_name
     int age "0-120"
-    string gender "Male, Female, Other"
-    string phone "10 digits, starts 6-9"
-    string doctor FK "optional"
+    text gender "Male, Female, Other"
+    text phone "10 digits, starts 6-9"
+    text doctor "optional"
+    int created_at "ms"
+    int called_at
+    int done_at
+    int skipped_at
+    text linked_from FK "tokens.number"
+    text forwarded_to FK "tokens.number"
   }
   SESSION {
-    string role "patient, receptionist, admin"
-    string name
-    string phone "patient only"
-    datetime timestamp "expires after 8 hours"
+    text role "patient, receptionist (browser localStorage)"
+    text name
+    text phone "patient only"
+    int timestamp "expires after 8 hours"
   }
 ```
 
-`SESSION` has no relationship to the other entities: it records who is signed in on this browser (one sign-in at a
-time). Patient details are never sent to the waiting-room display (`QueueCore.publicView` returns token numbers and
-estimates only; covered by a unit test and a browser test).
+How the tables are used:
+- **Token numbers:** `queue_counters` keeps the last number per queue per day, so numbers restart each day.
+- **Unique numbers:** two unique keys stop a number repeating on the same day.
+- **Counters (US-11):** `open_counters` lists the service counters open per queue per day. `tokens.counter` records
+  which counter called each token.
+- **Older database files:** `upgrade_schema()` adds the columns that newer versions introduced.

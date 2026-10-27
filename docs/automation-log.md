@@ -387,3 +387,18 @@ own patient, instead of changing only the estimate.
 - **QA:** 5 browser tests (default counters, AC-11.1–11.4 including two receptionists in separate browsers).
   Results: `npm test` 56/56 · backend 16/16 · e2e 46/46.
 - **Deck:** slide 4's cut list no longer lists multiple counters; replaced with reports for past days.
+
+---
+
+## Architecture diagram and ERD updated
+
+The diagrams in `docs/architecture/` had been marked out of date since PR #6 (they showed the browser-only version
+with `localStorage`). Redrawn from the code as it stands:
+
+- **Architecture:** people → 6 pages → shared modules → Flask API → SQLite, plus browser storage, Render hosting,
+  the three test suites and the known limits (browser-only PIN, polling, ephemeral SQLite on the free plan).
+- **ERD:** the four SQLite tables from `database/schema.sql` (`departments`, `tokens`, `queue_counters`,
+  `open_counters`) with keys and relationships, including the Send to Billing link between tokens, plus the browser
+  session.
+- PNG (2x), SVG and a two-page PDF regenerated; the README has the same content as Mermaid. A screenshot review moved
+  three labels that sat on arrows.
