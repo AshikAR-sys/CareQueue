@@ -34,7 +34,15 @@
     return calls;
   }
 
-  const rules = { spokenNumber, announcementText, newCalls };
+  // US-18: the device voice for a language ("ta" matches "ta-IN" and Android's "ta_IN"), or null if it has none.
+  function pickVoice(voices, lang) {
+    return (voices || []).find((v) => {
+      const tag = String(v.lang || "").toLowerCase().replace("_", "-");
+      return tag === lang || tag.startsWith(lang + "-");
+    }) || null;
+  }
+
+  const rules = { spokenNumber, announcementText, newCalls, pickVoice };
   if (typeof module !== "undefined" && module.exports) {
     module.exports = rules;
     return;
@@ -73,14 +81,23 @@
     }
   }
 
+  function voices() {
+    try { return "speechSynthesis" in root ? root.speechSynthesis.getVoices() : []; } catch (e) { return []; }
+  }
+
+  // True when this device can speak the language (US-18). Voice lists can load late, so ask each time.
+  function hasVoice(lang) { return lang === "en" || !!pickVoice(voices(), lang); }
+
   // Resolves when the sentence has been spoken (or after a safety timeout if the browser has no voice).
-  function speak(text) {
+  function speak(text, lang) {
     return new Promise((resolve) => {
       const done = () => resolve();
       try {
         if (!("speechSynthesis" in root)) return done();
         const u = new root.SpeechSynthesisUtterance(text);
-        u.lang = "en-IN";
+        const voice = lang === "ta" ? pickVoice(voices(), "ta") : null;
+        u.lang = voice ? voice.lang : "en-IN";
+        if (voice) u.voice = voice;
         u.rate = 0.9;
         u.onend = done;
         u.onerror = done;
@@ -92,11 +109,11 @@
     });
   }
 
-  function announce(text) {
+  function announce(text, lang = "en") {
     if (!enabled) return;
-    const entry = { text, chime: false, at: Date.now() };
+    const entry = { text, lang, chime: false, at: Date.now() };
     history.push(entry);
-    chain = chain.then(() => { entry.chime = chime(); return wait(700); }).then(() => speak(text));
+    chain = chain.then(() => { entry.chime = chime(); return wait(700); }).then(() => speak(text, lang));
   }
 
   function setEnabled(on) {
@@ -105,5 +122,5 @@
     else if ("speechSynthesis" in root) root.speechSynthesis.cancel();
   }
 
-  root.CareQueueAnnouncer = Object.assign({ history, announce, setEnabled, isEnabled: () => enabled }, rules);
+  root.CareQueueAnnouncer = Object.assign({ history, announce, setEnabled, hasVoice, isEnabled: () => enabled }, rules);
 })(typeof window !== "undefined" ? window : globalThis);

@@ -978,3 +978,90 @@ test("AC-17.2 / AC-17.3 / AC-17.4 priority tokens are called first and marked on
   assert.deepEqual(errors, []);
   await ctx.close();
 });
+
+// --- US-18 Tamil display, voice and phone page ---
+
+test("AC-18.1 the display switches to Tamil and remembers it", async () => {
+  const { ctx, errors, open } = await setup({ width: 1920, height: 1080 });
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  const disp = await open("display.html");
+  await disp.waitForFunction(() => document.querySelector(".panel-counter")?.textContent === "Counter 1");
+  await disp.click('.lang-switch button[data-lang="ta"]');
+  await disp.waitForFunction(() => document.querySelector(".panel-counter")?.textContent === "கவுண்டர் 1");
+  assert.equal(await disp.textContent("#display-title"), "இப்போது சேவையில்");
+  assert.equal(await disp.textContent(".panel-head h2"), "பொது மருத்துவம்");
+  assert.equal(await disp.textContent(".panel-loc"), "தரைத் தளம், பிளாக் A");
+  assert.equal(await disp.textContent(".next-wait"), "சுமார் 3 நிமிடம்");
+  assert.equal(await disp.getAttribute("html", "lang"), "ta");
+  await disp.reload();
+  await disp.waitForFunction(() => document.querySelector(".panel-counter")?.textContent === "கவுண்டர் 1");
+  await disp.click('.lang-switch button[data-lang="en"]');
+  await disp.waitForFunction(() => document.getElementById("display-title").textContent === "Now serving");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-18.2 with Tamil chosen, calls are spoken in Tamil when the screen has a Tamil voice", async () => {
+  const { ctx, errors, open } = await setup();
+  await ctx.addInitScript(() => {
+    // Headless Chromium has no voices; pretend this screen has a Tamil one.
+    window.speechSynthesis.getVoices = () => [{ lang: "ta-IN", name: "Test Tamil voice" }];
+  });
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const disp = await soundOnDisplay(open);
+  await disp.click('.lang-switch button[data-lang="ta"]');
+  assert.equal(await disp.isVisible("#voice-note"), false);
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await disp.waitForFunction(() => window.CareQueueAnnouncer.history.length === 1, null, { timeout: 3000 });
+  const h = await disp.evaluate(() => window.CareQueueAnnouncer.history[0]);
+  assert.equal(h.text, "டோக்கன் எண் G 0 0 1, பொது மருத்துவம், கவுண்டர் 1-க்கு வாருங்கள்.");
+  assert.equal(h.lang, "ta");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-18.2 with no Tamil voice, the display says so and speaks English", async () => {
+  const { ctx, errors, open } = await setup();
+  await ctx.addInitScript(() => { window.speechSynthesis.getVoices = () => [{ lang: "en-US", name: "English" }]; });
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const disp = await soundOnDisplay(open);
+  await disp.click('.lang-switch button[data-lang="ta"]');
+  await disp.waitForFunction(() => !document.getElementById("voice-note").hidden);
+  assert.match(await disp.textContent("#voice-note"), /தமிழ்க் குரல் இல்லை/);
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await disp.waitForFunction(() => window.CareQueueAnnouncer.history.length === 1, null, { timeout: 3000 });
+  assert.deepEqual(await heard(disp), ["Token G 0 0 1, please come to General Medicine, counter 1."]);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-18.3 the phone tracking page can be read in Tamil", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  const url = await tok.getAttribute("#t-qr-code", "data-url");
+  const { ctx: pctx, page } = await phone(url, errors);
+  await page.waitForFunction(() => document.getElementById("track-ahead").textContent === "1");
+  await page.click('.lang-switch button[data-lang="ta"]');
+  await page.waitForFunction(() => document.getElementById("track-title").textContent === "உங்கள் டோக்கன்");
+  assert.equal(await page.textContent("#track-dept"), "பொது மருத்துவம்");
+  assert.equal(await page.textContent("#label-ahead"), "உங்களுக்கு முன்");
+  assert.match(await page.textContent("#track-alert-text"), /உங்கள் முறை நெருங்குகிறது/);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  assert.equal(overflow, false);
+  const { ctx: p2, page: viaLink } = await phone(url + "&lang=ta", errors);
+  await viaLink.waitForFunction(() => document.getElementById("track-title").textContent === "உங்கள் டோக்கன்");
+  assert.deepEqual(errors, []);
+  await p2.close();
+  await pctx.close();
+  await ctx.close();
+});
