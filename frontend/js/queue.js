@@ -3,8 +3,9 @@
   "use strict";
   const Core = window.QueueCore;
   const listeners = new Set();
-  // Only the staff console may load patient details; every other page (patient, display) gets the public state.
-  const isStaffScreen = document.body.classList.contains("screen-staff");
+  // Only the staff console may load patient details; every other page (patient, display, track, reports) gets the
+  // public state.
+  const isStaffScreen = document.body.classList.contains("screen-staff") && !document.body.classList.contains("screen-reports");
   let day = Core.emptyDay(Core.dayKey(new Date()));
   let connected = false;
   let refreshInFlight = null;

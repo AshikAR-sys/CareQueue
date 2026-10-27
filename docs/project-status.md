@@ -1,6 +1,6 @@
 # CareQueue Project Status
 
-Updated: 26 Oct 2026, after adding QR phone tracking (US-13).
+Updated: 27 Oct 2026, after adding the Queue reports epic (E6: US-15, US-16).
 Demo: 25 Oct, 10:00 IST.
 Status labels: **Completed** (with evidence) · **In Progress** · **Pending** · **Blocked** · **Needs Verification**.
 
@@ -27,6 +27,7 @@ Status labels: **Completed** (with evidence) · **In Progress** · **Pending** �
 | Print token and download PNG | US-12 | **Completed** | verified in the browser before the migration; no automated test after it |
 | Persistent queue across reloads (SQLite) | — | **Completed** | e2e persistence test |
 | Voice announcement (sound switch, chime + speech on each call and recall) | US-08 | **Completed** | 9 unit tests; e2e AC-08.1, AC-08.2 (+2) |
+| Queue reports: per-department figures, averages, busiest hour, CSV (new epic E6) | US-15, US-16 | **Completed** | 6 unit tests; e2e AC-15.1–15.4, AC-16.1–16.2 (+1) |
 | Multiple counters | US-11 | Pending | not built |
 | QR phone tracking (live phone page, "Almost your turn") | US-13 | **Completed** | 6 unit tests; e2e US-13, AC-13.1–13.3 (+1) |
 
@@ -41,12 +42,12 @@ npm start
 
 Open http://127.0.0.1:8000.
 
-## Test results (after the merge, 25 Oct 2026)
+## Test results (27 Oct 2026)
 
 ```
-npm test              →  40 / 40 pass  (queue rules + announcements + phone tracking)
+npm test              →  46 / 46 pass  (queue rules + announcements + phone tracking + reports)
 npm run test:backend  →  11 / 11 pass  (Flask API + SQLite)
-npm run test:e2e      →  34 / 34 pass  (browser tests against an isolated test database)
+npm run test:e2e      →  41 / 41 pass  (browser tests against an isolated test database)
 ```
 
 ## Role-wise backlog
@@ -68,6 +69,8 @@ npm run test:e2e      →  34 / 34 pass  (browser tests against an isolated test
 3. **Server-side PIN check** (QA fix 3, not applied): `/api/queue/state` and the queue actions are open to anyone
    who calls the API directly. The patient page no longer loads other patients' details.
 4. **Live site:** now reachable from the cloud session; read-only checks confirmed `main` is deployed. Full live QA not yet run.
+5. **Backlog size:** with E6 the backlog has 6 epics and 16 stories, above the Stage 4 guideline of 3–5 epics and
+   8–15 stories. E5 and E6 are marked in the PDFs as added by the team after the first backlog.
 
 ## Safety note
 

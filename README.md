@@ -54,9 +54,9 @@ The database file is created automatically at `database/carequeue.sqlite3`. It i
 ### Run the tests
 
 ```bash
-npm test                         # 40 unit tests (queue rules, announcements, phone tracking)
+npm test                         # 46 unit tests (queue rules, announcements, phone tracking, reports)
 npm run test:backend             # 11 Flask API + SQLite integration tests
-npm run test:e2e                 # 34 browser tests against an isolated test database
+npm run test:e2e                 # 41 browser tests against an isolated test database
 npm run test:all                 # all three suites
 ```
 
@@ -74,6 +74,7 @@ npm run test:all                 # all three suites
 | Print token (one A5 page) and download (PNG) | US-12 | browser test |
 | Track my token on my phone: the token slip has a QR code that opens a live page (no app, no login) with the token being served, people ahead, the estimated wait and an "Almost your turn" alert | US-13 | unit + e2e |
 | Sign in as patient (name + phone) or receptionist (demo PIN); each page opens only for its role | US-14 | e2e |
+| Queue reports (staff only): today's tokens issued, served, waiting and missed per department, average wait and service time, tokens-per-hour chart with the busiest hour, Download CSV; numbers only, live | US-15, US-16 | unit + e2e |
 | Responsive Liquid Glass design; phone, tablet, desktop, TV | — | e2e (no overflow at 390 px) |
 
 ## Honest limits
@@ -98,7 +99,7 @@ Demo deck (Team 12): [`docs/deck/CareQueue_Team12_Demo_Deck.pptx`](docs/deck/Car
 ```
 CareQueue/
 ├── frontend/
-│   ├── index.html, patient.html, staff.html, display.html, track.html
+│   ├── index.html, patient.html, staff.html, display.html, track.html, reports.html
 │   ├── css/                 styles.css, screens.css
 │   ├── js/                  UI, auth demo, queue API adapter, queue rules, vendor/qrcode.js (MIT)
 │   └── assets/              hospital illustration
@@ -113,9 +114,9 @@ CareQueue/
 │   ├── schema.sql            table constraints and indexes
 │   └── seed.sql              sample departments and doctors
 ├── tests/
-│   ├── queue-core.test.js, announce.test.js, track.test.js
+│   ├── queue-core.test.js, announce.test.js, track.test.js, report.test.js
 │   └── e2e.test.js
-├── docs/                     MRD, PRD, 5 epics, 14 stories, feature specs, architecture,
+├── docs/                     MRD, PRD, 6 epics, 16 stories, feature specs, architecture,
 │                             demo deck, backup recording, automation log, screenshots
 ├── render.yaml               Render demo deployment blueprint
 ├── package.json

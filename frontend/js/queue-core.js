@@ -154,7 +154,58 @@
     return "track.html?t=" + encodeURIComponent(number) + "&d=" + encodeURIComponent(date);
   }
 
-  const api = { DEFAULT_AST_MS, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView, track, trackPath };
+  // ---------- Queue reports (US-15, US-16): today's figures, numbers only ----------
+  // Mean of time spans in minutes, to one decimal place; null when there is nothing to average.
+  function averageMin(spans) {
+    if (!spans.length) return null;
+    return Math.round(spans.reduce((a, b) => a + b, 0) / spans.length / 60000 * 10) / 10;
+  }
+
+  function summarise(tokens) {
+    const called = tokens.filter((t) => t.calledAt != null);
+    const finished = tokens.filter((t) => t.status === "done" && t.calledAt != null && t.doneAt != null);
+    const count = (status) => tokens.filter((t) => t.status === status).length;
+    return {
+      issued: tokens.length,
+      served: count("done"),
+      waiting: count("waiting"),
+      serving: count("serving"),
+      missed: count("missed"),
+      sentToBilling: tokens.filter((t) => t.forwardedTo).length,
+      avgWaitMin: averageMin(called.map((t) => t.calledAt - t.createdAt)),
+      avgServiceMin: averageMin(finished.map((t) => t.doneAt - t.calledAt))
+    };
+  }
+
+  // hourOf turns a timestamp into the local hour (0-23); the tests pass a fixed-zone version.
+  function report(day, codes, hourOf = (ms) => new Date(ms).getHours()) {
+    const departments = codes.map((code) => Object.assign({ code }, summarise(inQueue(day, code))));
+    const total = summarise(day.tokens.filter((t) => codes.includes(t.code)));
+    const perHour = {};
+    for (const t of day.tokens) perHour[hourOf(t.createdAt)] = (perHour[hourOf(t.createdAt)] || 0) + 1;
+    const used = Object.keys(perHour).map(Number);
+    const hours = [];
+    if (used.length) {
+      for (let h = Math.min(...used); h <= Math.max(...used); h++) hours.push({ hour: h, count: perHour[h] || 0 });
+    }
+    const busiest = hours.reduce((best, h) => (!best || h.count > best.count ? h : best), null);
+    return { departments, total, hours, busiest };
+  }
+
+  function reportCsv(rep, nameOf) {
+    const cell = (v) => {
+      const s = v == null ? "" : String(v);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const row = (name, code, r) => [name, code, r.issued, r.served, r.waiting, r.serving, r.missed, r.sentToBilling,
+      r.avgWaitMin, r.avgServiceMin].map(cell).join(",");
+    const lines = ["Department,Code,Issued,Served,Waiting,Serving,Missed,Sent to Billing,Average wait (min),Average service (min)"];
+    for (const d of rep.departments) lines.push(row(nameOf(d.code), d.code, d));
+    lines.push(row("Total", "", rep.total));
+    return lines.join("\n") + "\n";
+  }
+
+  const api = { DEFAULT_AST_MS, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView, track, trackPath, report, reportCsv };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.QueueCore = api;
 })(typeof window !== "undefined" ? window : globalThis);
