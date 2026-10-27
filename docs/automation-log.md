@@ -338,3 +338,27 @@ not have to watch the display. Chosen by the team as the next story (best live d
   card QR and the downloaded PNG's QR with OpenCV: both read `…/track.html?t=G004&d=<today>`. Print stays one A5
   page. Results: `npm test` 40/40 · backend 11/11 · e2e 34/34.
 - **Deck:** slide 4's cut list no longer lists QR phone tracking; replaced with secure staff login (demo PIN only).
+
+---
+
+## Epic E6 — Queue reports (US-15, US-16, PRD C2)
+
+**Objective:** a new epic chosen by the team: give the hospital today's queue figures (tokens, real waits, missed,
+busiest hour) without counting slips by hand. Traces to the PRD's Could-Have **C2 Daily stats** and MRD MR-3/MR-4.
+
+- **BA:** E6 and two stories (US-15 summary, 4 ACs; US-16 busiest hour + CSV, 2 ACs) added to
+  `docs/CareQueue_Epics.pdf` and `docs/CareQueue_User_Stories.pdf` with the same generator as before (overview,
+  traceability chain, build order, matrix and QA checklist updated). The backlog is now 6 epics, 16 stories,
+  45 acceptance criteria, above the Stage 4 guideline of 3–5 epics / 8–15 stories; noted in the PDFs and status.
+  Spec: `docs/features/F5-queue-reports.md`.
+- **Developer (TDD):** 6 unit tests (`tests/report.test.js`) written first and watched fail (`Q.report is not a
+  function`). Then `QueueCore.report()` and `reportCsv()`, the staff-only page `frontend/reports.html` +
+  `js/reports.js` (totals, department table, tokens-per-hour bar chart, Download CSV), and a Reports link in the
+  staff console. The page loads only `/api/queue/public-state`. No backend change.
+- **Debugging:** two browser tests failed on the first run. (1) AC-15.4 expected a signed-in patient to land on
+  `index.html`; the landing page correctly forwards patients to `patient.html`, so the test now expects that.
+  (2) The report overflowed a 390 px phone: the grid let the wide table set its width; fixed with a
+  `minmax(0, 1fr)` column so the table scrolls inside its card. The screenshot review also found the staff console's
+  phone rule hiding every table's 4th column (here "Waiting"); the report now keeps all columns.
+- **QA:** 7 browser tests (AC-15.1–15.4, AC-16.1–16.2, phone fit) plus a public-data-only check. Screenshots on
+  desktop and phone reviewed. Results: `npm test` 46/46 · backend 11/11 · e2e 41/41.

@@ -224,6 +224,45 @@
   .panel-head h2 { font-size: 22px; }
 }
 
+/* ---------- Queue reports (US-15, US-16) ---------- */
+.reports { max-width: 1400px; margin: 0 auto; padding: 36px var(--margin) 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); }
+.reports-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.reports-head .btn-secondary { width: auto; padding: 0 20px; }
+.report-tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; }
+.report-tiles > div { border-radius: var(--r-inner); padding: 16px 18px; }
+.report-tiles dt { font-size: 13px; font-weight: 500; color: var(--ink-3); }
+.report-tiles dd { margin-top: 4px; font-size: 30px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.table-scroll { overflow-x: auto; }
+.report-table th[scope="row"] {
+  padding: 12px; border-top: 1px solid rgba(255, 255, 255, 0.6); text-align: left; vertical-align: middle;
+  font-size: 14.5px; font-weight: 600; color: var(--ink); text-transform: none; letter-spacing: 0;
+}
+.report-table tfoot th[scope="row"], .report-table tfoot td { border-top: 2px solid rgba(70, 86, 110, 0.25); font-weight: 700; }
+/* the staff console hides its 4th column on phones; the report keeps every column and scrolls sideways instead */
+.report-table th:nth-child(4), .report-table td:nth-child(4) { display: table-cell !important; }
+.report-table th, .report-table td { white-space: nowrap; }
+.report-table tbody tr:first-child td, .report-table tbody tr:first-child th { background: none; }
+.chart-note { margin: -4px 0 14px; color: var(--ink-2); font-weight: 600; }
+.hour-chart { display: flex; align-items: stretch; gap: 2px; height: 220px; }
+.hour { flex: 1 1 0; min-width: 0; display: grid; grid-template-rows: 1fr auto; gap: 8px; }
+.hour-track { display: flex; align-items: flex-end; padding-top: 22px; border-bottom: 1px solid rgba(70, 86, 110, 0.35); }
+.hour-bar { position: relative; width: 100%; max-width: 56px; margin: 0 auto; min-height: 2px; border-radius: 4px 4px 0 0; background: #7fa6ef; }
+.hour.busiest .hour-bar { background: var(--blue-deep); }
+.hour:hover .hour-bar { filter: brightness(0.9); }
+.hour-value { position: absolute; left: 0; right: 0; bottom: 100%; padding-bottom: 4px; text-align: center; font-size: 13px; font-weight: 700; color: var(--ink); }
+.hour-label { text-align: center; font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.report-note { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; color: var(--ink-2); }
+.report-note .ic { flex: none; margin-top: 2px; }
+@media (max-width: 1100px) { .report-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 720px) {
+  .reports { padding: 20px 16px; gap: 16px; }
+  .report-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report-tiles dd { font-size: 24px; }
+  .reports-head .btn-secondary { width: 100%; }
+  .hour-chart { height: 180px; }
+  .hour-label { font-size: 10px; }
+}
+
 @media print { .screen-display, .screen-staff { display: none; } }
 
 /* ---------- Track My Token (US-13): the phone page opened from the QR code ---------- */

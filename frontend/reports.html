@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reports · CareQueue</title>
+  <meta name="description" content="CareQueue queue reports: today's tokens, waits, missed patients and the busiest hour per department.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/screens.css">
+</head>
+<body class="screen-staff screen-reports">
+  <!-- Lucide icons (ISC licence), inlined as a sprite so the page needs no icon package. -->
+  <svg class="sprite" aria-hidden="true">
+    <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+    <symbol id="i-signout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+  </svg>
+  <div class="backdrop" aria-hidden="true">
+    <div class="scene"></div>
+    <div class="light light-cyan"></div>
+    <div class="light light-blue"></div>
+    <div class="light light-mint"></div>
+    <div class="light light-teal"></div>
+    <div class="light light-sky"></div>
+  </div>
+
+  <header class="topbar glass">
+    <a class="brand" href="index.html" aria-label="CareQueue, token page">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="9"/><path d="M13 8h6v5h5v6h-5v5h-6v-5H8v-6h5z"/></svg></span>
+      <span class="brand-name">CareQueue</span>
+    </a>
+    <nav class="nav screen-nav" aria-label="Screens">
+      <a href="patient.html">Token</a>
+      <a href="staff.html">Staff console</a>
+      <a href="reports.html" aria-current="page">Reports</a>
+      <a href="display.html">Display</a>
+    </nav>
+    <div class="topbar-tools">
+      <span id="session-chip" style="font-size:13px;font-weight:600;color:var(--ink-2);white-space:nowrap;padding:0 4px;display:none"></span>
+      <button class="icon-btn" type="button" id="signout-btn" aria-label="Sign out" title="Sign out" style="display:none">
+        <svg class="ic"><use href="#i-signout"/></svg>
+      </button>
+      <div class="clock">
+        <span class="clock-row"><svg class="ic ic-sm"><use href="#i-calendar"/></svg><time id="clock-date">&nbsp;</time></span>
+        <span class="clock-row"><svg class="ic ic-sm"><use href="#i-clock"/></svg><time id="clock-time">&nbsp;</time></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="reports">
+    <div class="reports-head">
+      <div>
+        <h1 class="screen-title">Today's queue report</h1>
+        <p class="screen-sub" id="report-date">Live figures for every department, updated every second.</p>
+      </div>
+      <button class="btn-secondary" type="button" id="download-csv"><svg class="ic"><use href="#i-download"/></svg>Download CSV</button>
+    </div>
+
+    <dl class="report-tiles" id="report-tiles" aria-label="Totals for today">
+      <div class="glass"><dt>Tokens issued</dt><dd id="tile-issued">0</dd></div>
+      <div class="glass"><dt>Served</dt><dd id="tile-served">0</dd></div>
+      <div class="glass"><dt>Waiting now</dt><dd id="tile-waiting">0</dd></div>
+      <div class="glass"><dt>Missed</dt><dd id="tile-missed">0</dd></div>
+      <div class="glass"><dt>Average wait</dt><dd id="tile-wait">–</dd></div>
+      <div class="glass"><dt>Average service</dt><dd id="tile-service">–</dd></div>
+    </dl>
+
+    <section class="glass list-card report-table-card" aria-labelledby="dept-heading">
+      <h2 id="dept-heading" class="card-title">By department</h2>
+      <div class="table-scroll">
+        <table class="queue-table report-table">
+          <thead><tr>
+            <th scope="col">Department</th><th scope="col" class="num">Issued</th><th scope="col" class="num">Served</th>
+            <th scope="col" class="num">Waiting</th><th scope="col" class="num">Serving</th><th scope="col" class="num">Missed</th>
+            <th scope="col" class="num">To Billing</th><th scope="col" class="num">Avg wait</th><th scope="col" class="num">Avg service</th>
+          </tr></thead>
+          <tbody id="dept-rows"></tbody>
+          <tfoot id="dept-total"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <section class="glass list-card report-chart-card" aria-labelledby="hours-heading">
+      <h2 id="hours-heading" class="card-title">Tokens issued per hour</h2>
+      <p class="chart-note" id="busiest">No tokens issued yet today.</p>
+      <div class="hour-chart" id="hour-chart" role="list" aria-label="Tokens issued per hour"></div>
+    </section>
+
+    <p class="report-note"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-info"/></svg>Average wait is from issuing the token to calling it; average service is from calling it to the next patient. No patient names or phone numbers are shown or exported.</p>
+  </main>
+
+  <footer class="foot">
+    <p>Prototype. Figures are worked out from today's tokens saved by the CareQueue server.</p>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/queue-core.js"></script>
+  <script src="js/queue.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/screens.js"></script>
+  <script src="js/reports.js"></script>
+</body>
+</html>

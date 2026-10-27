@@ -640,3 +640,125 @@ test("US-13 tracking page explains a missing, unknown or old token", async () =>
   assert.deepEqual(errors, []);
   await ctx.close();
 });
+
+// --- E6 Queue reports (US-15, US-16) ---
+
+// G: 3 tokens, G001 served, G002 missed, G003 waiting. C: 1 token waiting.
+async function reportDay(open) {
+  const tok = await open("patient.html");
+  for (const n of ["Priya Sharma", "Ravi Kumar", "Anita Das"]) await issue(tok, "gen", n);
+  await issue(tok, "card", "Mohan Iyer");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G002");
+  await staff.click("#skip");
+  await staff.waitForFunction(() => document.getElementById("missed-card").hidden === false);
+  return { tok, staff };
+}
+
+const cells = (page, sel) => page.$$eval(sel, (els) => els.map((e) => e.textContent));
+
+test("AC-15.1 / AC-15.2 the report shows per-department counts and averages that match the staff console", async () => {
+  const { ctx, errors, open } = await setup();
+  const { staff } = await reportDay(open);
+  const rep = await open("reports.html");
+  await rep.waitForFunction(() => document.getElementById("tile-issued").textContent === "4");
+  const g = await cells(rep, '#dept-rows tr[data-code="G"] th, #dept-rows tr[data-code="G"] td');
+  assert.deepEqual(g.slice(0, 7), ["General Medicine", "3", "1", "1", "0", "1", "0"]);
+  assert.match(g[7], /^\d+(\.\d)? min$/, "average wait shown in minutes");
+  assert.match(g[8], /^\d+(\.\d)? min$/, "average service shown in minutes");
+  const c = await cells(rep, '#dept-rows tr[data-code="C"] td');
+  assert.deepEqual(c.slice(0, 5), ["1", "0", "1", "0", "0"]);
+  assert.equal(c[6], "–", "no average wait before anyone is called");
+  assert.equal(await rep.textContent("#tile-served"), await staff.textContent("#stat-served"));
+  const total = await cells(rep, "#dept-total td");
+  assert.deepEqual(total.slice(0, 5), ["4", "1", "2", "0", "1"]);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-15.3 the report updates within 2 seconds without refresh", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const rep = await open("reports.html");
+  await rep.waitForFunction(() => document.getElementById("tile-issued").textContent === "1");
+  await issue(tok, "gen", "Ravi Kumar");
+  await rep.waitForFunction(() => document.getElementById("tile-issued").textContent === "2", null, { timeout: 2000 });
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await rep.waitForFunction(() => document.getElementById("tile-waiting").textContent === "1", null, { timeout: 2000 });
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-15.4 the report is closed to anyone not signed in as staff", async () => {
+  // No session: back to the landing page. A patient: the landing page sends them on to their own token page.
+  for (const [role, landing] of [["none", /index\.html$/], ["patient", /patient\.html$/]]) {
+    const { ctx } = await setup(undefined, role);
+    const page = await ctx.newPage();
+    await page.goto(APP + "reports.html");
+    await page.waitForURL(landing, { timeout: 3000 });
+    await ctx.close();
+  }
+});
+
+test("US-15 the report loads only the public queue: no patient names reach the page", async () => {
+  const { ctx, open } = await setup();
+  await reportDay(open);
+  const rep = await ctx.newPage();
+  const urls = [];
+  const bodies = [];
+  rep.on("request", (r) => { if (r.url().includes("/api/queue/")) urls.push(new URL(r.url()).pathname); });
+  rep.on("response", async (r) => { if (r.url().includes("/api/queue/")) bodies.push(await r.text().catch(() => "")); });
+  await rep.goto(APP + "reports.html");
+  await rep.waitForFunction(() => document.getElementById("tile-issued").textContent === "4");
+  await rep.waitForTimeout(1200);
+  assert.deepEqual([...new Set(urls)], ["/api/queue/public-state"]);
+  const seen = bodies.join("") + (await rep.content());
+  for (const n of ["Priya", "Ravi", "Anita", "Mohan", "9876543210"]) assert.ok(!seen.includes(n), n + " reached the report");
+  await ctx.close();
+});
+
+test("AC-16.1 a chart shows tokens per hour and names the busiest hour", async () => {
+  const { ctx, errors, open } = await setup();
+  await reportDay(open);
+  const rep = await open("reports.html");
+  await rep.waitForFunction(() => document.querySelectorAll("#hour-chart .hour").length > 0);
+  const busiest = await rep.$$eval("#hour-chart .hour.busiest", (els) => els.map((e) => e.getAttribute("aria-label")));
+  assert.equal(busiest.length, 1);
+  assert.match(busiest[0], /: 4 tokens$/);
+  assert.match(await rep.textContent("#busiest"), /^Busiest hour: .+, 4 tokens\.$/);
+  assert.equal(await rep.textContent("#hour-chart .hour.busiest .hour-value"), "4");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-16.2 Download CSV saves one row per department and a total, with no patient details", async () => {
+  const { ctx, errors, open } = await setup();
+  await reportDay(open);
+  const rep = await open("reports.html");
+  await rep.waitForFunction(() => document.getElementById("tile-issued").textContent === "4");
+  const [download] = await Promise.all([rep.waitForEvent("download"), rep.click("#download-csv")]);
+  assert.match(download.suggestedFilename(), /^CareQueue-report-\d{4}-\d{2}-\d{2}\.csv$/);
+  const csv = fs.readFileSync(await download.path(), "utf8");
+  const lines = csv.trim().split("\n");
+  assert.equal(lines[0], "Department,Code,Issued,Served,Waiting,Serving,Missed,Sent to Billing,Average wait (min),Average service (min)");
+  assert.match(lines.find((l) => l.startsWith("General Medicine,")), /^General Medicine,G,3,1,1,0,1,0,/);
+  assert.match(lines[lines.length - 1], /^Total,,4,1,2,0,1,0,/);
+  for (const n of ["Priya", "Ravi", "Anita", "Mohan", "9876543210"]) assert.ok(!csv.includes(n));
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("US-15 the report fits a phone without sideways scrolling", async () => {
+  const { ctx, open } = await setup({ width: 390, height: 844 });
+  await reportDay(open);
+  const rep = await open("reports.html");
+  await rep.waitForFunction(() => document.getElementById("tile-issued").textContent === "4");
+  const overflow = await rep.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  assert.equal(overflow, false);
+  await ctx.close();
+});
