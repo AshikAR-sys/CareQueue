@@ -424,3 +424,23 @@ From the QA report: the PIN was checked only in the browser, so anyone could cal
   Results: `npm test` 56/56 · backend 21/21 · e2e 48/48.
 - **Docs:** README, project status, demo checklist, architecture diagram and README updated; `render.yaml` gains a
   generated `CAREQUEUE_SECRET_KEY` (applies to Blueprint-managed services).
+
+---
+
+## Four new stories (US-17 to US-20) and Feature F7 — Priority tokens (US-17, PRD C1)
+
+**Backlog:** the team asked for 4 new stories and chose Tamil display + voice; the other three were filled from the
+PRD's Could-Haves as offered: priority tokens (C1), turn-is-near alert (C4) and a visit rating shown in Reports
+(extends C2). Added to the User Stories and Epics PDFs (20 stories, 60 acceptance criteria); built one at a time.
+
+- **BA:** `docs/features/F7-priority-tokens.md` (AC-17.1–17.4, six rules).
+- **Developer (TDD):** 6 unit tests (`tests/priority.test.js`) and 4 API tests written first and watched fail. Then:
+  `tokens.priority` column (checked values; added to old databases), validation and Senior age rule on the server,
+  `ORDER BY priority IS NULL, seq` for Call Next, the same order in `QueueCore`, priority kept when sent to Billing,
+  public state reduced to "priority: yes". Token form gains a Priority choice; token card, print and PNG show it;
+  staff list and display mark it.
+- **Debugging:** a browser test failed on the second token: the form kept "Senior 60+" selected after issuing, so the
+  next patient (age 40) was refused. Root cause: the form keeps its values between patients by design, but priority
+  belongs to one patient. The form now resets priority to None after each token.
+- **QA:** 2 browser tests (AC-17.1; AC-17.2–17.4 on staff list and display, reason never on the display). Screenshots
+  of the form, card, staff list, display and phone. Results: `npm test` 62/62 · backend 25/25 · e2e 50/50.

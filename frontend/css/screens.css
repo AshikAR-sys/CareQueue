@@ -69,6 +69,17 @@
 }
 .dept-tab[aria-pressed="true"] .dept-tab-count { background: var(--blue); color: #fff; }
 
+/* US-17: priority marks */
+.priority-tag {
+  display: inline-block; padding: 2px 8px; border-radius: var(--r-pill); vertical-align: 1px;
+  font-size: 12px; font-weight: 700; color: var(--notice-ink); background: var(--notice-bg);
+}
+.priority-why { font-size: 12.5px; color: var(--ink-3); }
+.next-priority {
+  display: inline-block; margin-left: 12px; padding: 3px 10px; border-radius: var(--r-pill); vertical-align: middle;
+  font-size: 15px; font-weight: 700; letter-spacing: 0; color: var(--notice-ink); background: var(--notice-bg);
+}
+
 /* US-11: counter picker in the serving card */
 .counter-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: -6px; }
 .counter-chips { display: flex; gap: 8px; flex-wrap: wrap; }

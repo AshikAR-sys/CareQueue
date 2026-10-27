@@ -65,6 +65,7 @@
     }
     const payload = await request("/api/tokens", {
       code: details.department.code,
+      priority: details.priority || null,
       patient: {
         name: details.name, age: details.age, gender: details.gender,
         phone: details.phone, doctor: details.doctor || ""

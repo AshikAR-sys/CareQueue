@@ -101,6 +101,7 @@
       name: fields.name.value.trim().replace(/\s+/g, " "),
       age: fields.age.value.trim(),
       gender: gender ? gender.value : "",
+      priority: (form.querySelector('input[name="priority"]:checked') || {}).value || "",
       phone: fields.phone.value.replace(/\D/g, "")
     };
   }
@@ -114,18 +115,19 @@
     if (v.age === "") errors.age = "Enter the age.";
     else if (!/^\d{1,3}$/.test(v.age) || +v.age > 120) errors.age = "Enter an age from 0 to 120.";
     if (!v.gender) errors.gender = "Select a gender.";
+    if (v.priority === "senior" && /^\d{1,3}$/.test(v.age) && +v.age < 60) errors.priority = "Senior citizen priority is for ages 60 and over.";
     if (!v.phone) errors.phone = "Enter a mobile number.";
     else if (!/^[6-9]\d{9}$/.test(v.phone)) errors.phone = "Enter a 10-digit mobile number starting with 6, 7, 8 or 9.";
     return errors;
   }
 
   function showErrors(errors) {
-    for (const key of ["department", "name", "age", "gender", "phone"]) {
+    for (const key of ["department", "name", "age", "gender", "phone", "priority"]) {
       const err = $(key + "-err");
       const field = err.closest(".field");
       err.textContent = errors[key] || "";
       field.classList.toggle("invalid", Boolean(errors[key]));
-      const input = key === "gender" ? null : fields[key];
+      const input = key === "gender" || key === "priority" ? null : fields[key];
       if (input) input.setAttribute("aria-invalid", errors[key] ? "true" : "false");
     }
     const count = Object.keys(errors).length;
@@ -212,6 +214,13 @@
     }
   }
 
+  // US-17: "Priority · Senior citizen" under the token number, hidden for normal tokens.
+  function setPriority(priority) {
+    const el = $("t-priority");
+    el.hidden = !priority;
+    el.textContent = priority ? "Priority · " + window.QueueCore.PRIORITY_LABELS[priority] : "";
+  }
+
   function renderSample() {
     const s = DATA.sampleToken;
     const dept = deptById(s.departmentId);
@@ -227,6 +236,7 @@
     $("t-wait").classList.remove("unavailable");
     setInstructions(dept, null);
     setQr(null);
+    setPriority(null);
     setActionsEnabled(false);
   }
 
@@ -245,6 +255,7 @@
     setWait(null, "Shown after your token is issued");
     setInstructions(v.department, null);
     setQr(null);
+    setPriority(v.priority);
     setActionsEnabled(false);
   }
 
@@ -267,6 +278,7 @@
     setWait(t.estimate, "Not available yet. Check the display near the department.");
     setInstructions(t.department, t.number);
     setQr(t);
+    setPriority(t.priority);
     $("token-error").hidden = true;
     setActionsEnabled(true);
   }
@@ -313,8 +325,8 @@
     const errors = validate(v);
     showErrors(errors);
     if (Object.keys(errors).length) {
-      const first = ["department", "name", "age", "gender", "phone"].find((k) => errors[k]);
-      (first === "gender" ? form.querySelector('input[name="gender"]') : fields[first]).focus();
+      const first = ["department", "name", "age", "gender", "phone", "priority"].find((k) => errors[k]);
+      (first === "gender" || first === "priority" ? form.querySelector('input[name="' + first + '"]:checked, input[name="' + first + '"]') : fields[first]).focus();
       return;
     }
     await generate(v);
@@ -332,6 +344,8 @@
       issued = Object.assign({}, v, result);
       submitted = false; // the next patient's entry is checked only when they submit
       renderIssued(issued);
+      // Priority belongs to this patient only: the next patient starts from "None" (US-17).
+      form.querySelector('input[name="priority"][value=""]').checked = true;
       if (window.matchMedia("(max-width: 1180px)").matches) {
         card.scrollIntoView({ behavior: "smooth", block: "start" });
       }
@@ -368,7 +382,7 @@
   });
 
   function drawSlip(t) {
-    const W = 720, H = 1200, s = 2;
+    const W = 720, H = 1270, s = 2;
     const c = document.createElement("canvas");
     c.width = W * s; c.height = H * s;
     const g = c.getContext("2d");
@@ -401,6 +415,7 @@
       ["Phone", "+91 " + t.phone.slice(0, 5) + " " + t.phone.slice(5)],
       ["Issued", issuedFmt.format(t.issuedAt)],
       ["Estimated wait", waitText(t.estimate) || "Not available"],
+      ["Priority", t.priority ? window.QueueCore.PRIORITY_LABELS[t.priority] + " (called first)" : "None"],
       ["Where to go", t.department.location]
     ];
     let y = 430;

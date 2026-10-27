@@ -31,6 +31,14 @@
     return bits.join(", ");
   }
 
+  // US-17: a "Priority" tag with the reason, for priority tokens.
+  function priorityTag(t) {
+    if (!t || !t.priority) return null;
+    const tag = el("span", "priority-tag", "Priority");
+    tag.title = window.QueueCore.PRIORITY_LABELS[t.priority] || "Priority";
+    return tag;
+  }
+
   // "from G001" on a token that was sent on from another queue (AC-04.2).
   function fromText(t) { return t && t.linkedFrom ? " · from " + t.linkedFrom : ""; }
 
@@ -77,7 +85,8 @@
       $("serving-name").textContent = patientLine(v.serving.patient) || "Patient";
       const since = minutes(now - v.serving.calledAt);
       $("serving-meta").textContent = "Called at " + time(new Date(v.serving.calledAt)) + " · " + since + " min at the counter" +
-        (v.serving.patient && v.serving.patient.doctor ? " · " + v.serving.patient.doctor : "") + fromText(v.serving);
+        (v.serving.patient && v.serving.patient.doctor ? " · " + v.serving.patient.doctor : "") + fromText(v.serving) +
+        (v.serving.priority ? " · Priority: " + window.QueueCore.PRIORITY_LABELS[v.serving.priority] : "");
     } else {
       $("serving-number").textContent = "—";
       $("serving-number").classList.add("empty");
@@ -112,7 +121,10 @@
     }
     v.waiting.forEach((t, i) => {
       const tr = el("tr");
-      tr.append(el("td", "num", String(i + 1)), el("td", "token", t.number), el("td", null, patientLine(t.patient) + fromText(t)),
+      const who = el("td", null, patientLine(t.patient) + fromText(t));
+      const tag = priorityTag(t);
+      if (tag) who.append(" ", tag, el("span", "priority-why", " " + tag.title));
+      tr.append(el("td", "num", String(i + 1)), el("td", "token", t.number), who,
         el("td", "num", minutes(now - t.createdAt) + " min"), el("td", "num", t.minutes === 0 ? "Next" : t.minutes + " min"));
       rows.append(tr);
     });

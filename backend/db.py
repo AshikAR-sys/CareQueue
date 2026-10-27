@@ -40,6 +40,8 @@ def upgrade_schema(conn: sqlite3.Connection) -> None:
             conn.execute(f"ALTER TABLE tokens ADD COLUMN {name} TEXT")
     if "counter" not in columns:  # US-11 Multiple counters
         conn.execute("ALTER TABLE tokens ADD COLUMN counter INTEGER")
+    if "priority" not in columns:  # US-17 Priority tokens
+        conn.execute("ALTER TABLE tokens ADD COLUMN priority TEXT")
 
 
 def get_db() -> sqlite3.Connection:
