@@ -38,6 +38,8 @@ def upgrade_schema(conn: sqlite3.Connection) -> None:
     for name in ("linked_from", "forwarded_to"):  # US-04 Send to Billing
         if name not in columns:
             conn.execute(f"ALTER TABLE tokens ADD COLUMN {name} TEXT")
+    if "counter" not in columns:  # US-11 Multiple counters
+        conn.execute("ALTER TABLE tokens ADD COLUMN counter INTEGER")
 
 
 def get_db() -> sqlite3.Connection:

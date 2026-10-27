@@ -22,6 +22,7 @@ def token_from_row(row, include_patient: bool = True) -> dict:
         "calledAt": row["called_at"], "doneAt": row["done_at"],
         "skippedAt": row["skipped_at"],
         "linkedFrom": row["linked_from"], "forwardedTo": row["forwarded_to"],
+        "counter": row["counter"],
     }
     if include_patient:
         token["patient"] = {
@@ -62,9 +63,14 @@ def get_day(conn: Connection, include_patient: bool = True) -> dict:
     rows = conn.execute(
         "SELECT * FROM tokens WHERE queue_date = ? ORDER BY id", (day,)
     ).fetchall()
+    open_counters = {
+        row["code"]: [int(c) for c in row["counters"].split(",")]
+        for row in conn.execute("SELECT code, counters FROM open_counters WHERE queue_date = ?", (day,)).fetchall()
+    }
     return {
         "date": day,
         "counters": counters,
+        "openCounters": open_counters,
         "tokens": [token_from_row(row, include_patient) for row in rows],
     }
 
@@ -120,18 +126,81 @@ def issue_token(conn: Connection, payload: dict) -> dict:
     return token_from_row(row)
 
 
-def call_next(conn: Connection, code: str) -> dict | None:
+# ---- US-11 Multiple counters: up to 3 service counters per queue; Counter 1 is open unless changed today ----
+MAX_COUNTERS = 3
+
+
+def check_counter(counter: int) -> None:
+    if not isinstance(counter, int) or isinstance(counter, bool) or not 1 <= counter <= MAX_COUNTERS:
+        raise ValueError("Choose Counter 1, 2 or 3.")
+
+
+def open_counters(conn: Connection, day: str, code: str) -> list[int]:
+    row = conn.execute(
+        "SELECT counters FROM open_counters WHERE queue_date = ? AND code = ?", (day, code)
+    ).fetchone()
+    return [int(c) for c in row["counters"].split(",")] if row else [1]
+
+
+def check_open(conn: Connection, day: str, code: str, counter: int) -> None:
+    check_counter(counter)
+    if counter not in open_counters(conn, day, code):
+        raise ValueError(f"Counter {counter} is paused. Open it to call patients.")
+
+
+def serving_at(conn: Connection, day: str, code: str, counter: int):
+    # Tokens called before US-11 have no counter; they belong to Counter 1.
+    return conn.execute(
+        """SELECT * FROM tokens WHERE queue_date = ? AND code = ? AND status = 'serving'
+           AND COALESCE(counter, 1) = ? ORDER BY seq LIMIT 1""", (day, code, counter),
+    ).fetchone()
+
+
+def complete_at(conn: Connection, day: str, code: str, counter: int, now: int) -> None:
+    conn.execute(
+        """UPDATE tokens SET status = 'done', done_at = ?
+           WHERE queue_date = ? AND code = ? AND status = 'serving' AND COALESCE(counter, 1) = ?""",
+        (now, day, code, counter),
+    )
+
+
+def set_counter(conn: Connection, code: str, counter: int, is_open: bool) -> list[int]:
+    """Open or pause a counter. A counter serving a patient cannot be paused; one counter always stays open."""
+    code = code.strip().upper()
+    if not department(conn, code):
+        raise ValueError("Unknown department.")
+    check_counter(counter)
+    day = today_key()
+    with conn:
+        conn.execute("BEGIN IMMEDIATE")
+        current = open_counters(conn, day, code)
+        if is_open:
+            updated = sorted(set(current) | {counter})
+        else:
+            serving = serving_at(conn, day, code, counter)
+            if serving and counter in current:
+                raise ValueError(f"{serving['number']} is at Counter {counter}. Finish or skip it before pausing.")
+            updated = [c for c in current if c != counter]
+            if not updated:
+                raise ValueError("Keep at least one counter open.")
+        conn.execute(
+            """INSERT INTO open_counters(queue_date, code, counters) VALUES (?, ?, ?)
+               ON CONFLICT(queue_date, code) DO UPDATE SET counters = excluded.counters""",
+            (day, code, ",".join(str(c) for c in updated)),
+        )
+    return updated
+
+
+def call_next(conn: Connection, code: str, counter: int = 1) -> dict | None:
+    """Call the next waiting token to a counter; the patient at that counter is completed first."""
     code = code.strip().upper()
     if not department(conn, code):
         raise ValueError("Unknown department.")
     day, now = today_key(), now_ms()
     with conn:
         conn.execute("BEGIN IMMEDIATE")
-        conn.execute(
-            """UPDATE tokens SET status = 'done', done_at = ?
-               WHERE queue_date = ? AND code = ? AND status = 'serving'""",
-            (now, day, code),
-        )
+        check_open(conn, day, code, counter)
+        complete_at(conn, day, code, counter, now)
         next_row = conn.execute(
             """SELECT id FROM tokens
                WHERE queue_date = ? AND code = ? AND status = 'waiting'
@@ -140,22 +209,20 @@ def call_next(conn: Connection, code: str) -> dict | None:
         if not next_row:
             return None
         conn.execute(
-            "UPDATE tokens SET status = 'serving', called_at = ? WHERE id = ?",
-            (now, next_row["id"]),
+            "UPDATE tokens SET status = 'serving', called_at = ?, counter = ? WHERE id = ?",
+            (now, counter, next_row["id"]),
         )
     return token_from_row(conn.execute("SELECT * FROM tokens WHERE id = ?", (next_row["id"],)).fetchone())
 
 
-def skip_current(conn: Connection, code: str) -> dict | None:
+def skip_current(conn: Connection, code: str, counter: int = 1) -> dict | None:
     code, day, now = code.strip().upper(), today_key(), now_ms()
     if not department(conn, code):
         raise ValueError("Unknown department.")
+    check_counter(counter)
     with conn:
         conn.execute("BEGIN IMMEDIATE")
-        current = conn.execute(
-            """SELECT id FROM tokens WHERE queue_date = ? AND code = ? AND status = 'serving'
-               ORDER BY seq LIMIT 1""", (day, code),
-        ).fetchone()
+        current = serving_at(conn, day, code, counter)
         if not current:
             return None
         conn.execute(
@@ -165,7 +232,8 @@ def skip_current(conn: Connection, code: str) -> dict | None:
     return token_from_row(conn.execute("SELECT * FROM tokens WHERE id = ?", (current["id"],)).fetchone())
 
 
-def recall_token(conn: Connection, number: str) -> dict | None:
+def recall_token(conn: Connection, number: str, counter: int = 1) -> dict | None:
+    """Recall a missed token to a counter; the patient at that counter is completed first."""
     day, now = today_key(), now_ms()
     with conn:
         conn.execute("BEGIN IMMEDIATE")
@@ -175,33 +243,28 @@ def recall_token(conn: Connection, number: str) -> dict | None:
         ).fetchone()
         if not missed:
             return None
+        check_open(conn, day, missed["code"], counter)
+        complete_at(conn, day, missed["code"], counter, now)
         conn.execute(
-            """UPDATE tokens SET status = 'done', done_at = ?
-               WHERE queue_date = ? AND code = ? AND status = 'serving'""",
-            (now, day, missed["code"]),
-        )
-        conn.execute(
-            "UPDATE tokens SET status = 'serving', called_at = ? WHERE id = ?",
-            (now, missed["id"]),
+            "UPDATE tokens SET status = 'serving', called_at = ?, counter = ? WHERE id = ?",
+            (now, counter, missed["id"]),
         )
     return token_from_row(conn.execute("SELECT * FROM tokens WHERE id = ?", (missed["id"],)).fetchone())
 
 
-def send_to(conn: Connection, from_code: str, to_code: str) -> dict | None:
-    """US-04 Send to Billing: complete the patient being served in one queue and add them to the end of another
+def send_to(conn: Connection, from_code: str, to_code: str, counter: int = 1) -> dict | None:
+    """US-04 Send to Billing: complete the patient at a counter of one queue and add them to the end of another
     queue with a new token carrying the same details. Returns the new token, or None if nobody is being served."""
     from_code, to_code = from_code.strip().upper(), to_code.strip().upper()
     if not department(conn, from_code) or not department(conn, to_code):
         raise ValueError("Unknown department.")
     if from_code == to_code:
         raise ValueError("A queue cannot send a patient to itself.")
+    check_counter(counter)
     day, now = today_key(), now_ms()
     with conn:
         conn.execute("BEGIN IMMEDIATE")
-        current = conn.execute(
-            """SELECT * FROM tokens WHERE queue_date = ? AND code = ? AND status = 'serving'
-               ORDER BY seq LIMIT 1""", (day, from_code),
-        ).fetchone()
+        current = serving_at(conn, day, from_code, counter)
         if not current:
             return None
         counter = conn.execute(

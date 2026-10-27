@@ -34,10 +34,20 @@
       head.append(el("h2", null, dept.name), el("span", "panel-loc", dept.location));
       const now = el("div", "panel-now");
       now.append(el("p", "panel-label", "Now serving"));
-      const num = el("p", "panel-number" + (v.serving ? "" : " empty"), v.serving || "No patients being served");
-      if (v.serving && lastServing[v.code] && lastServing[v.code] !== v.serving) num.classList.add("changed");
-      lastServing[v.code] = v.serving;
-      now.append(num);
+      // US-11: one slot per serving counter, each with its token number and counter.
+      now.dataset.count = String(v.serving.length);
+      if (!v.serving.length) now.append(el("p", "panel-number empty", "No patients being served"));
+      const slots = el("div", "serving-slots");
+      for (const s of v.serving) {
+        const key = v.code + "#" + s.counter;
+        const slot = el("div", "serving-slot");
+        const num = el("p", "panel-number", s.number);
+        if (lastServing[key] && lastServing[key] !== s.number) num.classList.add("changed");
+        lastServing[key] = s.number;
+        slot.append(num, el("p", "panel-counter", "Counter " + s.counter));
+        slots.append(slot);
+      }
+      if (v.serving.length) now.append(slots);
 
       const next = el("div", "panel-next");
       next.append(el("p", "panel-label", v.waitingCount ? "Next" + (v.waitingCount > v.waiting.length ? " (" + v.waitingCount + " waiting)" : "") : "Next"));
@@ -74,14 +84,16 @@
   function announceNewCalls() {
     const snapshot = {};
     for (const d of DATA.departments) {
-      const serving = Q.view(d.code).serving;
-      snapshot[d.code] = serving ? { number: serving.number, calledAt: serving.calledAt } : null;
+      for (const c of Q.view(d.code).counters) {
+        const t = c.serving;
+        snapshot[d.code + "#" + c.counter] = t ? { code: d.code, counter: c.counter, number: t.number, calledAt: t.calledAt } : null;
+      }
     }
     // Skip the empty state before the first server response, so tokens already serving are not announced.
     const loaded = Q.codesInUse().length > 0 || Q.isPersistent();
     if (!loaded) return;
     for (const call of A.newCalls(lastCalls, snapshot)) {
-      A.announce(A.announcementText(call.number, deptByCode(call.code).name));
+      A.announce(A.announcementText(call.number, deptByCode(call.code).name, call.counter));
     }
     lastCalls = snapshot;
   }

@@ -148,7 +148,7 @@ test("AC-05.1 Call Next confirms which token was called", async () => {
   const staff = await open("staff.html");
   await staff.click("#call-next");
   await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
-  assert.equal(await staff.textContent("#serving-hint"), "Called G001. It is now on the display.");
+  assert.equal(await staff.textContent("#serving-hint"), "Called G001 to Counter 1. It is now on the display.");
   await ctx.close();
 });
 
@@ -250,7 +250,7 @@ test("AC-09.2 / AC-09.3 estimates show on the token, staff screen and display, a
   await staff.click("#call-next");
   await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G002");
   await staff.click("#call-next");                  // G003 is now serving
-  await tok.waitForFunction(() => document.getElementById("t-wait").textContent === "It's your turn now", null, { timeout: 2000 });
+  await tok.waitForFunction(() => document.getElementById("t-wait").textContent === "It's your turn now · Counter 1", null, { timeout: 2000 });
   await ctx.close();
 });
 
@@ -471,7 +471,7 @@ test("AC-08.1 with sound on, a called token is announced with a chime", async ()
   await staff.click("#call-next");
   await disp.waitForFunction(() => window.CareQueueAnnouncer.history.length > 0, null, { timeout: 3000 });
   const h = await disp.evaluate(() => window.CareQueueAnnouncer.history[0]);
-  assert.equal(h.text, "Token G 0 0 1, please come to General Medicine.");
+  assert.equal(h.text, "Token G 0 0 1, please come to General Medicine, counter 1.");
   assert.equal(h.chime, true);
   assert.ok(!JSON.stringify(await heard(disp)).includes("Priya"));
   await ctx.close();
@@ -490,7 +490,7 @@ test("AC-08.2 a recalled token is announced again", async () => {
   await staff.waitForFunction(() => !document.getElementById("missed-card").hidden);
   await staff.click("#recall-G001");
   await disp.waitForFunction(() => window.CareQueueAnnouncer.history.length === 2, null, { timeout: 3000 });
-  assert.deepEqual(await heard(disp), ["Token G 0 0 1, please come to General Medicine.", "Token G 0 0 1, please come to General Medicine."]);
+  assert.deepEqual(await heard(disp), ["Token G 0 0 1, please come to General Medicine, counter 1.", "Token G 0 0 1, please come to General Medicine, counter 1."]);
   await ctx.close();
 });
 
@@ -760,5 +760,132 @@ test("US-15 the report fits a phone without sideways scrolling", async () => {
   await rep.waitForFunction(() => document.getElementById("tile-issued").textContent === "4");
   const overflow = await rep.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   assert.equal(overflow, false);
+  await ctx.close();
+});
+
+// --- US-11 Multiple counters ---
+
+// A second receptionist in their own browser, working at the given counter of General Medicine.
+async function receptionistAt(counter, errors) {
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const seed = await ctx.newPage();
+  await seed.goto(APP + "index.html");
+  await seed.evaluate((c) => {
+    localStorage.setItem("carequeue-session", JSON.stringify({ role: "receptionist", name: "Desk " + c, timestamp: Date.now() }));
+    localStorage.setItem("carequeue-staff-dept-counter-G", String(c));
+  }, counter);
+  await seed.close();
+  const page = await open(ctx, "staff.html", errors);
+  await page.waitForFunction((c) => document.getElementById("serving-counter").textContent === "Counter " + c, counter);
+  return { ctx, page };
+}
+
+async function openCounter(staff, counter) {
+  await staff.click("#counter-" + counter);
+  await staff.waitForFunction((c) => document.getElementById("counter-toggle").textContent === "Open Counter " + c, counter);
+  await staff.click("#counter-toggle");
+  await staff.waitForFunction((c) => document.querySelector("#counter-" + c + " .counter-status").textContent !== "Paused", counter);
+}
+
+test("US-11 the staff console starts with Counter 1 open and Counters 2-3 paused", async () => {
+  const { ctx, errors, open } = await setup();
+  const staff = await open("staff.html");
+  const chips = await cells(staff, "#counter-chips .counter-chip");
+  assert.deepEqual(chips, ["Counter 1Free", "Counter 2Paused", "Counter 3Paused"]);
+  assert.equal(await staff.getAttribute("#counter-1", "aria-pressed"), "true");
+  assert.equal(await staff.textContent("#counter-toggle"), "Pause Counter 1");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-11.3 two receptionists call their own patients at Counters 1 and 2", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  for (const n of ["Priya Sharma", "Ravi Kumar", "Anita Das"]) await issue(tok, "gen", n);
+  const desk1 = await open("staff.html");
+  await openCounter(desk1, 2);
+  await desk1.click("#counter-1");
+  const { ctx: ctx2, page: desk2 } = await receptionistAt(2, errors);
+  await desk1.click("#call-next");
+  await desk1.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  await desk2.click("#call-next");
+  await desk2.waitForFunction(() => document.getElementById("serving-number").textContent === "G002");
+  assert.equal(await desk2.textContent("#serving-hint"), "Called G002 to Counter 2. It is now on the display.");
+  await desk1.waitForFunction(() => document.querySelector("#counter-2 .counter-status").textContent === "G002");
+  assert.equal(await desk1.textContent("#serving-number"), "G001", "Counter 1 keeps its patient");
+  const disp = await open("display.html");
+  await disp.waitForFunction(() => document.querySelectorAll(".serving-slot").length === 2);
+  const slots = await cells(disp, ".serving-slot");
+  assert.deepEqual(slots, ["G001Counter 1", "G002Counter 2"]);
+  await desk1.click("#call-next");                                // finishes G001 only
+  await desk1.waitForFunction(() => document.getElementById("serving-number").textContent === "G003");
+  await disp.waitForFunction(() => document.querySelector(".serving-slot").textContent === "G003Counter 1");
+  assert.equal(await desk2.textContent("#serving-number"), "G002");
+  assert.deepEqual(errors, []);
+  await ctx2.close();
+  await ctx.close();
+});
+
+test("AC-11.2 a paused counter cannot call, and a counter with a patient cannot be paused", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const staff = await open("staff.html");
+  await staff.click("#counter-2");
+  await staff.waitForFunction(() => document.getElementById("serving-counter").textContent === "Counter 2");
+  assert.equal(await staff.isDisabled("#call-next"), true);
+  assert.equal(await staff.textContent("#serving-name"), "Counter 2 is paused");
+  await staff.click("#counter-1");
+  await staff.waitForFunction(() => document.getElementById("counter-toggle").textContent === "Pause Counter 1");
+  await staff.click("#counter-toggle");
+  await staff.waitForFunction(() => /at least one counter/i.test(document.getElementById("serving-hint").textContent));
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  await openCounter(staff, 2);
+  await staff.click("#counter-1");
+  await staff.waitForFunction(() => document.getElementById("counter-toggle").textContent === "Pause Counter 1");
+  await staff.click("#counter-toggle");
+  await staff.waitForFunction(() => /G001 is at Counter 1/.test(document.getElementById("serving-hint").textContent));
+  // The two refused pauses are 400 answers from the server, which the browser logs; nothing else may fail.
+  assert.equal(errors.filter((e) => /status of 400/.test(e)).length, 2);
+  assert.deepEqual(errors.filter((e) => !/status of 400/.test(e)), []);
+  await ctx.close();
+});
+
+test("AC-11.1 opening a second counter halves the queue part of the estimate", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  for (const n of ["Priya Sharma", "Ravi Kumar", "Anita Das", "Mohan Iyer", "Lakshmi Rao"]) await issue(tok, "gen", n);
+  // G005: 4 ahead, nobody serving. One counter: 4 x 3 = 12 min. Two counters: 4 / 2 x 3 = 6 min.
+  await tok.waitForFunction(() => /^About 12 min/.test(document.getElementById("t-wait").textContent));
+  const staff = await open("staff.html");
+  await openCounter(staff, 2);
+  await tok.waitForFunction(() => /^About 6 min/.test(document.getElementById("t-wait").textContent), null, { timeout: 2000 });
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-11.4 the voice and the patient's phone name the counter", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  const url = await tok.getAttribute("#t-qr-code", "data-url");      // G002
+  const disp = await soundOnDisplay(open);
+  const staff = await open("staff.html");
+  await openCounter(staff, 2);
+  await staff.click("#call-next");                                   // G001 to Counter 2 (the selected counter)
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  await disp.waitForFunction(() => window.CareQueueAnnouncer.history.length === 1, null, { timeout: 3000 });
+  assert.deepEqual(await heard(disp), ["Token G 0 0 1, please come to General Medicine, counter 2."]);
+  await staff.click("#counter-1");
+  await staff.waitForFunction(() => document.getElementById("serving-counter").textContent === "Counter 1");
+  await staff.click("#call-next");                                   // G002 to Counter 1
+  const { ctx: pctx, page } = await phone(url, errors);
+  await page.waitForFunction(() => document.getElementById("track-card").dataset.state === "serving");
+  assert.match(await page.textContent("#track-alert"), /General Medicine, Counter 1\./);
+  assert.equal(await page.textContent("#track-serving"), "G002, G001");
+  assert.deepEqual(errors, []);
+  await pctx.close();
   await ctx.close();
 });

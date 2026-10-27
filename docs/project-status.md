@@ -1,6 +1,6 @@
 # CareQueue Project Status
 
-Updated: 27 Oct 2026, after adding the Queue reports epic (E6: US-15, US-16).
+Updated: 27 Oct 2026, after adding multiple counters (US-11). All 16 stories are built.
 Demo: 25 Oct, 10:00 IST.
 Status labels: **Completed** (with evidence) · **In Progress** · **Pending** · **Blocked** · **Needs Verification**.
 
@@ -28,7 +28,7 @@ Status labels: **Completed** (with evidence) · **In Progress** · **Pending** �
 | Persistent queue across reloads (SQLite) | — | **Completed** | e2e persistence test |
 | Voice announcement (sound switch, chime + speech on each call and recall) | US-08 | **Completed** | 9 unit tests; e2e AC-08.1, AC-08.2 (+2) |
 | Queue reports: per-department figures, averages, busiest hour, CSV (new epic E6) | US-15, US-16 | **Completed** | 6 unit tests; e2e AC-15.1–15.4, AC-16.1–16.2 (+1) |
-| Multiple counters | US-11 | Pending | not built |
+| Multiple counters: up to 3 per queue, each calling its own patient; counter shown on display, voice and phone | US-11 | **Completed** | 10 unit tests; 5 backend tests; e2e AC-11.1–11.4 (+1) |
 | QR phone tracking (live phone page, "Almost your turn") | US-13 | **Completed** | 6 unit tests; e2e US-13, AC-13.1–13.3 (+1) |
 
 ## How to run
@@ -45,9 +45,9 @@ Open http://127.0.0.1:8000.
 ## Test results (27 Oct 2026)
 
 ```
-npm test              →  46 / 46 pass  (queue rules + announcements + phone tracking + reports)
-npm run test:backend  →  11 / 11 pass  (Flask API + SQLite)
-npm run test:e2e      →  41 / 41 pass  (browser tests against an isolated test database)
+npm test              →  56 / 56 pass  (queue rules + counters + announcements + phone tracking + reports)
+npm run test:backend  →  16 / 16 pass  (Flask API + SQLite)
+npm run test:e2e      →  46 / 46 pass  (browser tests against an isolated test database)
 ```
 
 ## Role-wise backlog

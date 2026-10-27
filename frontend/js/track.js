@@ -55,7 +55,7 @@
     where.hidden = !dept;
     if (dept) where.lastChild.textContent = dept.location;
 
-    const serving = t.serving || "None yet";
+    const serving = t.serving.length ? t.serving.join(", ") : "None yet";
     if (t.status === "waiting") {
       show(t.almost ? "almost" : "waiting", {
         alert: t.almost ? "Almost your turn. Please be near " + (dept ? dept.name : "the department") + "." : "",
@@ -64,7 +64,7 @@
         serving
       });
     } else if (t.status === "serving") {
-      show("serving", { alert: "It's your turn now. Please go to " + (dept ? dept.name : "the department") + ".", wait: "Now", ahead: "0", serving });
+      show("serving", { alert: "It's your turn now. Please go to " + (dept ? dept.name : "the department") + ", Counter " + t.counter + ".", wait: "Now", ahead: "0", serving });
     } else if (t.status === "missed") {
       show("missed", { alert: "Your number was called and missed. Please tell the reception desk.", serving });
     } else if (t.forwardedTo) {

@@ -118,7 +118,7 @@ test("estimate matches the PRD worked example: 23 min (AC-09.1)", () => {
 test("a serving token's estimate says serving (AC-09.3)", () => {
   const day = dayWith("G", 1);
   Q.callNext(day, "G", T0);
-  assert.deepEqual(Q.estimate(day, "G001", T0 + MIN), { status: "serving" });
+  assert.deepEqual(Q.estimate(day, "G001", T0 + MIN), { status: "serving", counter: 1 });
 });
 
 test("first in line with nobody serving waits 0 minutes", () => {
@@ -155,7 +155,7 @@ test("public view never contains patient details (AC-06.3)", () => {
   Q.callNext(day, "G", T0);
   const json = JSON.stringify(Q.publicView(day, "G", T0));
   assert.ok(!json.includes("Priya") && !json.includes("Ravi") && !json.includes("98765"));
-  assert.equal(Q.publicView(day, "G", T0).serving, "G001");
+  assert.deepEqual(Q.publicView(day, "G", T0).serving, [{ number: "G001", counter: 1 }]);
 });
 
 // ---- US-04 Send to Billing ----

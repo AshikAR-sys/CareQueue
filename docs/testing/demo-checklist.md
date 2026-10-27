@@ -47,7 +47,7 @@ Record the actual command output before declaring the migration verified.
 | Demo authentication | The PIN is checked client-side. Do not treat it as secure authentication. |
 | Local host binding | The server listens on `127.0.0.1`; other devices cannot connect by default. |
 | Sample departments and doctors | Data is demo content; configure for the target hospital before any real use. |
-| Single counter per department | Multiple counters (US-11) are not implemented. |
+| Up to 3 counters per department | Counters 2 and 3 start paused each day; open them from the staff console. |
 | QR tracking needs a reachable server | A phone cannot open the laptop's `127.0.0.1`; demo the QR scan on the deployed site. |
 | No production safeguards | Do not use real patient data or expose publicly without security/privacy review. |
 
