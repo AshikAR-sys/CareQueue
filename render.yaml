@@ -12,3 +12,5 @@ services:
         value: 3.12.3
       - key: CAREQUEUE_DB_PATH
         value: /tmp/carequeue.sqlite3
+      - key: CAREQUEUE_SECRET_KEY      # signs staff passes; keeps staff signed in across restarts
+        generateValue: true

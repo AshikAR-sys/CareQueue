@@ -15,6 +15,9 @@ class CareQueueApiTests(unittest.TestCase):
         database = str(Path(self.temp_dir.name) / "test.sqlite3")
         self.app = create_app({"TESTING": True, "DATABASE": database})
         self.client = self.app.test_client()
+        # Staff routes need a staff pass (QA fix 3); most tests act as a signed-in receptionist.
+        token = self.app.test_client().post("/api/staff/sign-in", json={"pin": "1234"}).get_json()["token"]
+        self.client.environ_base["HTTP_AUTHORIZATION"] = "Bearer " + token
 
     def tearDown(self):
         self.temp_dir.cleanup()
@@ -188,6 +191,61 @@ class CareQueueApiTests(unittest.TestCase):
         self.assertEqual(billing["linkedFrom"], "G002")
         state = {t["number"]: t["status"] for t in self.client.get("/api/queue/state").get_json()["tokens"]}
         self.assertEqual(state["G001"], "serving")
+
+    # ---- QA fix 3: staff routes need a staff pass from the server ----
+
+    STAFF_ROUTES = [
+        ("get", "/api/queue/state"),
+        ("post", "/api/queue/G/call-next"),
+        ("post", "/api/queue/G/skip"),
+        ("post", "/api/queue/G/send-to/B"),
+        ("post", "/api/tokens/G001/recall"),
+        ("post", "/api/queue/G/counters/2"),
+    ]
+
+    def test_staff_routes_refuse_requests_without_a_staff_pass(self):
+        self.issue()
+        anonymous = self.app.test_client()
+        for method, path in self.STAFF_ROUTES:
+            response = getattr(anonymous, method)(path, json={})
+            self.assertEqual(response.status_code, 401, path)
+            self.assertIn("sign in", response.get_json()["error"].lower())
+        state = self.client.get("/api/queue/state").get_json()
+        self.assertEqual(state["tokens"][0]["status"], "waiting", "nothing changed")
+
+    def test_patient_and_public_routes_need_no_staff_pass(self):
+        anonymous = self.app.test_client()
+        self.assertEqual(anonymous.post("/api/tokens", json={
+            "code": "G", "patient": {"name": "Priya Sharma", "age": "40", "gender": "Female", "phone": "9876543210"}
+        }).status_code, 201)
+        for path in ("/api/health", "/api/departments", "/api/queue/public-state"):
+            self.assertEqual(anonymous.get(path).status_code, 200, path)
+
+    def test_sign_in_checks_the_pin_on_the_server(self):
+        anonymous = self.app.test_client()
+        wrong = anonymous.post("/api/staff/sign-in", json={"pin": "0000"})
+        self.assertEqual(wrong.status_code, 401)
+        self.assertIn("Incorrect PIN", wrong.get_json()["error"])
+        self.assertEqual(anonymous.post("/api/staff/sign-in", json={}).status_code, 401)
+        right = anonymous.post("/api/staff/sign-in", json={"pin": "1234"}).get_json()
+        self.assertTrue(right["token"])
+        headers = {"Authorization": "Bearer " + right["token"]}
+        self.assertEqual(anonymous.get("/api/queue/state", headers=headers).status_code, 200)
+
+    def test_forged_or_expired_staff_pass_is_refused(self):
+        anonymous = self.app.test_client()
+        token = anonymous.post("/api/staff/sign-in", json={"pin": "1234"}).get_json()["token"]
+        forged = token[:-2] + ("AA" if not token.endswith("AA") else "BB")
+        self.assertEqual(anonymous.get("/api/queue/state", headers={"Authorization": "Bearer " + forged}).status_code, 401)
+        self.assertEqual(anonymous.get("/api/queue/state", headers={"Authorization": "Bearer nonsense"}).status_code, 401)
+        self.app.config["STAFF_SESSION_SECONDS"] = -1
+        self.assertEqual(anonymous.get("/api/queue/state", headers={"Authorization": "Bearer " + token}).status_code, 401)
+
+    def test_staff_pin_can_be_changed_by_configuration(self):
+        app = create_app({"TESTING": True, "DATABASE": str(Path(self.temp_dir.name) / "pin.sqlite3"), "STAFF_PIN": "8642"})
+        client = app.test_client()
+        self.assertEqual(client.post("/api/staff/sign-in", json={"pin": "1234"}).status_code, 401)
+        self.assertEqual(client.post("/api/staff/sign-in", json={"pin": "8642"}).status_code, 200)
 
     def test_test_reset_is_not_available_without_test_mode(self):
         production_app = create_app({"TESTING": False, "DATABASE": str(Path(self.temp_dir.name) / "prod.sqlite3")})

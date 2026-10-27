@@ -402,3 +402,25 @@ with `localStorage`). Redrawn from the code as it stands:
   session.
 - PNG (2x), SVG and a two-page PDF regenerated; the README has the same content as Mermaid. A screenshot review moved
   three labels that sat on arrows.
+
+---
+
+## QA fix 3 — staff PIN checked on the server (approved by the team)
+
+From the QA report: the PIN was checked only in the browser, so anyone could call the queue actions or read
+`/api/queue/state` (patient names and phones) directly.
+
+- **Developer (TDD):** 5 API tests written first and watched fail (404 on `/api/staff/sign-in`; staff routes answered
+  200 without a pass). Then: `POST /api/staff/sign-in` checks the PIN (`CAREQUEUE_STAFF_PIN`, default `1234`,
+  constant-time compare) and returns a signed staff pass (itsdangerous, 8 hours, key from `CAREQUEUE_SECRET_KEY` or
+  a new random key per start). `/api/queue/state`, call-next, skip, send-to, recall and counters need
+  `Authorization: Bearer <pass>` and answer 401 otherwise. Patient and public routes are unchanged.
+- **Browser:** the landing page asks the server to check the PIN; the staff console sends the pass with every request
+  and goes back to sign-in on a 401 (an expired pass, an old session from before this change, or a server restart
+  without a fixed key). The browser no longer knows the PIN.
+- **Tests:** browser test sessions now sign in through the API for a real pass; the wrong-PIN test waits for the
+  server's answer. 2 new browser tests (old session sent back to sign-in; actions without a pass refused).
+  Checked under gunicorn as on Render (401 without a pass, 200 with it, test reset 404).
+  Results: `npm test` 56/56 · backend 21/21 · e2e 48/48.
+- **Docs:** README, project status, demo checklist, architecture diagram and README updated; `render.yaml` gains a
+  generated `CAREQUEUE_SECRET_KEY` (applies to Blueprint-managed services).

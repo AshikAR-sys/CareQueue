@@ -73,6 +73,13 @@ async function issue(page, dept, name) {
   return page.textContent("#t-number");
 }
 
+async function staffPass() {
+  const response = await fetch(APP + "api/staff/sign-in", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pin: "1234" })
+  });
+  return (await response.json()).token;
+}
+
 // Default role is "admin" — bypasses all auth guards so queue tests work unchanged.
 // Opens a throwaway page to set localStorage reliably before any guarded page loads.
 async function setup(viewport = { width: 1440, height: 900 }, role = "admin") {
@@ -82,9 +89,11 @@ async function setup(viewport = { width: 1440, height: 900 }, role = "admin") {
   const seed = await ctx.newPage();
   await seed.goto(APP + "index.html");
   await seed.waitForLoadState("load");
+  // Staff routes need a staff pass from the server (QA fix 3); the test sessions get a real one.
+  const token = await staffPass();
   await seed.evaluate((session) => {
     localStorage.setItem("carequeue-session", JSON.stringify(session));
-  }, { role, timestamp: Date.now() });
+  }, { role, timestamp: Date.now(), token });
   await seed.close();
   const errors = [];
   return { ctx, errors, open: (f) => open(ctx, f, errors) };
@@ -316,6 +325,8 @@ test("AC-14.3 receptionist can sign in with PIN 1234 and reaches staff.html", as
   await page.click('#staff-form button[type="submit"]');
   await page.waitForURL(/staff\.html/, { timeout: 3000 });
   assert.ok(page.url().includes("staff.html"), "expected staff.html, got " + page.url());
+  await page.waitForTimeout(1500);                 // the staff pass is accepted: the console stays open
+  assert.ok(page.url().includes("staff.html"), "the server refused the staff pass");
   assert.deepEqual(errors, []);
   await ctx.close();
 });
@@ -328,10 +339,11 @@ test("AC-14.3 wrong PIN shows an error and does not navigate", async () => {
   await page.fill("#s-name", "Reception");
   await page.fill("#s-pin", "9999");
   await page.click('#staff-form button[type="submit"]');
-  const errText = await page.textContent("#s-pin-err");
-  assert.match(errText, /incorrect/i);
+  // The server checks the PIN (QA fix 3); its 401 answer is logged by the browser and is expected here.
+  await page.waitForFunction(() => /incorrect/i.test(document.getElementById("s-pin-err").textContent));
   assert.ok(page.url().includes("index.html"), "should stay on index.html");
-  assert.deepEqual(errors, []);
+  assert.equal(await page.evaluate(() => localStorage.getItem("carequeue-session")), null);
+  assert.deepEqual(errors.filter((e) => !/status of 401/.test(e)), []);
   await ctx.close();
 });
 
@@ -770,10 +782,11 @@ async function receptionistAt(counter, errors) {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const seed = await ctx.newPage();
   await seed.goto(APP + "index.html");
-  await seed.evaluate((c) => {
-    localStorage.setItem("carequeue-session", JSON.stringify({ role: "receptionist", name: "Desk " + c, timestamp: Date.now() }));
+  const token = await staffPass();
+  await seed.evaluate(([c, token]) => {
+    localStorage.setItem("carequeue-session", JSON.stringify({ role: "receptionist", name: "Desk " + c, timestamp: Date.now(), token }));
     localStorage.setItem("carequeue-staff-dept-counter-G", String(c));
-  }, counter);
+  }, [counter, token]);
   await seed.close();
   const page = await open(ctx, "staff.html", errors);
   await page.waitForFunction((c) => document.getElementById("serving-counter").textContent === "Counter " + c, counter);
@@ -888,4 +901,28 @@ test("AC-11.4 the voice and the patient's phone name the counter", async () => {
   assert.deepEqual(errors, []);
   await pctx.close();
   await ctx.close();
+});
+
+// --- QA fix 3: the server checks the staff PIN ---
+
+test("fix 3 a staff console with an old session and no staff pass is sent back to sign in", async () => {
+  const { ctx } = await setup(undefined, "patient");
+  const page = await ctx.newPage();
+  await page.goto(APP + "index.html");
+  await page.evaluate(() => localStorage.setItem("carequeue-session",
+    JSON.stringify({ role: "receptionist", name: "Old session", timestamp: Date.now() })));
+  await page.goto(APP + "staff.html");
+  await page.waitForURL(/index\.html$/, { timeout: 3000 });
+  assert.equal(await page.evaluate(() => localStorage.getItem("carequeue-session")), null);
+  await ctx.close();
+});
+
+test("fix 3 queue actions sent without a staff pass are refused by the server", async () => {
+  await setup();
+  await fetch(APP + "api/tokens", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: "G", patient: { name: "Priya Sharma", age: "40", gender: "Female", phone: "9876543210" } }) });
+  assert.equal((await fetch(APP + "api/queue/G/call-next", { method: "POST" })).status, 401);
+  assert.equal((await fetch(APP + "api/queue/state")).status, 401);
+  const pub = await (await fetch(APP + "api/queue/public-state")).json();
+  assert.equal(pub.tokens[0].status, "waiting");
 });
