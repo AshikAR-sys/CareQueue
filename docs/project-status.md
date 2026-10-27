@@ -1,6 +1,6 @@
 # CareQueue Project Status
 
-Updated: 27 Oct 2026, after adding multiple counters (US-11). All 16 stories are built.
+Updated: 27 Oct 2026, after the server-side PIN check (QA fix 3). All 16 stories are built.
 Demo: 25 Oct, 10:00 IST.
 Status labels: **Completed** (with evidence) · **In Progress** · **Pending** · **Blocked** · **Needs Verification**.
 
@@ -23,7 +23,7 @@ Status labels: **Completed** (with evidence) · **In Progress** · **Pending** �
 | Waiting-room display (public endpoint without patient details) | US-06 | **Completed** | backend public-state test; e2e AC-06.1–06.4 |
 | Estimated waiting time | US-09, US-10 | **Completed** | unit tests AC-09.1, AC-10.1–10.2; e2e AC-09.2–09.3 |
 | Send to Billing (server endpoint, linked tokens) | US-04 | **Completed** | 5 backend tests; 6 unit tests; e2e AC-04.1, AC-04.2 (+3) |
-| Patient / receptionist sign-in | US-14 | **Completed (demo-level)** | e2e AC-14.1–14.4; PIN is checked in the browser, not secure |
+| Patient / receptionist sign-in; server checks the staff PIN and staff routes need its pass | US-14 | **Completed** | e2e AC-14.1–14.4 + 2; 5 backend tests; one shared demo PIN |
 | Print token and download PNG | US-12 | **Completed** | verified in the browser before the migration; no automated test after it |
 | Persistent queue across reloads (SQLite) | — | **Completed** | e2e persistence test |
 | Voice announcement (sound switch, chime + speech on each call and recall) | US-08 | **Completed** | 9 unit tests; e2e AC-08.1, AC-08.2 (+2) |
@@ -46,8 +46,8 @@ Open http://127.0.0.1:8000.
 
 ```
 npm test              →  56 / 56 pass  (queue rules + counters + announcements + phone tracking + reports)
-npm run test:backend  →  16 / 16 pass  (Flask API + SQLite)
-npm run test:e2e      →  46 / 46 pass  (browser tests against an isolated test database)
+npm run test:backend  →  21 / 21 pass  (Flask API + SQLite)
+npm run test:e2e      →  48 / 48 pass  (browser tests against an isolated test database)
 ```
 
 ## Role-wise backlog
@@ -57,7 +57,7 @@ npm run test:e2e      →  46 / 46 pass  (browser tests against an isolated test
 | Business Analyst / PM | Sam Austin | Decide whether to add a separate Registration (R) queue before Billing |
 | UI/UX Designer | Nishandhini | Final look at the screens on the demo laptop |
 | Frontend Developer | Ashik Rasool | Rehearse the demo with `npm start`; print/download check by hand |
-| Backend Developer | Ashik Rasool | Review demo-only authentication limitation before any public deployment |
+| Backend Developer | Ashik Rasool | Set `CAREQUEUE_STAFF_PIN` and `CAREQUEUE_SECRET_KEY` on Render if the PIN should not be 1234 |
 | Database Developer | Ashik Rasool | Existing local databases are upgraded automatically (new link columns) |
 | QA Engineer | Rogasree | Run all test commands and the manual checklist in `docs/testing/demo-checklist.md` |
 
@@ -66,8 +66,8 @@ npm run test:e2e      →  46 / 46 pass  (browser tests against an isolated test
 1. **Architecture diagram and ERD:** updated on 27 Oct 2026 for Flask + SQLite, the six pages, counters, QR
    tracking, reports and Render hosting (`docs/architecture/`).
 2. **GitHub repository description** (Blocked from the cloud session): set it in GitHub → About.
-3. **Server-side PIN check** (QA fix 3, not applied): `/api/queue/state` and the queue actions are open to anyone
-   who calls the API directly. The patient page no longer loads other patients' details.
+3. **Server-side PIN check** (QA fix 3): **done.** `/api/queue/state` and every queue action now need the staff pass from
+   `POST /api/staff/sign-in`. Remaining: one shared PIN, no personal accounts, no limit on sign-in attempts.
 4. **Live site:** now reachable from the cloud session; read-only checks confirmed `main` is deployed. Full live QA not yet run.
 5. **Backlog size:** with E6 the backlog has 6 epics and 16 stories, above the Stage 4 guideline of 3–5 epics and
    8–15 stories. E5 and E6 are marked in the PDFs as added by the team after the first backlog.

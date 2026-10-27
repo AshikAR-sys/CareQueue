@@ -31,13 +31,13 @@ flowchart TB
   subgraph Modules["Shared modules (frontend/js/)"]
     Q["queue.js · TokenQueue<br/>fetch state every 1 s, POST actions"]
     CORE["queue-core.js · QueueCore<br/>EWT = R + N/C × AST, counters,<br/>tracking, reports"]
-    AUTH["auth.js · CareAuth<br/>session, demo PIN, page guard"]
+    AUTH["auth.js · CareAuth<br/>session, staff pass, page guard"]
     ANN["announce.js<br/>chime + speech"]
     QR["vendor/qrcode.js<br/>QR codes (MIT)"]
   end
 
   subgraph Server["Server (backend/)"]
-    API["app.py · Flask<br/>/api/queue/state (staff only)<br/>/api/queue/public-state (numbers only)<br/>/api/tokens, call-next, skip, recall,<br/>send-to, counters"]
+    API["app.py · Flask<br/>/api/staff/sign-in (checks the PIN)<br/>/api/queue/state (staff pass)<br/>/api/queue/public-state (numbers only)<br/>/api/tokens, call-next, skip, recall,<br/>send-to, counters"]
     SVC["services/queue_service.py<br/>validation, numbering, transitions"]
   end
 
@@ -74,14 +74,16 @@ flowchart TB
 | API | Validates and applies every queue change | `backend/app.py`, `backend/services/queue_service.py` |
 | Database | Today's tokens, numbering, open counters | `database/schema.sql`, `database/seed.sql`, `backend/db.py` |
 | Hosting | Public demo | `render.yaml` (Render free web service, gunicorn; deploys on every push to `main`) |
-| Tests | 56 unit, 16 API, 46 browser tests; GitHub Actions on every pull request | `tests/`, `backend/tests/`, `.github/workflows/test.yml` |
+| Tests | 56 unit, 21 API, 48 browser tests; GitHub Actions on every pull request | `tests/`, `backend/tests/`, `.github/workflows/test.yml` |
 
 **Privacy:** only the staff console loads `/api/queue/state`, which includes patient names and phones. The token
 page, phone tracking page, display and reports load `/api/queue/public-state`, which has token numbers, times,
 statuses and counters only. Browser tests check that no name reaches those pages.
 
-**Known limits:** the PIN is checked in the browser only, so the API itself has no login and must not be exposed
-with real patient data. Pages poll every second instead of receiving server push. On the free Render plan the SQLite
+**Staff sign-in:** `POST /api/staff/sign-in` checks the PIN on the server and returns a signed staff pass (8 hours).
+The full queue and every queue action need that pass; patient and public routes do not.
+
+**Known limits:** one shared staff PIN, no personal accounts and no limit on sign-in attempts. Pages poll every second instead of receiving server push. On the free Render plan the SQLite
 file lives in `/tmp` and is reset on every redeploy or restart. Departments are listed in both `seed.sql` (server)
 and `data.js` (pages), so the two must be kept in step.
 

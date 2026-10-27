@@ -1,6 +1,7 @@
 // CareQueue session management.
 // Roles: "patient" | "receptionist" | "admin" (admin is for automated tests only — bypasses guards).
-// Demo-only session handling. The PIN is checked client-side, not by secure server-side authentication.
+// The receptionist PIN is checked by the server (POST /api/staff/sign-in), which returns a signed staff pass.
+// The pass is kept in the session and sent with every staff request; the page guards here are only for navigation.
 (function () {
   "use strict";
   const KEY = "carequeue-session";
@@ -31,8 +32,23 @@
     return false;
   }
 
-  // Demo PIN — stored and checked client-side only. Not production security.
-  function checkPin(pin) { return pin === "1234"; }
+  // Asks the server to check the PIN. Resolves to the staff pass, or rejects with a message to show.
+  async function staffSignIn(pin) {
+    let response;
+    try {
+      response = await fetch("/api/staff/sign-in", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pin })
+      });
+    } catch (_) {
+      throw new Error("Can't reach the CareQueue server. Check the connection and try again.");
+    }
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || "Sign-in failed. Please try again.");
+    return payload.token;
+  }
 
-  window.CareAuth = { get, set, clear, guard, checkPin };
+  // The staff pass for API requests, or "" when not signed in as staff.
+  function staffToken() { const s = get(); return (s && s.token) || ""; }
+
+  window.CareAuth = { get, set, clear, guard, staffSignIn, staffToken };
 })();

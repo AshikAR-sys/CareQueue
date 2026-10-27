@@ -10,6 +10,18 @@
   let connected = false;
   let refreshInFlight = null;
 
+  // QA fix 3: staff requests carry the staff pass from sign-in. If the server refuses it (expired, or the server
+  // restarted with a new key), the staff console goes back to the sign-in page.
+  function headers(extra) {
+    const token = window.CareAuth ? window.CareAuth.staffToken() : "";
+    return Object.assign({}, extra, token ? { Authorization: "Bearer " + token } : {});
+  }
+
+  function signInAgain() {
+    if (window.CareAuth) window.CareAuth.clear();
+    window.location.replace("index.html");
+  }
+
   async function refresh(force = false) {
     if (refreshInFlight) {
       if (!force) return refreshInFlight;
@@ -18,7 +30,8 @@
     refreshInFlight = (async () => {
       try {
         const path = isStaffScreen ? "/api/queue/state" : "/api/queue/public-state";
-        const response = await fetch(path, { cache: "no-store" });
+        const response = await fetch(path, { cache: "no-store", headers: headers() });
+        if (response.status === 401 && isStaffScreen) return signInAgain();
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.error || "Queue service is unavailable.");
         day = payload;
@@ -37,9 +50,10 @@
   async function request(path, body) {
     const response = await fetch(path, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: headers({ "Content-Type": "application/json" }),
       body: JSON.stringify(body || {})
     });
+    if (response.status === 401) { signInAgain(); throw new Error("Please sign in as staff again."); }
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || "The queue action failed.");
     return payload;

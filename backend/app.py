@@ -1,10 +1,14 @@
 """CareQueue Flask API and static frontend server."""
 from __future__ import annotations
 
+import hmac
 import os
+import secrets
 import sys
+from functools import wraps
 from pathlib import Path
-from flask import Flask, jsonify, request, send_from_directory, Response
+from flask import Flask, current_app, jsonify, request, send_from_directory, Response
+from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 ROOT = Path(__file__).resolve().parent.parent
 FRONTEND = ROOT / "frontend"
@@ -26,12 +30,38 @@ def counter_from_request() -> int:
     return value
 
 
+# ---- QA fix 3: staff sign-in is checked on the server ----
+# The receptionist's PIN is checked by POST /api/staff/sign-in, which returns a signed staff pass. Every staff route
+# needs that pass in an "Authorization: Bearer <pass>" header; patient and public routes do not.
+
+def staff_passes() -> URLSafeTimedSerializer:
+    return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt="carequeue-staff")
+
+
+def staff_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        header = request.headers.get("Authorization", "")
+        token = header[7:] if header.startswith("Bearer ") else ""
+        try:
+            staff_passes().loads(token, max_age=current_app.config["STAFF_SESSION_SECONDS"])
+        except BadSignature:   # also covers an expired pass
+            return jsonify({"error": "Please sign in as staff again."}), 401
+        return view(*args, **kwargs)
+    return wrapped
+
+
 def create_app(test_config: dict | None = None) -> Flask:
     app = Flask(__name__, static_folder=str(FRONTEND), static_url_path="")
     app.config.update(
         DATABASE=os.environ.get("CAREQUEUE_DB_PATH", str(ROOT / "database" / "carequeue.sqlite3")),
         TESTING=os.environ.get("CAREQUEUE_TEST_MODE", "") == "1",
         JSON_SORT_KEYS=False,
+        # Demo PIN unless CAREQUEUE_STAFF_PIN is set. Without CAREQUEUE_SECRET_KEY a new key is made at each start,
+        # so staff sign in again after a restart.
+        STAFF_PIN=os.environ.get("CAREQUEUE_STAFF_PIN", "1234"),
+        SECRET_KEY=os.environ.get("CAREQUEUE_SECRET_KEY") or secrets.token_hex(32),
+        STAFF_SESSION_SECONDS=8 * 60 * 60,
     )
     if test_config:
         app.config.update(test_config)
@@ -55,7 +85,16 @@ def create_app(test_config: dict | None = None) -> Flask:
     def departments():
         return jsonify({"departments": list_departments(get_db())})
 
+    @app.post("/api/staff/sign-in")
+    def staff_sign_in():
+        pin = str((request.get_json(silent=True) or {}).get("pin", ""))
+        if not pin or not hmac.compare_digest(pin.encode(), str(app.config["STAFF_PIN"]).encode()):
+            return jsonify({"error": "Incorrect PIN. Please try again."}), 401
+        return jsonify({"token": staff_passes().dumps({"role": "receptionist"}),
+                        "expiresIn": app.config["STAFF_SESSION_SECONDS"]})
+
     @app.get("/api/queue/state")
+    @staff_required
     def queue_state():
         return jsonify(get_day(get_db(), include_patient=True))
 
@@ -74,6 +113,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         return jsonify({"token": token}), 201
 
     @app.post("/api/queue/<code>/call-next")
+    @staff_required
     def call_next_route(code: str):
         try:
             token = call_next(get_db(), code, counter_from_request())
@@ -82,6 +122,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         return jsonify({"token": token})
 
     @app.post("/api/queue/<code>/skip")
+    @staff_required
     def skip_route(code: str):
         try:
             token = skip_current(get_db(), code, counter_from_request())
@@ -90,6 +131,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         return jsonify({"token": token})
 
     @app.post("/api/queue/<code>/send-to/<target>")
+    @staff_required
     def send_to_route(code: str, target: str):
         # US-04 Send to Billing: token is null when nobody is being served in <code>.
         try:
@@ -99,6 +141,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         return jsonify({"token": token})
 
     @app.post("/api/tokens/<number>/recall")
+    @staff_required
     def recall_route(number: str):
         try:
             token = recall_token(get_db(), number, counter_from_request())
@@ -109,6 +152,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         return jsonify({"token": token})
 
     @app.post("/api/queue/<code>/counters/<int:counter>")
+    @staff_required
     def counter_route(code: str, counter: int):
         # US-11: open or pause one service counter of a queue.
         payload = request.get_json(silent=True) or {}

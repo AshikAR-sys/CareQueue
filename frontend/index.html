@@ -315,8 +315,9 @@
     });
 
     // Receptionist form
-    $("staff-form").addEventListener("submit", function (e) {
+    $("staff-form").addEventListener("submit", async function (e) {
       e.preventDefault();
+      if ($("staff-form").getAttribute("aria-busy") === "true") return;
       var staffName = $("s-name").value.trim();
       var pin       = $("s-pin").value;
       var ok = true;
@@ -329,16 +330,22 @@
       if (!pin) {
         fieldErr("s-pin", "s-pin-err", "Enter your PIN.");
         ok = false;
-      } else if (!window.CareAuth.checkPin(pin)) {
-        fieldErr("s-pin", "s-pin-err", "Incorrect PIN. Please try again.");
-        $("s-pin").value = "";
-        $("s-pin").focus();
-        ok = false;
       } else { fieldErr("s-pin", "s-pin-err", ""); }
 
       if (!ok) return;
-      window.CareAuth.set("receptionist", { name: staffName });
-      window.location.replace("staff.html");
+      // The server checks the PIN and returns a staff pass (QA fix 3).
+      $("staff-form").setAttribute("aria-busy", "true");
+      try {
+        var token = await window.CareAuth.staffSignIn(pin);
+        window.CareAuth.set("receptionist", { name: staffName, token: token });
+        window.location.replace("staff.html");
+      } catch (err) {
+        fieldErr("s-pin", "s-pin-err", err.message);
+        $("s-pin").value = "";
+        $("s-pin").focus();
+      } finally {
+        $("staff-form").removeAttribute("aria-busy");
+      }
     });
   })();
   </script>

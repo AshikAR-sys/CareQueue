@@ -73,7 +73,7 @@
 <text x="501.4" y="484" font-size="17" font-weight="700" fill="#0a7e9b" text-anchor="start">auth.js</text>
 <text x="501.4" y="510" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">CareAuth</text>
 <text x="501.4" y="531" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Session, 8-hour expiry</text>
-<text x="501.4" y="552" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Demo PIN (browser only)</text>
+<text x="501.4" y="552" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Keeps the staff pass</text>
 <text x="501.4" y="573" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Page guard by role</text>
 <rect x="700.0999999999999" y="454" width="200" height="140" rx="14" fill="#dff4f8" stroke="#a9dde8" stroke-width="1.5"/>
 <text x="718.0999999999999" y="484" font-size="17" font-weight="700" fill="#0a7e9b" text-anchor="start">announce.js</text>
@@ -100,14 +100,13 @@
 <text x="185" y="652" font-size="15" font-weight="700" fill="#5b6b82" text-anchor="start">Server  (backend/, Flask)</text>
 <rect x="50" y="664" width="735" height="250" rx="14" fill="#fff" stroke="#b9cdf5" stroke-width="1.5"/>
 <text x="68" y="694" font-size="17" font-weight="700" fill="#1458e6" text-anchor="start">app.py  ·  Flask API + static file server</text>
-<text x="68" y="720" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">GET  /api/health · /api/departments</text>
-<text x="68" y="741" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">GET  /api/queue/state          staff console only (with patient details)</text>
-<text x="68" y="762" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">GET  /api/queue/public-state   all other pages (numbers only)</text>
-<text x="68" y="783" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">POST /api/tokens                       issue a token</text>
-<text x="68" y="804" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">POST /api/queue/&lt;code&gt;/call-next · skip · send-to/&lt;B&gt;   body: {counter}</text>
-<text x="68" y="825" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">POST /api/tokens/&lt;number&gt;/recall · /api/queue/&lt;code&gt;/counters/&lt;n&gt;</text>
-<text x="68" y="846" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">POST /api/test/reset only when CAREQUEUE_TEST_MODE=1 (else 404)</text>
-<text x="68" y="867" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">services/queue_service.py: validation, numbering, transitions</text>
+<text x="68" y="720" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">POST /api/staff/sign-in    PIN checked here → signed staff pass (8 h)</text>
+<text x="68" y="741" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">GET  /api/queue/state       staff pass required (with patient details)</text>
+<text x="68" y="762" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">GET  /api/queue/public-state · /api/health · /api/departments  (open)</text>
+<text x="68" y="783" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">POST /api/tokens            issue a token (open to patients)</text>
+<text x="68" y="804" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">POST call-next · skip · send-to · recall · counters   staff pass + {counter}</text>
+<text x="68" y="825" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">POST /api/test/reset only when CAREQUEUE_TEST_MODE=1 (else 404)</text>
+<text x="68" y="846" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">services/queue_service.py: validation, numbering, transitions</text>
 <line x1="150" y1="594" x2="150" y2="662" stroke="#5b6b82" stroke-width="1.8" marker-end="url(#ah)"/><text x="162" y="624" font-size="12.5" font-weight="500" fill="#5b6b82" text-anchor="start">HTTP + JSON (fetch)</text>
 <rect x="815" y="664" width="735" height="250" rx="14" fill="#fff4dc" stroke="#ecd29a" stroke-width="1.5"/>
 <text x="833" y="694" font-size="17" font-weight="700" fill="#8a5300" text-anchor="start">SQLite  (database/, via backend/db.py)</text>
@@ -123,7 +122,7 @@
 <text x="799" y="780" font-size="12" font-weight="600" fill="#5b6b82" text-anchor="middle">SQL</text>
 <rect x="50" y="950" width="735" height="130" rx="14" fill="#fff" stroke="#c9d6e3" stroke-width="1.5"/>
 <text x="68" y="980" font-size="17" font-weight="700" fill="#5b6b82" text-anchor="start">Browser localStorage  (each device, convenience only)</text>
-<text x="68" y="1006" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">carequeue-session: who is signed in (role, name, time)</text>
+<text x="68" y="1006" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">carequeue-session: who is signed in (role, name, time, staff pass)</text>
 <text x="68" y="1027" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">carequeue-staff-dept, carequeue-staff-dept-counter-&lt;code&gt;:</text>
 <text x="68" y="1048" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">the staff console&#x27;s department and &#x27;my counter&#x27;</text>
 <rect x="815" y="950" width="735" height="130" rx="14" fill="#e2f6ef" stroke="#a8dcc5" stroke-width="1.5"/>
@@ -135,15 +134,15 @@
 <text x="68" y="1146" font-size="17" font-weight="700" fill="#0b1b33" text-anchor="start">Automated tests  (npm run test:all, GitHub Actions on every PR)</text>
 <text x="68" y="1172" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">node:test · 56 unit tests → queue-core.js, announce.js</text>
 <text x="68" y="1193" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">numbering, EWT (PRD 23-min example), counters, tracking, reports</text>
-<text x="68" y="1214" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">unittest · 16 API tests → Flask + SQLite</text>
-<text x="68" y="1235" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">transitions, counters, Billing links, privacy, schema upgrade</text>
-<text x="68" y="1256" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">Playwright · 46 browser tests → all pages on a test database</text>
+<text x="68" y="1214" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">unittest · 21 API tests → Flask + SQLite</text>
+<text x="68" y="1235" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">transitions, counters, staff pass, privacy, schema upgrade</text>
+<text x="68" y="1256" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">Playwright · 48 browser tests → all pages on a test database</text>
 <text x="68" y="1277" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">display &lt; 2 s, no names in public views, sign-in guards,</text>
 <text x="68" y="1298" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">QR link, voice text, two receptionists, phone layout</text>
 <rect x="815" y="1116" width="735" height="250" rx="14" fill="#fff" stroke="#9aa9bd" stroke-width="1.5" stroke-dasharray="7 6"/>
 <text x="833" y="1146" font-size="17" font-weight="700" fill="#5b6b82" text-anchor="start">Known limits  (hackathon prototype)</text>
-<text x="833" y="1172" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">PIN is checked in the browser only: the API itself has no login,</text>
-<text x="833" y="1193" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">so it must not be exposed with real patient data.</text>
+<text x="833" y="1172" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">One shared demo PIN (1234 unless CAREQUEUE_STAFF_PIN is set):</text>
+<text x="833" y="1193" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">no personal staff accounts, no limit on sign-in attempts.</text>
 <text x="833" y="1214" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Pages poll every second (no server push); fine for one clinic.</text>
 <text x="833" y="1235" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Departments live in both seed.sql and data.js (keep in step).</text>
 <text x="833" y="1256" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">Free hosting: SQLite in /tmp is reset on redeploy or restart.</text>

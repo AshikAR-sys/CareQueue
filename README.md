@@ -49,14 +49,14 @@ The database file is created automatically at `database/carequeue.sqlite3`. It i
 4. Let Render read `render.yaml` and create the web service. Wait for its deploy to show **Live**.
 5. Open the `onrender.com` URL shown by Render and test the patient, receptionist, and display flows using sample data.
 
-**Demo-only hosting notes:** the included Render config uses SQLite at `/tmp/carequeue.sqlite3`. Render's free web-service filesystem is ephemeral and the service can spin down when idle, so queue data can be lost on a restart/redeploy/idle spin-down and the first visit after idle may be slow. Do not enter real patient data. For data that must survive, move to a persistent managed database such as PostgreSQL before a longer-lived demo. The current PIN/login is client-side only; it is not secure access control.
+**Demo-only hosting notes:** the included Render config uses SQLite at `/tmp/carequeue.sqlite3`. Render's free web-service filesystem is ephemeral and the service can spin down when idle, so queue data can be lost on a restart/redeploy/idle spin-down and the first visit after idle may be slow. Do not enter real patient data. For data that must survive, move to a persistent managed database such as PostgreSQL before a longer-lived demo. The staff PIN is checked by the server (`CAREQUEUE_STAFF_PIN`, default `1234`); set your own PIN, and `CAREQUEUE_SECRET_KEY` so staff stay signed in across restarts, in Render → Environment.
 
 ### Run the tests
 
 ```bash
 npm test                         # 56 unit tests (queue rules, counters, announcements, phone tracking, reports)
-npm run test:backend             # 16 Flask API + SQLite integration tests
-npm run test:e2e                 # 46 browser tests against an isolated test database
+npm run test:backend             # 21 Flask API + SQLite integration tests
+npm run test:e2e                 # 48 browser tests against an isolated test database
 npm run test:all                 # all three suites
 ```
 
@@ -74,13 +74,13 @@ npm run test:all                 # all three suites
 | Live estimate on the patient's token card ("About 6 min · 2 people ahead") | US-09 | e2e |
 | Print token (one A5 page) and download (PNG) | US-12 | browser test |
 | Track my token on my phone: the token slip has a QR code that opens a live page (no app, no login) with the token being served, people ahead, the estimated wait and an "Almost your turn" alert | US-13 | unit + e2e |
-| Sign in as patient (name + phone) or receptionist (demo PIN); each page opens only for its role | US-14 | e2e |
+| Sign in as patient (name + phone) or receptionist (PIN checked by the server); each page opens only for its role, and staff actions need the server's staff pass | US-14 | backend + e2e |
 | Queue reports (staff only): today's tokens issued, served, waiting and missed per department, average wait and service time, tokens-per-hour chart with the busiest hour, Download CSV; numbers only, live | US-15, US-16 | unit + e2e |
 | Responsive Liquid Glass design; phone, tablet, desktop, TV | — | e2e (no overflow at 390 px) |
 
 ## Honest limits
 
-- **Prototype authentication only.** The PIN check is client-side (demo PIN `1234`), not secure server-side authentication. Do not expose this prototype to the public internet or use real patient information.
+- **Simple staff sign-in.** The server checks one shared staff PIN (demo PIN `1234`) and gives the staff console a signed pass for 8 hours; staff routes refuse requests without it. There are no personal staff accounts and no limit on sign-in attempts, so do not use real patient information.
 - **Local server by default.** The app binds to `127.0.0.1`, so all screens on the same computer share the SQLite-backed queue. Other devices will need a deliberately configured, secured deployment.
 - **Sample hospital data.** Departments, doctors and locations in `frontend/js/data.js` are sample data.
 - **Queues are departments plus Billing** (G, C, O, P, D, E, and B). Patients finish at their department and are sent on

@@ -44,7 +44,7 @@ Record the actual command output before declaring the migration verified.
 
 | Limitation | Explanation |
 |---|---|
-| Demo authentication | The PIN is checked client-side. Do not treat it as secure authentication. |
+| Shared staff PIN | The server checks one shared PIN (1234 unless `CAREQUEUE_STAFF_PIN` is set). No personal accounts or attempt limits. |
 | Local host binding | The server listens on `127.0.0.1`; other devices cannot connect by default. |
 | Sample departments and doctors | Data is demo content; configure for the target hospital before any real use. |
 | Up to 3 counters per department | Counters 2 and 3 start paused each day; open them from the staff console. |
