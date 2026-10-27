@@ -66,29 +66,36 @@
     };
   }
 
-  async function callNext(code) {
-    const result = await request("/api/queue/" + encodeURIComponent(code) + "/call-next", {});
+  // US-11: every queue action is for one service counter (Counter 1 unless given).
+  async function callNext(code, counter = 1) {
+    const result = await request("/api/queue/" + encodeURIComponent(code) + "/call-next", { counter });
     await refresh(true);
     return result.token;
   }
 
-  async function skip(code) {
-    const result = await request("/api/queue/" + encodeURIComponent(code) + "/skip", {});
+  async function skip(code, counter = 1) {
+    const result = await request("/api/queue/" + encodeURIComponent(code) + "/skip", { counter });
     await refresh(true);
     return result.token;
   }
 
   // US-04 Send to Billing: finish the patient being served in fromCode and add them to toCode.
-  async function sendTo(fromCode, toCode) {
-    const result = await request("/api/queue/" + encodeURIComponent(fromCode) + "/send-to/" + encodeURIComponent(toCode), {});
+  async function sendTo(fromCode, toCode, counter = 1) {
+    const result = await request("/api/queue/" + encodeURIComponent(fromCode) + "/send-to/" + encodeURIComponent(toCode), { counter });
     await refresh(true);
     return result.token;
   }
 
-  async function recall(number) {
-    const result = await request("/api/tokens/" + encodeURIComponent(number) + "/recall", {});
+  async function recall(number, counter = 1) {
+    const result = await request("/api/tokens/" + encodeURIComponent(number) + "/recall", { counter });
     await refresh(true);
     return result.token;
+  }
+
+  async function setCounter(code, counter, open) {
+    const result = await request("/api/queue/" + encodeURIComponent(code) + "/counters/" + counter, { open });
+    await refresh(true);
+    return result.openCounters;
   }
 
   function subscribe(listener) {
@@ -105,8 +112,9 @@
     skip,
     recall,
     sendTo,
+    setCounter,
     estimate: (number) => Core.estimate(day, number, Date.now()),
-    view: (code) => Core.view(day, code, Date.now()),
+    view: (code, counter) => Core.view(day, code, Date.now(), counter),
     publicView: (code) => Core.publicView(day, code, Date.now()),
     codesInUse: () => Object.keys(day.counters),
     day: () => day,

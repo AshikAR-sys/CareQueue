@@ -191,7 +191,7 @@
   // Words for an estimate from the queue: { status, ahead, minutes } (see queue-core.js).
   function waitText(estimate) {
     if (!estimate) return null;
-    if (estimate.status === "serving") return "It's your turn now";
+    if (estimate.status === "serving") return "It's your turn now · Counter " + estimate.counter;
     if (estimate.status === "missed") return "Missed. Please tell the reception desk";
     if (estimate.forwardedTo) return "Sent to Billing: your billing token is " + estimate.forwardedTo;
     if (estimate.status === "done") return "Visit completed";

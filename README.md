@@ -54,9 +54,9 @@ The database file is created automatically at `database/carequeue.sqlite3`. It i
 ### Run the tests
 
 ```bash
-npm test                         # 46 unit tests (queue rules, announcements, phone tracking, reports)
-npm run test:backend             # 11 Flask API + SQLite integration tests
-npm run test:e2e                 # 41 browser tests against an isolated test database
+npm test                         # 56 unit tests (queue rules, counters, announcements, phone tracking, reports)
+npm run test:backend             # 16 Flask API + SQLite integration tests
+npm run test:e2e                 # 46 browser tests against an isolated test database
 npm run test:all                 # all three suites
 ```
 
@@ -66,6 +66,7 @@ npm run test:all                 # all three suites
 |---|---|---|
 | Token form with validation; tokens in order per department per day (`G001`, `G002`, `C001`) | US-01–US-03 | e2e |
 | Staff console: Call Next, Skip, Recall, waiting list, missed list | US-05, US-07 | e2e |
+| Multiple counters: up to 3 per department, each calling its own patient; open or pause a counter; the display, voice and phone say "Counter 2"; the estimate divides by open counters | US-11 | unit + backend + e2e |
 | Send to Billing: one click finishes the patient's visit and adds them to the Billing queue (B001…), linked both ways | US-04 | unit + e2e |
 | Waiting-room display: now serving + next 5 per department, live (< 2 s), token numbers only | US-06 | e2e |
 | Voice announcement: press **Turn on sound** on the display; each call (and recall) plays a chime and says "Token G 0 0 1, please come to General Medicine" | US-08 | unit + e2e |
@@ -84,7 +85,7 @@ npm run test:all                 # all three suites
 - **Sample hospital data.** Departments, doctors and locations in `frontend/js/data.js` are sample data.
 - **Queues are departments plus Billing** (G, C, O, P, D, E, and B). Patients finish at their department and are sent on
   to Billing; a separate Registration (R) queue from the PRD is not used.
-- **Not built yet:** multiple counters (US-11).
+- **All 16 stories are built.**
 - **QR tracking needs a reachable server.** A phone cannot open a laptop's `127.0.0.1`; scan the QR code on the deployed (Render) site.
 - A public display endpoint returns token numbers and status only; it excludes patient names and contact details.
 

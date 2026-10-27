@@ -33,8 +33,17 @@ CREATE TABLE IF NOT EXISTS tokens (
   skipped_at INTEGER,
   linked_from TEXT,
   forwarded_to TEXT,
+  counter INTEGER CHECK(counter BETWEEN 1 AND 3),
   UNIQUE(queue_date, number),
   UNIQUE(queue_date, code, seq)
+);
+
+-- US-11: service counters open per queue per day, e.g. "1,2". A queue with no row has Counter 1 open.
+CREATE TABLE IF NOT EXISTS open_counters (
+  queue_date TEXT NOT NULL,
+  code TEXT NOT NULL REFERENCES departments(code),
+  counters TEXT NOT NULL,
+  PRIMARY KEY (queue_date, code)
 );
 
 CREATE INDEX IF NOT EXISTS idx_tokens_daily_queue

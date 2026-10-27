@@ -115,12 +115,79 @@ class CareQueueApiTests(unittest.TestCase):
         old = str(Path(self.temp_dir.name) / "old.sqlite3")
         conn = sqlite3.connect(old)
         conn.executescript(Path(__file__).resolve().parents[2].joinpath("database", "schema.sql").read_text()
-                           .replace("  linked_from TEXT,\n  forwarded_to TEXT,\n", ""))
+                           .replace("  linked_from TEXT,\n  forwarded_to TEXT,\n", "")
+                           .replace("  counter INTEGER CHECK(counter BETWEEN 1 AND 3),\n", ""))
         conn.close()
         upgraded = create_app({"TESTING": True, "DATABASE": old})
         columns = {row[1] for row in sqlite3.connect(old).execute("PRAGMA table_info(tokens)")}
-        self.assertTrue({"linked_from", "forwarded_to"} <= columns)
+        self.assertTrue({"linked_from", "forwarded_to", "counter"} <= columns)
         self.assertEqual(upgraded.test_client().get("/api/health").status_code, 200)
+
+    # ---- US-11 Multiple counters ----
+
+    def call(self, code="G", counter=None):
+        body = {} if counter is None else {"counter": counter}
+        return self.client.post(f"/api/queue/{code}/call-next", json=body)
+
+    def set_counter(self, counter, is_open, code="G"):
+        return self.client.post(f"/api/queue/{code}/counters/{counter}", json={"open": is_open})
+
+    def test_counter_one_is_open_by_default_and_calls_without_a_counter(self):
+        self.issue()
+        token = self.call().get_json()["token"]
+        self.assertEqual(token["counter"], 1)
+        state = self.client.get("/api/queue/public-state").get_json()
+        self.assertEqual(state["openCounters"], {})
+
+    def test_two_open_counters_each_serve_their_own_patient(self):
+        for name in ("Priya Sharma", "Ravi Kumar", "Anita Das"):
+            self.issue(name=name)
+        response = self.set_counter(2, True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["openCounters"], [1, 2])
+        self.assertEqual(self.call(counter=1).get_json()["token"]["number"], "G001")
+        second = self.call(counter=2).get_json()["token"]
+        self.assertEqual((second["number"], second["counter"]), ("G002", 2))
+        third = self.call(counter=1).get_json()["token"]          # finishes G001 only
+        self.assertEqual((third["number"], third["counter"]), ("G003", 1))
+        state = {t["number"]: t for t in self.client.get("/api/queue/state").get_json()["tokens"]}
+        self.assertEqual(state["G001"]["status"], "done")
+        self.assertEqual(state["G002"]["status"], "serving")
+        public = self.client.get("/api/queue/public-state").get_json()
+        self.assertEqual(public["openCounters"], {"G": [1, 2]})
+
+    def test_paused_counter_cannot_call(self):
+        self.issue()
+        response = self.call(counter=2)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Counter 2 is paused", response.get_json()["error"])
+        self.assertEqual(self.call(counter=4).status_code, 400)
+
+    def test_counter_pause_rules(self):
+        self.issue()
+        self.assertEqual(self.set_counter(1, False).status_code, 400)       # last open counter
+        self.set_counter(2, True)
+        self.call(counter=2)
+        refused = self.set_counter(2, False)
+        self.assertEqual(refused.status_code, 400)
+        self.assertIn("G001 is at Counter 2", refused.get_json()["error"])
+        self.assertEqual(self.set_counter(1, False).get_json()["openCounters"], [2])
+        self.assertEqual(self.set_counter(5, True).status_code, 400)
+
+    def test_skip_recall_and_send_to_use_the_counter(self):
+        self.issue()
+        self.issue(name="Ravi Kumar")
+        self.set_counter(2, True)
+        self.call(counter=1)
+        self.call(counter=2)
+        skipped = self.client.post("/api/queue/G/skip", json={"counter": 2}).get_json()["token"]
+        self.assertEqual(skipped["number"], "G002")
+        recalled = self.client.post("/api/tokens/G002/recall", json={"counter": 2}).get_json()["token"]
+        self.assertEqual((recalled["status"], recalled["counter"]), ("serving", 2))
+        billing = self.client.post("/api/queue/G/send-to/B", json={"counter": 2}).get_json()["token"]
+        self.assertEqual(billing["linkedFrom"], "G002")
+        state = {t["number"]: t["status"] for t in self.client.get("/api/queue/state").get_json()["tokens"]}
+        self.assertEqual(state["G001"], "serving")
 
     def test_test_reset_is_not_available_without_test_mode(self):
         production_app = create_app({"TESTING": False, "DATABASE": str(Path(self.temp_dir.name) / "prod.sqlite3")})

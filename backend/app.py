@@ -13,8 +13,17 @@ if str(Path(__file__).resolve().parent) not in sys.path:
 
 from db import close_db, get_db, init_database
 from services.queue_service import (
-    call_next, get_day, issue_token, list_departments, recall_token, send_to, skip_current,
+    call_next, get_day, issue_token, list_departments, recall_token, send_to, set_counter, skip_current,
 )
+
+
+def counter_from_request() -> int:
+    """US-11: the service counter a queue action is for, from the JSON body; Counter 1 when not given."""
+    payload = request.get_json(silent=True) or {}
+    value = payload.get("counter", 1)
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError("Choose Counter 1, 2 or 3.")
+    return value
 
 
 def create_app(test_config: dict | None = None) -> Flask:
@@ -67,7 +76,7 @@ def create_app(test_config: dict | None = None) -> Flask:
     @app.post("/api/queue/<code>/call-next")
     def call_next_route(code: str):
         try:
-            token = call_next(get_db(), code)
+            token = call_next(get_db(), code, counter_from_request())
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
         return jsonify({"token": token})
@@ -75,7 +84,7 @@ def create_app(test_config: dict | None = None) -> Flask:
     @app.post("/api/queue/<code>/skip")
     def skip_route(code: str):
         try:
-            token = skip_current(get_db(), code)
+            token = skip_current(get_db(), code, counter_from_request())
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
         return jsonify({"token": token})
@@ -84,17 +93,30 @@ def create_app(test_config: dict | None = None) -> Flask:
     def send_to_route(code: str, target: str):
         # US-04 Send to Billing: token is null when nobody is being served in <code>.
         try:
-            token = send_to(get_db(), code, target)
+            token = send_to(get_db(), code, target, counter_from_request())
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
         return jsonify({"token": token})
 
     @app.post("/api/tokens/<number>/recall")
     def recall_route(number: str):
-        token = recall_token(get_db(), number)
+        try:
+            token = recall_token(get_db(), number, counter_from_request())
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
         if token is None:
             return jsonify({"token": None, "error": "No missed token with that number was found."}), 404
         return jsonify({"token": token})
+
+    @app.post("/api/queue/<code>/counters/<int:counter>")
+    def counter_route(code: str, counter: int):
+        # US-11: open or pause one service counter of a queue.
+        payload = request.get_json(silent=True) or {}
+        try:
+            counters = set_counter(get_db(), code, counter, payload.get("open") is True)
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+        return jsonify({"openCounters": counters})
 
     @app.post("/api/test/reset")
     def reset_for_tests():
@@ -104,6 +126,7 @@ def create_app(test_config: dict | None = None) -> Flask:
         with conn:
             conn.execute("DELETE FROM tokens")
             conn.execute("DELETE FROM queue_counters")
+            conn.execute("DELETE FROM open_counters")
         return jsonify({"status": "reset"})
 
     return app

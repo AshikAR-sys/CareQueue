@@ -9,12 +9,14 @@
     return String(number).split("").join(" ");
   }
 
-  function announcementText(number, departmentName) {
-    return "Token " + spokenNumber(number) + ", please come to " + departmentName + ".";
+  // US-11: with a counter, "Token G 0 0 5, please come to General Medicine, counter 2."
+  function announcementText(number, departmentName, counter) {
+    return "Token " + spokenNumber(number) + ", please come to " + departmentName + (counter ? ", counter " + counter : "") + ".";
   }
 
-  // A snapshot maps each department code to the token it is serving, { number, calledAt }, or null.
-  // A call is new when a department serves a different token, or the same token with a new calledAt (Recall).
+  // A snapshot maps each place a token is served (a department code, or "code#counter" with several counters) to
+  // the token there, { number, calledAt, code?, counter? }, or null.
+  // A call is new when a place serves a different token, or the same token with a new calledAt (Recall).
   // The first snapshot (previous === null) is only a baseline: opening the display announces nothing.
   function newCalls(previous, current) {
     if (!previous) return [];
@@ -24,7 +26,9 @@
       if (!now) continue;
       const before = previous[code];
       if (!before || before.number !== now.number || before.calledAt !== now.calledAt) {
-        calls.push({ code, number: now.number });
+        const call = { code: now.code || code, number: now.number };
+        if (now.counter) call.counter = now.counter;
+        calls.push(call);
       }
     }
     return calls;

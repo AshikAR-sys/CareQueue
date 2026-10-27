@@ -21,7 +21,7 @@ test("tracking shows my token, the token being served, people ahead and my wait 
   const day = dayWith("G", 5);
   Q.callNext(day, "G", T0);                       // G001 serving; G002..G005 waiting
   assert.deepEqual(Q.track(day, "G005", T0 + MIN), {
-    number: "G005", code: "G", status: "waiting", serving: "G001",
+    number: "G005", code: "G", status: "waiting", serving: ["G001"],
     ahead: 3, minutes: 11, almost: false
   });
 });
@@ -32,7 +32,7 @@ test("tracking follows the queue as it moves (AC-13.2)", () => {
   assert.equal(Q.track(day, "G005", T0).ahead, 3);
   Q.callNext(day, "G", T0 + 2 * MIN);
   const moved = Q.track(day, "G005", T0 + 2 * MIN);
-  assert.equal(moved.serving, "G002");
+  assert.deepEqual(moved.serving, ["G002"]);
   assert.equal(moved.ahead, 2);
 });
 

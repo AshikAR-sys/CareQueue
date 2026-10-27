@@ -362,3 +362,28 @@ busiest hour) without counting slips by hand. Traces to the PRD's Could-Have **C
   phone rule hiding every table's 4th column (here "Waiting"); the report now keeps all columns.
 - **QA:** 7 browser tests (AC-15.1–15.4, AC-16.1–16.2, phone fit) plus a public-data-only check. Screenshots on
   desktop and phone reviewed. Results: `npm test` 46/46 · backend 11/11 · e2e 41/41.
+
+---
+
+## Feature F6 — Multiple counters (US-11, PRD S5)
+
+**Objective:** the last unbuilt story. The team chose "full counters": up to 3 counters per queue, each calling its
+own patient, instead of changing only the estimate.
+
+- **BA:** US-11 widened in `docs/CareQueue_User_Stories.pdf` (title "Serve from more than one counter", size L,
+  AC-11.3 each counter calls its own patient, AC-11.4 display/voice/phone name the counter). Spec:
+  `docs/features/F6-multiple-counters.md` (seven rules: Counter 1 open by default; my counter per receptionist;
+  one waiting line; no pausing a busy or the last counter; EWT = R + (N / C) x AST; where the counter shows; old
+  tokens count as Counter 1).
+- **Developer (TDD):** 10 unit tests (`tests/counters.test.js`) and 5 API tests written first and watched fail
+  (`Q.openCounters is not a function`; 404 on `/api/queue/G/counters/2`). Then: `tokens.counter` column (added to old
+  databases by `upgrade_schema`), `open_counters` table, counter-aware call / skip / recall / send-to and a new
+  `POST /api/queue/<code>/counters/<n>` route on the server; the same rules in `QueueCore`; counter chips with
+  Open/Pause in the staff console; counter badges on the display; "counter 2" in the voice; the counter on the token
+  card and phone page. Four older tests were updated for the new wording and the list of serving tokens.
+- **Debugging:** (1) one browser test failed on two console errors; they were the two pauses the test asks the server
+  to refuse (HTTP 400), so the test now expects exactly those. (2) Screenshot review: on a 390 px phone the three
+  serving numbers overlapped; the slots now wrap onto new lines (checked for overlap at 390, 1024 and 1440 px).
+- **QA:** 5 browser tests (default counters, AC-11.1–11.4 including two receptionists in separate browsers).
+  Results: `npm test` 56/56 · backend 16/16 · e2e 46/46.
+- **Deck:** slide 4's cut list no longer lists multiple counters; replaced with reports for past days.
