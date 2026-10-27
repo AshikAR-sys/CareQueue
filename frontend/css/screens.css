@@ -354,4 +354,16 @@
 .track-card[data-state="stale"] .track-stats,
 .track-card[data-state="notfound"] .track-stats { display: none; }
 .track-where { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; color: var(--ink-2); }
+/* US-19: alert switch */
+.alert-card { border-radius: var(--r-inner); padding: 14px; display: grid; gap: 10px; }
+.alert-toggle {
+  display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 8px 16px;
+  border: 0; border-radius: var(--r-pill); cursor: pointer; font: inherit; font-size: 16px; font-weight: 700;
+  color: var(--blue-deep); background: #fff; box-shadow: 0 6px 16px -8px rgba(18, 58, 110, 0.4);
+}
+.alert-toggle[aria-pressed="true"] { color: #fff; background: linear-gradient(100deg, var(--blue), var(--cyan)); }
+.alert-note { font-size: 13.5px; color: var(--ink-2); text-align: center; }
+.track-card.alerting { animation: track-flash 1.2s var(--ease) 3; }
+@keyframes track-flash { 50% { box-shadow: 0 0 0 6px rgba(20, 88, 230, 0.45); } }
+@media (prefers-reduced-motion: reduce) { .track-card.alerting { animation: none; } }
 .track-foot { text-align: center; font-size: 13px; color: var(--ink-3); }

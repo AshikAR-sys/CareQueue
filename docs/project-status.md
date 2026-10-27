@@ -1,6 +1,6 @@
 # CareQueue Project Status
 
-Updated: 27 Oct 2026, after adding Tamil (US-18). 18 of 20 stories built.
+Updated: 27 Oct 2026, after adding the turn-is-near alert (US-19). 19 of 20 stories built.
 Demo: 25 Oct, 10:00 IST.
 Status labels: **Completed** (with evidence) · **In Progress** · **Pending** · **Blocked** · **Needs Verification**.
 
@@ -30,7 +30,7 @@ Status labels: **Completed** (with evidence) · **In Progress** · **Pending** �
 | Queue reports: per-department figures, averages, busiest hour, CSV (new epic E6) | US-15, US-16 | **Completed** | 6 unit tests; e2e AC-15.1–15.4, AC-16.1–16.2 (+1) |
 | Priority tokens (seniors 60+, pregnant, emergency) called first | US-17 | **Completed** | 6 unit tests; 4 backend tests; e2e AC-17.1–17.4 |
 | Tamil display, voice and phone page (English fallback without a Tamil voice) | US-18 | **Completed** | 6 unit tests; e2e AC-18.1–18.3 (+1); Tamil wording to be checked by a Tamil speaker |
-| Turn-is-near alert on the phone page | US-19 | Pending | added 27 Oct |
+| Turn-is-near alert on the phone page (chime, vibration, notification; not SMS) | US-19 | **Completed** | 4 unit tests; e2e AC-19.1–19.3; real notification checked in Chromium |
 | Rate my visit (1–5 stars) | US-20 | Pending | added 27 Oct |
 | Multiple counters: up to 3 per queue, each calling its own patient; counter shown on display, voice and phone | US-11 | **Completed** | 10 unit tests; 5 backend tests; e2e AC-11.1–11.4 (+1) |
 | QR phone tracking (live phone page, "Almost your turn") | US-13 | **Completed** | 6 unit tests; e2e US-13, AC-13.1–13.3 (+1) |
@@ -49,9 +49,9 @@ Open http://127.0.0.1:8000.
 ## Test results (27 Oct 2026)
 
 ```
-npm test              →  68 / 68 pass  (queue rules + counters + priority + Tamil + announcements + tracking + reports)
+npm test              →  72 / 72 pass  (queue rules + counters + priority + Tamil + alerts + tracking + reports)
 npm run test:backend  →  25 / 25 pass  (Flask API + SQLite)
-npm run test:e2e      →  54 / 54 pass  (browser tests against an isolated test database)
+npm run test:e2e      →  56 / 56 pass  (browser tests against an isolated test database)
 ```
 
 ## Role-wise backlog

@@ -122,5 +122,5 @@
     else if ("speechSynthesis" in root) root.speechSynthesis.cancel();
   }
 
-  root.CareQueueAnnouncer = Object.assign({ history, announce, setEnabled, hasVoice, isEnabled: () => enabled }, rules);
+  root.CareQueueAnnouncer = Object.assign({ history, announce, setEnabled, hasVoice, chime, isEnabled: () => enabled }, rules);
 })(typeof window !== "undefined" ? window : globalThis);

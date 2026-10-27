@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/screens.css">
 </head>
@@ -58,6 +59,13 @@
       <p class="track-where" id="track-where" hidden><svg class="ic ic-sm" aria-hidden="true"><use href="#i-map-pin"/></svg><span></span></p>
     </section>
 
+    <div class="glass alert-card">
+      <button class="alert-toggle" type="button" id="alert-toggle" aria-pressed="false">
+        <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span id="alert-label">Alert me when my turn is near</span>
+      </button>
+      <p class="alert-note" id="alert-note" hidden></p>
+    </div>
+
     <p class="track-foot" id="track-foot">Keep this page open: it updates by itself. No app or sign-in needed.</p>
   </main>
 
@@ -66,6 +74,8 @@
   <script src="js/queue.js"></script>
   <script src="js/screens.js"></script>
   <script src="js/i18n.js"></script>
+  <script src="js/announce.js"></script>
+  <script src="js/alerts.js"></script>
   <script src="js/track.js"></script>
 </body>
 </html>
