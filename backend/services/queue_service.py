@@ -23,6 +23,8 @@ def token_from_row(row, include_patient: bool = True) -> dict:
         "skippedAt": row["skipped_at"],
         "linkedFrom": row["linked_from"], "forwardedTo": row["forwarded_to"],
         "counter": row["counter"],
+        # US-17: staff and the patient's own token see the reason; public views only that it is a priority token.
+        "priority": row["priority"] if include_patient else bool(row["priority"]),
     }
     if include_patient:
         token["patient"] = {
@@ -97,6 +99,12 @@ def issue_token(conn: Connection, payload: dict) -> dict:
     if gender not in {"Female", "Male", "Other"}:
         raise ValueError("Select a valid gender.")
 
+    priority = payload.get("priority") or None
+    if priority not in (None, "senior", "pregnant", "emergency"):
+        raise ValueError("Choose a valid priority: senior, pregnant or emergency.")
+    if priority == "senior" and age < 60:
+        raise ValueError("Senior citizen priority is for patients aged 60 or over.")
+
     day, created = today_key(), now_ms()
     doctor = str(patient.get("doctor", "")).strip()
     with conn:
@@ -116,9 +124,9 @@ def issue_token(conn: Connection, payload: dict) -> dict:
         number = code + str(seq).zfill(3)
         conn.execute(
             """INSERT INTO tokens
-               (queue_date, number, code, seq, status, patient_name, age, gender, phone, doctor, created_at)
-               VALUES (?, ?, ?, ?, 'waiting', ?, ?, ?, ?, ?, ?)""",
-            (day, number, code, seq, name, age, gender, phone, doctor, created),
+               (queue_date, number, code, seq, status, patient_name, age, gender, phone, doctor, created_at, priority)
+               VALUES (?, ?, ?, ?, 'waiting', ?, ?, ?, ?, ?, ?, ?)""",
+            (day, number, code, seq, name, age, gender, phone, doctor, created, priority),
         )
     row = conn.execute(
         "SELECT * FROM tokens WHERE queue_date = ? AND number = ?", (day, number)
@@ -204,7 +212,7 @@ def call_next(conn: Connection, code: str, counter: int = 1) -> dict | None:
         next_row = conn.execute(
             """SELECT id FROM tokens
                WHERE queue_date = ? AND code = ? AND status = 'waiting'
-               ORDER BY seq LIMIT 1""", (day, code),
+               ORDER BY priority IS NULL, seq LIMIT 1""", (day, code),
         ).fetchone()
         if not next_row:
             return None
@@ -281,10 +289,11 @@ def send_to(conn: Connection, from_code: str, to_code: str, counter: int = 1) ->
         number = to_code + str(seq).zfill(3)
         conn.execute(
             """INSERT INTO tokens
-               (queue_date, number, code, seq, status, patient_name, age, gender, phone, doctor, created_at, linked_from)
-               VALUES (?, ?, ?, ?, 'waiting', ?, ?, ?, ?, '', ?, ?)""",
+               (queue_date, number, code, seq, status, patient_name, age, gender, phone, doctor, created_at,
+                linked_from, priority)
+               VALUES (?, ?, ?, ?, 'waiting', ?, ?, ?, ?, '', ?, ?, ?)""",
             (day, number, to_code, seq, current["patient_name"], current["age"], current["gender"],
-             current["phone"], now, current["number"]),
+             current["phone"], now, current["number"], current["priority"]),
         )
         conn.execute(
             "UPDATE tokens SET status = 'done', done_at = ?, forwarded_to = ? WHERE id = ?",

@@ -55,7 +55,9 @@
       if (!v.waiting.length) list.append(el("li", "next-empty", "No one waiting"));
       for (const t of v.waiting) {
         const li = el("li");
-        li.append(el("span", "next-number", t.number), el("span", "next-wait", waitWords(t)));
+        const num = el("span", "next-number", t.number);
+        if (t.priority) num.append(el("span", "next-priority", "Priority"));   // US-17: the mark only, never the reason
+        li.append(num, el("span", "next-wait", waitWords(t)));
         list.append(li);
       }
       next.append(list);

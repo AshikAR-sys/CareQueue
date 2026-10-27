@@ -160,6 +160,19 @@
           <p class="err" id="phone-err"></p>
         </div>
 
+        <!-- US-17: priority patients are called before the normal line -->
+        <fieldset class="field">
+          <legend>Priority <span class="opt">(if it applies)</span></legend>
+          <div class="segmented segmented-4" aria-describedby="priority-hint priority-err">
+            <label><input type="radio" name="priority" value="" checked><span>None</span></label>
+            <label><input type="radio" name="priority" value="senior"><span>Senior 60+</span></label>
+            <label><input type="radio" name="priority" value="pregnant"><span>Pregnant</span></label>
+            <label><input type="radio" name="priority" value="emergency"><span>Emergency</span></label>
+          </div>
+          <p class="hint" id="priority-hint">Seniors (60+), pregnant women and emergencies are called first.</p>
+          <p class="err" id="priority-err"></p>
+        </fieldset>
+
         <button class="btn-primary" type="submit" id="submit-btn">
           <span class="spinner" aria-hidden="true"></span>
           <span class="btn-label">Generate Token</span>
@@ -187,6 +200,7 @@
         <div class="slip-number">
           <p class="label">Token number</p>
           <p class="number" id="t-number">G023</p>
+          <p class="slip-priority" id="t-priority" hidden></p>
           <div class="skeleton sk-number" aria-hidden="true"></div>
         </div>
 

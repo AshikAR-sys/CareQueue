@@ -5,9 +5,10 @@
 // A day record: { date: "YYYY-MM-DD", counters: { G: 3 }, openCounters: { G: [1, 2] }, tokens: [Token] }
 //   counters     = the last token number issued per queue today
 //   openCounters = the service counters open per queue (US-11); a queue not listed has Counter 1 open
-// A token:      { number, code, seq, status, counter, patient, createdAt, calledAt, doneAt }
+// A token:      { number, code, seq, status, counter, priority, patient, createdAt, calledAt, doneAt }
 // status: "waiting" -> "serving" -> "done", or "serving" -> "missed" -> "serving" (recall)
 // counter: the service counter that called the token (1-3)
+// priority: null, or why the patient is seen first (US-17): "senior" | "pregnant" | "emergency"
 (function (root) {
   "use strict";
 
@@ -16,6 +17,7 @@
   const AVERAGE_WINDOW = 10;           // PRD: average of the last 10 served
   const ALMOST_AHEAD = 2;              // US-13: "Almost your turn" when 2 or fewer patients are ahead
   const MAX_COUNTERS = 3;              // US-11: up to 3 service counters per queue
+  const PRIORITY_LABELS = { senior: "Senior citizen", pregnant: "Pregnant", emergency: "Emergency" }; // US-17
 
   function dayKey(d) {
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -26,7 +28,11 @@
   }
 
   function inQueue(day, code) { return day.tokens.filter((t) => t.code === code); }
-  function waitingIn(day, code) { return day.tokens.filter((t) => t.code === code && t.status === "waiting"); }
+  // The waiting line in calling order: priority tokens first (US-17), then the rest, each in issue order.
+  function waitingIn(day, code) {
+    return day.tokens.filter((t) => t.code === code && t.status === "waiting")
+      .sort((a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0) || a.seq - b.seq);
+  }
   function counterOf(t) { return t.counter || 1; }   // tokens called before US-11 have no counter
   function servingAll(day, code) {
     return day.tokens.filter((t) => t.code === code && t.status === "serving").sort((a, b) => counterOf(a) - counterOf(b));
@@ -64,13 +70,13 @@
     return next;
   }
 
-  function issue(day, { code, patient }, now) {
+  function issue(day, { code, patient, priority }, now) {
     const seq = (day.counters[code] || 0) + 1;
     if (seq > 999) throw new Error("Today's token limit for this department has been reached.");
     day.counters[code] = seq;
     const token = {
       number: code + String(seq).padStart(3, "0"),
-      code, seq, status: "waiting", counter: null,
+      code, seq, status: "waiting", counter: null, priority: priority || null,
       patient: patient || null,
       createdAt: now, calledAt: null, doneAt: null
     };
@@ -111,7 +117,7 @@
     const current = servingAt(day, fromCode, counter);
     if (!current) return null;
     const patient = current.patient ? Object.assign({}, current.patient, { doctor: "" }) : null;
-    const next = issue(day, { code: toCode, patient }, now);
+    const next = issue(day, { code: toCode, patient, priority: current.priority }, now);
     next.linkedFrom = current.number;
     current.status = "done";
     current.doneAt = now;
@@ -187,7 +193,7 @@
       code,
       serving: v.servingAll.map((t) => ({ number: t.number, counter: counterOf(t) })),
       openCounters: openCounters(day, code),
-      waiting: v.waiting.slice(0, limit).map((t) => ({ number: t.number, minutes: t.minutes })),
+      waiting: v.waiting.slice(0, limit).map((t) => ({ number: t.number, minutes: t.minutes, priority: !!t.priority })),
       waitingCount: v.waiting.length
     };
   }
@@ -260,7 +266,7 @@
     return lines.join("\n") + "\n";
   }
 
-  const api = { DEFAULT_AST_MS, MAX_COUNTERS, openCounters, setCounter, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView, track, trackPath, report, reportCsv };
+  const api = { DEFAULT_AST_MS, MAX_COUNTERS, PRIORITY_LABELS, openCounters, setCounter, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView, track, trackPath, report, reportCsv };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.QueueCore = api;
 })(typeof window !== "undefined" ? window : globalThis);

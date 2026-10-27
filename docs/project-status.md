@@ -1,6 +1,6 @@
 # CareQueue Project Status
 
-Updated: 27 Oct 2026, after the server-side PIN check (QA fix 3). All 16 stories are built.
+Updated: 27 Oct 2026, after adding priority tokens (US-17). 17 of 20 stories built.
 Demo: 25 Oct, 10:00 IST.
 Status labels: **Completed** (with evidence) · **In Progress** · **Pending** · **Blocked** · **Needs Verification**.
 
@@ -28,6 +28,10 @@ Status labels: **Completed** (with evidence) · **In Progress** · **Pending** �
 | Persistent queue across reloads (SQLite) | — | **Completed** | e2e persistence test |
 | Voice announcement (sound switch, chime + speech on each call and recall) | US-08 | **Completed** | 9 unit tests; e2e AC-08.1, AC-08.2 (+2) |
 | Queue reports: per-department figures, averages, busiest hour, CSV (new epic E6) | US-15, US-16 | **Completed** | 6 unit tests; e2e AC-15.1–15.4, AC-16.1–16.2 (+1) |
+| Priority tokens (seniors 60+, pregnant, emergency) called first | US-17 | **Completed** | 6 unit tests; 4 backend tests; e2e AC-17.1–17.4 |
+| Tamil display and voice | US-18 | Pending | added 27 Oct |
+| Turn-is-near alert on the phone page | US-19 | Pending | added 27 Oct |
+| Rate my visit (1–5 stars) | US-20 | Pending | added 27 Oct |
 | Multiple counters: up to 3 per queue, each calling its own patient; counter shown on display, voice and phone | US-11 | **Completed** | 10 unit tests; 5 backend tests; e2e AC-11.1–11.4 (+1) |
 | QR phone tracking (live phone page, "Almost your turn") | US-13 | **Completed** | 6 unit tests; e2e US-13, AC-13.1–13.3 (+1) |
 
@@ -45,9 +49,9 @@ Open http://127.0.0.1:8000.
 ## Test results (27 Oct 2026)
 
 ```
-npm test              →  56 / 56 pass  (queue rules + counters + announcements + phone tracking + reports)
-npm run test:backend  →  21 / 21 pass  (Flask API + SQLite)
-npm run test:e2e      →  48 / 48 pass  (browser tests against an isolated test database)
+npm test              →  62 / 62 pass  (queue rules + counters + priority + announcements + tracking + reports)
+npm run test:backend  →  25 / 25 pass  (Flask API + SQLite)
+npm run test:e2e      →  50 / 50 pass  (browser tests against an isolated test database)
 ```
 
 ## Role-wise backlog
@@ -69,7 +73,7 @@ npm run test:e2e      →  48 / 48 pass  (browser tests against an isolated test
 3. **Server-side PIN check** (QA fix 3): **done.** `/api/queue/state` and every queue action now need the staff pass from
    `POST /api/staff/sign-in`. Remaining: one shared PIN, no personal accounts, no limit on sign-in attempts.
 4. **Live site:** now reachable from the cloud session; read-only checks confirmed `main` is deployed. Full live QA not yet run.
-5. **Backlog size:** with E6 the backlog has 6 epics and 16 stories, above the Stage 4 guideline of 3–5 epics and
+5. **Backlog size:** with E6 and US-17–US-20 the backlog has 6 epics and 20 stories, above the Stage 4 guideline of 3–5 epics and
    8–15 stories. E5 and E6 are marked in the PDFs as added by the team after the first backlog.
 
 ## Safety note

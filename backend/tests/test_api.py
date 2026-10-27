@@ -22,14 +22,17 @@ class CareQueueApiTests(unittest.TestCase):
     def tearDown(self):
         self.temp_dir.cleanup()
 
-    def issue(self, name="Priya Sharma", phone="9876543210", code="G"):
-        return self.client.post("/api/tokens", json={
+    def issue(self, name="Priya Sharma", phone="9876543210", code="G", priority=None, age="40"):
+        payload = {
             "code": code,
             "patient": {
-                "name": name, "age": "40", "gender": "Female",
+                "name": name, "age": age, "gender": "Female",
                 "phone": phone, "doctor": "Dr. Anjali Rao"
             }
-        })
+        }
+        if priority is not None:
+            payload["priority"] = priority
+        return self.client.post("/api/tokens", json=payload)
 
     def test_health_and_departments(self):
         self.assertEqual(self.client.get("/api/health").status_code, 200)
@@ -119,11 +122,12 @@ class CareQueueApiTests(unittest.TestCase):
         conn = sqlite3.connect(old)
         conn.executescript(Path(__file__).resolve().parents[2].joinpath("database", "schema.sql").read_text()
                            .replace("  linked_from TEXT,\n  forwarded_to TEXT,\n", "")
-                           .replace("  counter INTEGER CHECK(counter BETWEEN 1 AND 3),\n", ""))
+                           .replace("  counter INTEGER CHECK(counter BETWEEN 1 AND 3),\n", "")
+                           .replace("  priority TEXT CHECK(priority IN ('senior','pregnant','emergency')),\n", ""))
         conn.close()
         upgraded = create_app({"TESTING": True, "DATABASE": old})
         columns = {row[1] for row in sqlite3.connect(old).execute("PRAGMA table_info(tokens)")}
-        self.assertTrue({"linked_from", "forwarded_to", "counter"} <= columns)
+        self.assertTrue({"linked_from", "forwarded_to", "counter", "priority"} <= columns)
         self.assertEqual(upgraded.test_client().get("/api/health").status_code, 200)
 
     # ---- US-11 Multiple counters ----
@@ -246,6 +250,41 @@ class CareQueueApiTests(unittest.TestCase):
         client = app.test_client()
         self.assertEqual(client.post("/api/staff/sign-in", json={"pin": "1234"}).status_code, 401)
         self.assertEqual(client.post("/api/staff/sign-in", json={"pin": "8642"}).status_code, 200)
+
+    # ---- US-17 Priority tokens ----
+
+    def test_priority_token_is_issued_and_validated(self):
+        token = self.issue(priority="pregnant").get_json()["token"]
+        self.assertEqual(token["priority"], "pregnant")
+        self.assertIsNone(self.issue(name="Ravi Kumar").get_json()["token"]["priority"])
+        bad = self.issue(name="Anita Das", priority="vip")
+        self.assertEqual(bad.status_code, 400)
+        self.assertIn("priority", bad.get_json()["error"].lower())
+        young = self.issue(name="Mohan Iyer", priority="senior", age="40")
+        self.assertEqual(young.status_code, 400)
+        self.assertIn("60", young.get_json()["error"])
+        self.assertEqual(self.issue(name="Lakshmi Rao", priority="senior", age="67").status_code, 201)
+
+    def test_call_next_calls_priority_tokens_first(self):
+        self.issue()
+        self.issue(name="Ravi Kumar")
+        self.issue(name="Anita Das", priority="emergency")
+        order = [self.client.post("/api/queue/G/call-next").get_json()["token"]["number"] for _ in range(3)]
+        self.assertEqual(order, ["G003", "G001", "G002"])
+
+    def test_public_state_shows_priority_without_the_reason(self):
+        self.issue(priority="pregnant")
+        public = self.client.get("/api/queue/public-state").get_json()
+        self.assertIs(public["tokens"][0]["priority"], True)
+        self.assertNotIn("pregnant", json.dumps(public))
+        staff = self.client.get("/api/queue/state").get_json()
+        self.assertEqual(staff["tokens"][0]["priority"], "pregnant")
+
+    def test_send_to_billing_keeps_priority(self):
+        self.issue(priority="emergency")
+        self.client.post("/api/queue/G/call-next")
+        billing = self.client.post("/api/queue/G/send-to/B").get_json()["token"]
+        self.assertEqual(billing["priority"], "emergency")
 
     def test_test_reset_is_not_available_without_test_mode(self):
         production_app = create_app({"TESTING": False, "DATABASE": str(Path(self.temp_dir.name) / "prod.sqlite3")})

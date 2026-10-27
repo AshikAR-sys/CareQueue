@@ -926,3 +926,55 @@ test("fix 3 queue actions sent without a staff pass are refused by the server", 
   const pub = await (await fetch(APP + "api/queue/public-state")).json();
   assert.equal(pub.tokens[0].status, "waiting");
 });
+
+// --- US-17 Priority tokens ---
+
+async function issuePriority(page, dept, name, age, priority) {
+  await page.selectOption("#department", dept);
+  await page.fill("#name", name);
+  await page.fill("#age", age);
+  await page.click(".segmented label:nth-child(2)");
+  await page.fill("#phone", "9876543210");
+  await page.check('input[name="priority"][value="' + priority + '"]', { force: true });
+  await page.click("#submit-btn");
+}
+
+test("AC-17.1 a patient can ask for priority; Senior needs age 60 or over", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issuePriority(tok, "gen", "Mohan Iyer", "45", "senior");
+  await tok.waitForFunction(() => /60 and over/.test(document.getElementById("priority-err").textContent));
+  assert.equal(await tok.getAttribute("#token-card", "data-state"), "draft");
+  await tok.fill("#age", "67");
+  await tok.click("#submit-btn");
+  await tok.waitForFunction(() => document.getElementById("token-card").dataset.state === "issued");
+  assert.equal(await tok.textContent("#t-priority"), "Priority · Senior citizen");
+  assert.equal(await tok.isVisible("#t-priority"), true);
+  await issue(tok, "gen", "Ravi Kumar");                   // the form keeps "None" as the default next time
+  assert.equal(await tok.isVisible("#t-priority"), false);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-17.2 / AC-17.3 / AC-17.4 priority tokens are called first and marked on staff and display screens", async () => {
+  const { ctx, errors, open } = await setup({ width: 1920, height: 1080 });
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");                 // G001
+  await issue(tok, "gen", "Ravi Kumar");                   // G002
+  await issuePriority(tok, "gen", "Anita Das", "30", "pregnant");   // G003
+  await tok.waitForFunction(() => document.getElementById("t-number").textContent === "G003");
+  await tok.waitForFunction(() => /^You're next/.test(document.getElementById("t-wait").textContent));
+  const staff = await open("staff.html");
+  await staff.waitForFunction(() => document.querySelectorAll("#waiting-rows .token").length === 3);
+  assert.deepEqual(await cells(staff, "#waiting-rows .token"), ["G003", "G001", "G002"]);
+  assert.match(await staff.textContent("#waiting-rows tr:first-child"), /Priority Pregnant/);
+  const disp = await open("display.html");
+  await disp.waitForFunction(() => document.querySelectorAll(".next-number").length === 3);
+  assert.deepEqual(await cells(disp, ".next-number"), ["G003Priority", "G001", "G002"]);
+  assert.ok(!(await disp.content()).includes("Pregnant"), "the display never shows the reason");
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G003");
+  assert.match(await staff.textContent("#serving-meta"), /Priority: Pregnant/);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
