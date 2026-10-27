@@ -45,7 +45,15 @@
       "track.notfound": "We can't find this token today. Please ask at the reception desk.",
       "track.stale": "This token was for {date}. Tokens start again each day; please get a new one.",
       "track.foot": "Keep this page open: it updates by itself. No app or sign-in needed.",
-      "the.department": "the department"
+      "the.department": "the department",
+      "alert.off": "Alert me when my turn is near",
+      "alert.on": "Alerts on",
+      "alert.note.on": "Keep this page open. Your phone will chime and vibrate when 2 or fewer are ahead, and when you are called.",
+      "alert.note.blocked": "Notifications are blocked on this phone. You will still hear a chime while this page is open.",
+      "alert.almost.title": "Almost your turn ({token})",
+      "alert.almost.body": "{dept}: {n} ahead of you.",
+      "alert.turn.title": "Your turn now ({token})",
+      "alert.turn.body": "Please go to {dept}, Counter {counter}."
     },
     ta: {
       "display.title": "இப்போது சேவையில்",
@@ -84,7 +92,15 @@
       "track.notfound": "இன்று இந்த டோக்கன் கிடைக்கவில்லை. வரவேற்பு மேசையில் கேளுங்கள்.",
       "track.stale": "இந்த டோக்கன் {date} தேதிக்கானது. டோக்கன்கள் ஒவ்வொரு நாளும் புதிதாகத் தொடங்கும்; புதிய டோக்கன் பெறுங்கள்.",
       "track.foot": "இந்தப் பக்கத்தைத் திறந்தே வைத்திருங்கள்: இது தானாகப் புதுப்பிக்கப்படும். ஆப் அல்லது உள்நுழைவு தேவையில்லை.",
-      "the.department": "அந்தப் பிரிவு"
+      "the.department": "அந்தப் பிரிவு",
+      "alert.off": "என் முறை நெருங்கும்போது எனக்குத் தெரிவி",
+      "alert.on": "அறிவிப்புகள் இயக்கத்தில்",
+      "alert.note.on": "இந்தப் பக்கத்தைத் திறந்தே வைத்திருங்கள். உங்களுக்கு முன் 2 அல்லது குறைவானவர்கள் இருக்கும்போதும், நீங்கள் அழைக்கப்படும்போதும் தொலைபேசி ஒலித்து அதிரும்.",
+      "alert.note.blocked": "இந்தத் தொலைபேசியில் அறிவிப்புகள் தடுக்கப்பட்டுள்ளன. இந்தப் பக்கம் திறந்திருக்கும் வரை ஒலி கேட்கும்.",
+      "alert.almost.title": "உங்கள் முறை நெருங்குகிறது ({token})",
+      "alert.almost.body": "{dept}: உங்களுக்கு முன் {n} பேர்.",
+      "alert.turn.title": "உங்கள் முறை வந்துவிட்டது ({token})",
+      "alert.turn.body": "{dept}, கவுண்டர் {counter}-க்குச் செல்லுங்கள்."
     }
   };
 

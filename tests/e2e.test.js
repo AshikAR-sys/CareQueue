@@ -1065,3 +1065,85 @@ test("AC-18.3 the phone tracking page can be read in Tamil", async () => {
   await pctx.close();
   await ctx.close();
 });
+
+// --- US-19 Turn-is-near alert ---
+
+// A phone that records notifications and vibrations instead of showing them.
+async function alertPhone(url, errors) {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await ctx.addInitScript(() => {
+    window.__alerts = [];
+    window.__buzz = 0;
+    class FakeNotification {
+      constructor(title, options) { window.__alerts.push(title + " | " + options.body); }
+      static requestPermission() { return Promise.resolve("granted"); }
+    }
+    FakeNotification.permission = "granted";
+    window.Notification = FakeNotification;
+    navigator.vibrate = () => { window.__buzz++; return true; };
+    Object.defineProperty(navigator, "serviceWorker", { value: { register: () => Promise.reject(new Error("test")) } });
+  });
+  const page = await ctx.newPage();
+  page.on("pageerror", (e) => errors.push("track: " + e.message));
+  page.on("console", (m) => { if (m.type() === "error") errors.push("track: " + m.text()); });
+  await page.goto(url);
+  return { ctx, page };
+}
+const alertsOn = (page) => page.evaluate(() => window.__alerts);
+
+test("AC-19.1 / AC-19.2 / AC-19.3 the phone alerts once when 2 are ahead and once when called", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  for (const n of ["Priya Sharma", "Ravi Kumar", "Anita Das", "Mohan Iyer"]) await issue(tok, "gen", n);
+  const url = await tok.getAttribute("#t-qr-code", "data-url");      // G004, 3 ahead
+  const { ctx: pctx, page } = await alertPhone(url, errors);
+  await page.waitForFunction(() => document.getElementById("track-ahead").textContent === "3");
+  await page.click("#alert-toggle");
+  await page.waitForFunction(() => document.getElementById("alert-toggle").getAttribute("aria-pressed") === "true");
+  assert.match(await page.textContent("#alert-note"), /Keep this page open/);
+  const staff = await open("staff.html");
+  await staff.click("#call-next");                                   // G001 serving: G004 has 2 ahead
+  await page.waitForFunction(() => window.__alerts.length === 1, null, { timeout: 3000 });
+  assert.deepEqual(await alertsOn(page), ["Almost your turn (G004) | General Medicine: 2 ahead of you."]);
+  assert.equal(await page.evaluate(() => window.__buzz), 1);
+  await staff.click("#call-next");                                   // 1 ahead: still "almost", no new alert
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G002");
+  await page.waitForFunction(() => document.getElementById("track-ahead").textContent === "1");
+  await page.waitForTimeout(1200);
+  assert.equal((await alertsOn(page)).length, 1);
+  for (const n of ["G003", "G004"]) {
+    await staff.click("#call-next");
+    await staff.waitForFunction((x) => document.getElementById("serving-number").textContent === x, n);
+  }
+  await page.waitForFunction(() => window.__alerts.length === 2, null, { timeout: 3000 });
+  assert.equal((await alertsOn(page))[1], "Your turn now (G004) | Please go to General Medicine, Counter 1.");
+  assert.match(await page.title(), /Your turn now/);
+  assert.deepEqual(errors, []);
+  await pctx.close();
+  await ctx.close();
+});
+
+test("AC-19.3 turning alerts off stops them, and no alert fires for the state when they were turned on", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  for (const n of ["Priya Sharma", "Ravi Kumar", "Anita Das"]) await issue(tok, "gen", n);
+  const url = await tok.getAttribute("#t-qr-code", "data-url");      // G003, already 2 ahead
+  const { ctx: pctx, page } = await alertPhone(url, errors);
+  await page.waitForFunction(() => document.getElementById("track-ahead").textContent === "2");
+  await page.click("#alert-toggle");
+  await page.waitForTimeout(1500);
+  assert.deepEqual(await alertsOn(page), [], "already almost when turned on: no alert");
+  await page.click("#alert-toggle");                                 // off
+  await page.waitForFunction(() => document.getElementById("alert-toggle").getAttribute("aria-pressed") === "false");
+  const staff = await open("staff.html");
+  for (const n of ["G001", "G002", "G003"]) {
+    await staff.click("#call-next");
+    await staff.waitForFunction((x) => document.getElementById("serving-number").textContent === x, n);
+  }
+  await page.waitForFunction(() => document.getElementById("track-card").dataset.state === "serving");
+  await page.waitForTimeout(1200);
+  assert.deepEqual(await alertsOn(page), []);
+  assert.deepEqual(errors, []);
+  await pctx.close();
+  await ctx.close();
+});

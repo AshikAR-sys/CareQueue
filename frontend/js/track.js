@@ -16,6 +16,47 @@
   let lang = I.load();
   const tr = (key, vars) => I.t(lang, key, vars);
 
+  // ---------- US-19 "your turn is near" alerts ----------
+  const Al = window.CareQueueAlerts;
+  const A = window.CareQueueAnnouncer;
+  let alertWatch = null;          // set while alerts are on
+  let alertBlocked = false;
+  const baseTitle = document.title;
+
+  function setAlertButton() {
+    const on = !!alertWatch;
+    $("alert-toggle").setAttribute("aria-pressed", String(on));
+    setText("alert-label", on ? tr("alert.on") : tr("alert.off"));
+    const note = $("alert-note");
+    note.hidden = !on;
+    note.textContent = alertBlocked ? tr("alert.note.blocked") : tr("alert.note.on");
+  }
+
+  $("alert-toggle").addEventListener("click", async () => {
+    if (alertWatch) {
+      alertWatch = null;
+      document.title = baseTitle;
+    } else {
+      alertWatch = Al.watcher();
+      A.chime();                                  // this press lets the browser play sound later
+      const permission = await Al.enable();
+      alertBlocked = permission !== "granted";
+      render();                                   // the current state becomes the starting point
+    }
+    setAlertButton();
+  });
+
+  function fireAlert(a, t, name) {
+    const title = a.kind === "almost" ? tr("alert.almost.title", { token: number }) : tr("alert.turn.title", { token: number });
+    const body = a.kind === "almost" ? tr("alert.almost.body", { dept: name, n: t.ahead }) : tr("alert.turn.body", { dept: name, counter: a.counter });
+    A.chime();
+    Al.notify(title, body);
+    document.title = "🔔 " + title;
+    card.classList.remove("alerting");
+    void card.offsetWidth;                        // restart the flash animation
+    card.classList.add("alerting");
+  }
+
   function setText(id, text) { $(id).textContent = text; }
 
   function waitText(t) {
@@ -45,6 +86,7 @@
     setText("label-ahead", tr("track.ahead"));
     setText("label-wait", tr("track.wait"));
     setText("track-foot", tr("track.foot"));
+    setAlertButton();
     document.querySelectorAll(".lang-switch button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
     render();
   }
@@ -74,6 +116,11 @@
     const where = $("track-where");
     where.hidden = !dept;
     if (dept) where.lastChild.textContent = I.place(lang, dept.location);
+
+    if (alertWatch) {
+      const a = alertWatch.next(t);
+      if (a) fireAlert(a, t, name);
+    }
 
     const serving = t.serving.length ? t.serving.join(", ") : tr("track.none");
     if (t.status === "waiting") {

@@ -5,7 +5,7 @@
   "description": "CareQueue: Hospital Digital Token and Queue Management System (hackathon prototype)",
   "scripts": {
     "start": "python backend/app.py",
-    "test": "node --test tests/queue-core.test.js tests/announce.test.js tests/track.test.js tests/report.test.js tests/counters.test.js tests/priority.test.js tests/i18n.test.js",
+    "test": "node --test tests/queue-core.test.js tests/announce.test.js tests/track.test.js tests/report.test.js tests/counters.test.js tests/priority.test.js tests/i18n.test.js tests/alerts.test.js",
     "test:backend": "python -m unittest discover -s backend/tests",
     "test:e2e": "node --test --test-concurrency=1 tests/e2e.test.js",
     "test:all": "npm test && npm run test:backend && npm run test:e2e"

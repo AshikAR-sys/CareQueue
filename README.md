@@ -54,9 +54,9 @@ The database file is created automatically at `database/carequeue.sqlite3`. It i
 ### Run the tests
 
 ```bash
-npm test                         # 68 unit tests (queue rules, counters, priority, Tamil, announcements, tracking, reports)
+npm test                         # 72 unit tests (queue rules, counters, priority, Tamil, alerts, tracking, reports)
 npm run test:backend             # 25 Flask API + SQLite integration tests
-npm run test:e2e                 # 54 browser tests against an isolated test database
+npm run test:e2e                 # 56 browser tests against an isolated test database
 npm run test:all                 # all three suites
 ```
 
@@ -73,6 +73,7 @@ npm run test:all                 # all three suites
 | Voice announcement: press **Turn on sound** on the display; each call (and recall) plays a chime and says "Token G 0 0 1, please come to General Medicine" | US-08 | unit + e2e |
 | Tamil: an English / தமிழ் switch on the display and the phone page; Tamil labels, department names and voice ("டோக்கன் எண் G 0 0 1 …"), with an English fallback when the device has no Tamil voice | US-18 | unit + e2e |
 | Estimated waiting time: EWT = R + N × AST, default 3 min until 3 are served, then the average of the last 10 | US-09, US-10 | unit + e2e |
+| Turn-is-near alert: **Alert me** on the phone page; chime, vibration and a phone notification when 2 or fewer are ahead and when called (no SMS) | US-19 | unit + e2e |
 | Live estimate on the patient's token card ("About 6 min · 2 people ahead") | US-09 | e2e |
 | Print token (one A5 page) and download (PNG) | US-12 | browser test |
 | Track my token on my phone: the token slip has a QR code that opens a live page (no app, no login) with the token being served, people ahead, the estimated wait and an "Almost your turn" alert | US-13 | unit + e2e |
@@ -87,7 +88,8 @@ npm run test:all                 # all three suites
 - **Sample hospital data.** Departments, doctors and locations in `frontend/js/data.js` are sample data.
 - **Queues are departments plus Billing** (G, C, O, P, D, E, and B). Patients finish at their department and are sent on
   to Billing; a separate Registration (R) queue from the PRD is not used.
-- **Built: 18 of 20 stories.** Still to build: turn-is-near alert (US-19), visit rating (US-20).
+- **Built: 19 of 20 stories.** Still to build: visit rating (US-20).
+- **Alerts are phone notifications, not SMS,** and need the tracking page left open.
 - **Tamil voice depends on the device.** If the display PC has no Tamil voice, it says so and announces in English.
 - **QR tracking needs a reachable server.** A phone cannot open a laptop's `127.0.0.1`; scan the QR code on the deployed (Render) site.
 - A public display endpoint returns token numbers and status only; it excludes patient names and contact details.

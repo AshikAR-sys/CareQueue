@@ -461,3 +461,18 @@ PRD's Could-Haves as offered: priority tokens (C1), turn-is-near alert (C4) and 
   390 px; the phone header was tidied so the sound button and clock do not wrap. Headless Chromium has no voices,
   so actual Tamil speech is not covered by the tests and needs a check on the demo PC.
   Results: `npm test` 68/68 · backend 25/25 · e2e 54/54.
+
+---
+
+## Feature F9 — Turn-is-near alert (US-19, PRD C4)
+
+- **BA:** `docs/features/F9-turn-alert.md` (AC-19.1–19.3, four rules; phone notifications instead of SMS, with the
+  reason).
+- **Developer (TDD):** 4 unit tests (`tests/alerts.test.js`) written first and watched fail (`Cannot find module
+  alerts.js`). Then `frontend/js/alerts.js` (alert rules; notification through the service worker, which Android
+  requires, or `new Notification`; vibration), `frontend/sw.js`, `frontend/favicon.svg`, and an **Alert me** button
+  on the phone page in English and Tamil.
+- **QA:** 2 browser tests with recorded notifications and vibration (one alert at 2 ahead, none at 1 ahead, one when
+  called; none for the state when turned on; none after turning off). A separate run with the real service worker
+  and notification permission showed the notification "Almost your turn (G004) | General Medicine: 2 ahead of you."
+  Results: `npm test` 72/72 · backend 25/25 · e2e 56/56.
