@@ -757,7 +757,8 @@ test("AC-16.2 Download CSV saves one row per department and a total, with no pat
   assert.match(download.suggestedFilename(), /^CareQueue-report-\d{4}-\d{2}-\d{2}\.csv$/);
   const csv = fs.readFileSync(await download.path(), "utf8");
   const lines = csv.trim().split("\n");
-  assert.equal(lines[0], "Department,Code,Issued,Served,Waiting,Serving,Missed,Sent to Billing,Average wait (min),Average service (min)");
+  assert.equal(lines[0], "Department,Code,Issued,Served,Waiting,Serving,Missed,Sent to Billing,Average wait (min),Average service (min)," +
+    "Average rating (1-5),Ratings");
   assert.match(lines.find((l) => l.startsWith("General Medicine,")), /^General Medicine,G,3,1,1,0,1,0,/);
   assert.match(lines[lines.length - 1], /^Total,,4,1,2,0,1,0,/);
   for (const n of ["Priya", "Ravi", "Anita", "Mohan", "9876543210"]) assert.ok(!csv.includes(n));
@@ -1143,6 +1144,61 @@ test("AC-19.3 turning alerts off stops them, and no alert fires for the state wh
   await page.waitForFunction(() => document.getElementById("track-card").dataset.state === "serving");
   await page.waitForTimeout(1200);
   assert.deepEqual(await alertsOn(page), []);
+  assert.deepEqual(errors, []);
+  await pctx.close();
+  await ctx.close();
+});
+
+// --- US-20 Rate my visit ---
+
+test("AC-20.1 / AC-20.2 / AC-20.3 a patient rates a finished visit once, and Reports show the average", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  const url1 = await tok.evaluate(() => new URL(window.QueueCore.trackPath("G001", window.TokenQueue.day().date), location.href).href);
+  const { ctx: pctx, page } = await phone(url1, errors);
+  await page.waitForFunction(() => document.getElementById("track-ahead").textContent === "0");
+  assert.equal(await page.isVisible("#rate-box"), false, "no rating before the visit is over");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");                                   // G001
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  await staff.click("#call-next");                                   // G001 done, G002 serving
+  await page.waitForFunction(() => !document.getElementById("rate-box").hidden, null, { timeout: 3000 });
+  assert.equal(await page.textContent("#rate-question"), "How was your visit?");
+  await page.click('#stars button[data-stars="4"]');
+  await page.waitForFunction(() => /rated this visit 4 out of 5/.test(document.getElementById("rate-msg").textContent));
+  assert.equal(await page.isDisabled('#stars button[data-stars="1"]'), true, "a second rating cannot be given");
+  await page.reload();
+  await page.waitForFunction(() => /rated this visit 4 out of 5/.test(document.getElementById("rate-msg").textContent));
+  const again = await fetch(APP + "api/tokens/G001/rating", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rating: 1 }) });
+  assert.equal(again.status, 409);
+  const rep = await open("reports.html");
+  await rep.waitForFunction(() => document.getElementById("tile-rating").textContent === "4 / 5 (1)");
+  const g = await cells(rep, '#dept-rows tr[data-code="G"] td');
+  assert.equal(g[g.length - 1], "4 / 5 (1)");
+  const [download] = await Promise.all([rep.waitForEvent("download"), rep.click("#download-csv")]);
+  const csv = fs.readFileSync(await download.path(), "utf8");
+  assert.match(csv.split("\n")[0], /Average rating \(1-5\),Ratings$/);
+  assert.match(csv.split("\n").find((l) => l.startsWith("General Medicine,")), /,4,1$/);
+  assert.deepEqual(errors, []);
+  await pctx.close();
+  await ctx.close();
+});
+
+test("US-20 the rating question is in Tamil when the phone page is in Tamil", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const url = await tok.getAttribute("#t-qr-code", "data-url");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  await staff.click("#call-next");                                   // finishes G001 (nobody waiting)
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "—");
+  const { ctx: pctx, page } = await phone(url + "&lang=ta", errors);
+  await page.waitForFunction(() => !document.getElementById("rate-box").hidden);
+  assert.equal(await page.textContent("#rate-question"), "உங்கள் வருகை எப்படி இருந்தது?");
   assert.deepEqual(errors, []);
   await pctx.close();
   await ctx.close();

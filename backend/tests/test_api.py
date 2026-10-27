@@ -123,11 +123,12 @@ class CareQueueApiTests(unittest.TestCase):
         conn.executescript(Path(__file__).resolve().parents[2].joinpath("database", "schema.sql").read_text()
                            .replace("  linked_from TEXT,\n  forwarded_to TEXT,\n", "")
                            .replace("  counter INTEGER CHECK(counter BETWEEN 1 AND 3),\n", "")
-                           .replace("  priority TEXT CHECK(priority IN ('senior','pregnant','emergency')),\n", ""))
+                           .replace("  priority TEXT CHECK(priority IN ('senior','pregnant','emergency')),\n", "")
+                           .replace("  rating INTEGER CHECK(rating BETWEEN 1 AND 5),\n", ""))
         conn.close()
         upgraded = create_app({"TESTING": True, "DATABASE": old})
         columns = {row[1] for row in sqlite3.connect(old).execute("PRAGMA table_info(tokens)")}
-        self.assertTrue({"linked_from", "forwarded_to", "counter", "priority"} <= columns)
+        self.assertTrue({"linked_from", "forwarded_to", "counter", "priority", "rating"} <= columns)
         self.assertEqual(upgraded.test_client().get("/api/health").status_code, 200)
 
     # ---- US-11 Multiple counters ----
@@ -285,6 +286,39 @@ class CareQueueApiTests(unittest.TestCase):
         self.client.post("/api/queue/G/call-next")
         billing = self.client.post("/api/queue/G/send-to/B").get_json()["token"]
         self.assertEqual(billing["priority"], "emergency")
+
+    # ---- US-20 Rate my visit ----
+
+    def rate(self, number, rating, client=None):
+        return (client or self.app.test_client()).post(f"/api/tokens/{number}/rating", json={"rating": rating})
+
+    def test_a_finished_visit_can_be_rated_once_without_sign_in(self):
+        self.issue()
+        self.client.post("/api/queue/G/call-next")
+        self.assertEqual(self.rate("G001", 5).status_code, 409, "not finished yet")
+        self.client.post("/api/queue/G/call-next")                 # G001 done
+        response = self.rate("G001", 4)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json()["token"]["rating"], 4)
+        again = self.rate("G001", 1)
+        self.assertEqual(again.status_code, 409)
+        self.assertIn("already", again.get_json()["error"])
+        public = self.client.get("/api/queue/public-state").get_json()
+        self.assertEqual(public["tokens"][0]["rating"], 4)
+
+    def test_rating_must_be_1_to_5_for_a_real_token(self):
+        self.issue()
+        self.client.post("/api/queue/G/call-next")
+        self.client.post("/api/queue/G/call-next")
+        for bad in (0, 6, "5", None, 4.5, True):
+            self.assertEqual(self.rate("G001", bad).status_code, 400, bad)
+        self.assertEqual(self.rate("G999", 5).status_code, 404)
+
+    def test_a_patient_sent_to_billing_rates_the_billing_token(self):
+        self.issue()
+        self.client.post("/api/queue/G/call-next")
+        self.client.post("/api/queue/G/send-to/B")
+        self.assertEqual(self.rate("G001", 5).status_code, 409)
 
     def test_test_reset_is_not_available_without_test_mode(self):
         production_app = create_app({"TESTING": False, "DATABASE": str(Path(self.temp_dir.name) / "prod.sqlite3")})

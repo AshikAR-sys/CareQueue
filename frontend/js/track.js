@@ -46,6 +46,37 @@
     setAlertButton();
   });
 
+  // ---------- US-20 rate my visit ----------
+  let rated = null;               // the rating this page just sent, shown before the next refresh
+
+  function renderRating(t) {
+    const box = $("rate-box");
+    const rating = (t && t.rating) || rated;
+    box.hidden = !(t && (t.canRate || rating));
+    if (box.hidden) return;
+    setText("rate-question", tr("rate.question"));
+    box.querySelectorAll(".stars button").forEach((b) => {
+      const n = Number(b.dataset.stars);
+      b.disabled = !!rating;
+      b.classList.toggle("on", !!rating && n <= rating);
+      b.setAttribute("aria-label", tr("rate.star", { n }));
+    });
+    if (rating) setText("rate-msg", tr("rate.thanks", { n: rating }));
+  }
+
+  $("stars").addEventListener("click", async (e) => {
+    const b = e.target.closest("button[data-stars]");
+    if (!b || b.disabled) return;
+    const n = Number(b.dataset.stars);
+    try {
+      await Q.rate(number, n);
+      rated = n;
+    } catch (err) {
+      setText("rate-msg", (err && err.message) || tr("rate.failed"));
+    }
+    render();
+  });
+
   function fireAlert(a, t, name) {
     const title = a.kind === "almost" ? tr("alert.almost.title", { token: number }) : tr("alert.turn.title", { token: number });
     const body = a.kind === "almost" ? tr("alert.almost.body", { dept: name, n: t.ahead }) : tr("alert.turn.body", { dept: name, counter: a.counter });
@@ -75,6 +106,7 @@
 
   function message(state, text) {
     show(state);
+    $("rate-box").hidden = true;
     setText("track-dept", text);
     $("track-where").hidden = true;
   }
@@ -109,6 +141,7 @@
     if (issuedOn && issuedOn !== day.date) return message("stale", tr("track.stale", { date: issuedOn }));
     const t = Core.track(day, number, Date.now());
     if (!t) return message("notfound", tr("track.notfound"));
+    renderRating(t);
 
     const dept = deptByCode(t.code);
     const name = dept ? I.deptName(lang, dept.code, dept.name) : tr("the.department");

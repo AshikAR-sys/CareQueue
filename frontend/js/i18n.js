@@ -53,7 +53,11 @@
       "alert.almost.title": "Almost your turn ({token})",
       "alert.almost.body": "{dept}: {n} ahead of you.",
       "alert.turn.title": "Your turn now ({token})",
-      "alert.turn.body": "Please go to {dept}, Counter {counter}."
+      "alert.turn.body": "Please go to {dept}, Counter {counter}.",
+      "rate.question": "How was your visit?",
+      "rate.star": "{n} out of 5 stars",
+      "rate.thanks": "Thank you! You rated this visit {n} out of 5.",
+      "rate.failed": "Your rating was not saved. Please try again."
     },
     ta: {
       "display.title": "இப்போது சேவையில்",
@@ -100,7 +104,11 @@
       "alert.almost.title": "உங்கள் முறை நெருங்குகிறது ({token})",
       "alert.almost.body": "{dept}: உங்களுக்கு முன் {n} பேர்.",
       "alert.turn.title": "உங்கள் முறை வந்துவிட்டது ({token})",
-      "alert.turn.body": "{dept}, கவுண்டர் {counter}-க்குச் செல்லுங்கள்."
+      "alert.turn.body": "{dept}, கவுண்டர் {counter}-க்குச் செல்லுங்கள்.",
+      "rate.question": "உங்கள் வருகை எப்படி இருந்தது?",
+      "rate.star": "5-க்கு {n} நட்சத்திரங்கள்",
+      "rate.thanks": "நன்றி! இந்த வருகைக்கு 5-க்கு {n} மதிப்பீடு அளித்தீர்கள்.",
+      "rate.failed": "உங்கள் மதிப்பீடு சேமிக்கப்படவில்லை. மீண்டும் முயலுங்கள்."
     }
   };
 

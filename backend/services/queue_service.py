@@ -25,6 +25,7 @@ def token_from_row(row, include_patient: bool = True) -> dict:
         "counter": row["counter"],
         # US-17: staff and the patient's own token see the reason; public views only that it is a priority token.
         "priority": row["priority"] if include_patient else bool(row["priority"]),
+        "rating": row["rating"],   # US-20: a number only, so the public reports can average it
     }
     if include_patient:
         token["patient"] = {
@@ -301,3 +302,27 @@ def send_to(conn: Connection, from_code: str, to_code: str, counter: int = 1) ->
         )
     return token_from_row(conn.execute(
         "SELECT * FROM tokens WHERE queue_date = ? AND number = ?", (day, number)).fetchone())
+
+
+class RatingRefused(Exception):
+    """The token cannot be rated (not finished, sent on to Billing, or already rated)."""
+
+
+def rate_visit(conn: Connection, number: str, rating) -> dict | None:
+    """US-20: save the patient's 1-5 star rating of a finished visit, once. None if the token does not exist today."""
+    if isinstance(rating, bool) or not isinstance(rating, int) or not 1 <= rating <= 5:
+        raise ValueError("Choose a rating from 1 to 5 stars.")
+    day = today_key()
+    with conn:
+        conn.execute("BEGIN IMMEDIATE")
+        row = conn.execute(
+            "SELECT * FROM tokens WHERE queue_date = ? AND number = ?", (day, number.strip().upper())
+        ).fetchone()
+        if not row:
+            return None
+        if row["rating"]:
+            raise RatingRefused("This visit has already been rated. Thank you.")
+        if row["status"] != "done" or row["forwarded_to"]:
+            raise RatingRefused("You can rate your visit when it is finished.")
+        conn.execute("UPDATE tokens SET rating = ? WHERE id = ?", (rating, row["id"]))
+    return token_from_row(conn.execute("SELECT * FROM tokens WHERE id = ?", (row["id"],)).fetchone(), include_patient=False)
