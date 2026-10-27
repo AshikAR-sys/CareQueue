@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS tokens (
   forwarded_to TEXT,
   counter INTEGER CHECK(counter BETWEEN 1 AND 3),
   priority TEXT CHECK(priority IN ('senior','pregnant','emergency')),
+  rating INTEGER CHECK(rating BETWEEN 1 AND 5),
   UNIQUE(queue_date, number),
   UNIQUE(queue_date, code, seq)
 );

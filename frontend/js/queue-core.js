@@ -9,6 +9,7 @@
 // status: "waiting" -> "serving" -> "done", or "serving" -> "missed" -> "serving" (recall)
 // counter: the service counter that called the token (1-3)
 // priority: null, or why the patient is seen first (US-17): "senior" | "pregnant" | "emergency"
+// rating: null, or the patient's 1-5 star rating of a finished visit (US-20)
 (function (root) {
   "use strict";
 
@@ -207,6 +208,9 @@
       estimate(day, number, now)
     );
     result.almost = result.status === "waiting" && result.ahead <= ALMOST_AHEAD;
+    // US-20: a finished visit can be rated once; a patient sent on to Billing rates at the end, on the billing token.
+    result.rating = token.rating || null;
+    result.canRate = token.status === "done" && !token.forwardedTo && !token.rating;
     return result;
   }
 
@@ -223,6 +227,7 @@
   }
 
   function summarise(tokens) {
+    const rated = tokens.filter((t) => t.rating).map((t) => t.rating);
     const called = tokens.filter((t) => t.calledAt != null);
     const finished = tokens.filter((t) => t.status === "done" && t.calledAt != null && t.doneAt != null);
     const count = (status) => tokens.filter((t) => t.status === status).length;
@@ -234,7 +239,9 @@
       missed: count("missed"),
       sentToBilling: tokens.filter((t) => t.forwardedTo).length,
       avgWaitMin: averageMin(called.map((t) => t.calledAt - t.createdAt)),
-      avgServiceMin: averageMin(finished.map((t) => t.doneAt - t.calledAt))
+      avgServiceMin: averageMin(finished.map((t) => t.doneAt - t.calledAt)),
+      ratingCount: rated.length,
+      avgRating: rated.length ? Math.round(rated.reduce((a, b) => a + b, 0) / rated.length * 10) / 10 : null
     };
   }
 
@@ -259,8 +266,9 @@
       return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
     };
     const row = (name, code, r) => [name, code, r.issued, r.served, r.waiting, r.serving, r.missed, r.sentToBilling,
-      r.avgWaitMin, r.avgServiceMin].map(cell).join(",");
-    const lines = ["Department,Code,Issued,Served,Waiting,Serving,Missed,Sent to Billing,Average wait (min),Average service (min)"];
+      r.avgWaitMin, r.avgServiceMin, r.avgRating, r.ratingCount].map(cell).join(",");
+    const lines = ["Department,Code,Issued,Served,Waiting,Serving,Missed,Sent to Billing,Average wait (min),Average service (min)," +
+      "Average rating (1-5),Ratings"];
     for (const d of rep.departments) lines.push(row(nameOf(d.code), d.code, d));
     lines.push(row("Total", "", rep.total));
     return lines.join("\n") + "\n";

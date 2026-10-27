@@ -279,7 +279,7 @@
 .reports { max-width: 1400px; margin: 0 auto; padding: 36px var(--margin) 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap); }
 .reports-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .reports-head .btn-secondary { width: auto; padding: 0 20px; }
-.report-tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; }
+.report-tiles { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 14px; }
 .report-tiles > div { border-radius: var(--r-inner); padding: 16px 18px; }
 .report-tiles dt { font-size: 13px; font-weight: 500; color: var(--ink-3); }
 .report-tiles dd { margin-top: 4px; font-size: 30px; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
@@ -304,7 +304,7 @@
 .hour-label { text-align: center; font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .report-note { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; color: var(--ink-2); }
 .report-note .ic { flex: none; margin-top: 2px; }
-@media (max-width: 1100px) { .report-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .report-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 720px) {
   .reports { padding: 20px 16px; gap: 16px; }
   .report-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -354,6 +354,20 @@
 .track-card[data-state="stale"] .track-stats,
 .track-card[data-state="notfound"] .track-stats { display: none; }
 .track-where { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; color: var(--ink-2); }
+/* US-20: star rating on the phone page */
+.rate-box { margin-top: 18px; padding: 16px; border-radius: var(--r-field); background: var(--well-fill); box-shadow: var(--well-shadow); }
+.rate-question { font-size: 17px; font-weight: 700; }
+.stars { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }
+.stars button {
+  width: 48px; height: 48px; border: 0; border-radius: 12px; cursor: pointer; background: rgba(255, 255, 255, 0.6);
+  font-size: 28px; line-height: 1; color: #b8c2cf;
+}
+.stars:hover button:not(:disabled) { color: #f2b01e; }
+.stars button:not(:disabled):hover ~ button { color: #b8c2cf; }
+.stars button.on { color: #f2b01e; }
+.stars button:disabled { cursor: default; }
+.rate-msg { margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--ink-2); }
+
 /* US-19: alert switch */
 .alert-card { border-radius: var(--r-inner); padding: 14px; display: grid; gap: 10px; }
 .alert-toggle {

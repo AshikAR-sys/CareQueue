@@ -14,6 +14,8 @@
 
   const nameOf = (code) => (deptByCode(code) || { name: code }).name;
   const mins = (v) => (v == null ? "–" : v + " min");
+  // US-20: "4.5 / 5 (2)" = average stars and how many patients rated.
+  const stars = (r) => (r.avgRating == null ? "–" : r.avgRating + " / 5 (" + r.ratingCount + ")");
   const hourLabel = (h) => (h % 12 || 12) + (h < 12 ? " AM" : " PM");
 
   function current() { return Core.report(Q.day(), CODES); }
@@ -29,7 +31,7 @@
   }
 
   function figures(r) {
-    return [r.issued, r.served, r.waiting, r.serving, r.missed, r.sentToBilling, mins(r.avgWaitMin), mins(r.avgServiceMin)].map(String);
+    return [r.issued, r.served, r.waiting, r.serving, r.missed, r.sentToBilling, mins(r.avgWaitMin), mins(r.avgServiceMin), stars(r)].map(String);
   }
 
   function render() {
@@ -45,6 +47,7 @@
     $("tile-missed").textContent = t.missed;
     $("tile-wait").textContent = mins(t.avgWaitMin);
     $("tile-service").textContent = mins(t.avgServiceMin);
+    $("tile-rating").textContent = stars(t);
 
     // Departments with no tokens today are left out of the table; the total covers everything.
     const rows = $("dept-rows");
@@ -58,7 +61,7 @@
     if (!used.length) {
       const tr = el("tr", "empty-row");
       const td = el("td", null, "No tokens issued yet today.");
-      td.colSpan = 9;
+      td.colSpan = 10;
       tr.append(td);
       rows.append(tr);
     }

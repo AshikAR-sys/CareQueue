@@ -54,9 +54,9 @@ The database file is created automatically at `database/carequeue.sqlite3`. It i
 ### Run the tests
 
 ```bash
-npm test                         # 72 unit tests (queue rules, counters, priority, Tamil, alerts, tracking, reports)
-npm run test:backend             # 25 Flask API + SQLite integration tests
-npm run test:e2e                 # 56 browser tests against an isolated test database
+npm test                         # 75 unit tests (queue rules, counters, priority, Tamil, alerts, tracking, reports, ratings)
+npm run test:backend             # 28 Flask API + SQLite integration tests
+npm run test:e2e                 # 58 browser tests against an isolated test database
 npm run test:all                 # all three suites
 ```
 
@@ -78,6 +78,7 @@ npm run test:all                 # all three suites
 | Print token (one A5 page) and download (PNG) | US-12 | browser test |
 | Track my token on my phone: the token slip has a QR code that opens a live page (no app, no login) with the token being served, people ahead, the estimated wait and an "Almost your turn" alert | US-13 | unit + e2e |
 | Sign in as patient (name + phone) or receptionist (PIN checked by the server); each page opens only for its role, and staff actions need the server's staff pass | US-14 | backend + e2e |
+| Rate my visit: after the visit the phone page asks for 1–5 stars (once per token); Reports show the average and count per department, also in the CSV | US-20 | unit + backend + e2e |
 | Queue reports (staff only): today's tokens issued, served, waiting and missed per department, average wait and service time, tokens-per-hour chart with the busiest hour, Download CSV; numbers only, live | US-15, US-16 | unit + e2e |
 | Responsive Liquid Glass design; phone, tablet, desktop, TV | — | e2e (no overflow at 390 px) |
 
@@ -88,7 +89,7 @@ npm run test:all                 # all three suites
 - **Sample hospital data.** Departments, doctors and locations in `frontend/js/data.js` are sample data.
 - **Queues are departments plus Billing** (G, C, O, P, D, E, and B). Patients finish at their department and are sent on
   to Billing; a separate Registration (R) queue from the PRD is not used.
-- **Built: 19 of 20 stories.** Still to build: visit rating (US-20).
+- **All 20 stories are built.**
 - **Alerts are phone notifications, not SMS,** and need the tracking page left open.
 - **Tamil voice depends on the device.** If the display PC has no Tamil voice, it says so and announces in English.
 - **QR tracking needs a reachable server.** A phone cannot open a laptop's `127.0.0.1`; scan the QR code on the deployed (Render) site.
@@ -105,7 +106,7 @@ Demo deck (Team 12): [`docs/deck/CareQueue_Team12_Demo_Deck.pptx`](docs/deck/Car
 ```
 CareQueue/
 ├── frontend/
-│   ├── index.html, patient.html, staff.html, display.html, track.html, reports.html
+│   ├── index.html, patient.html, staff.html, display.html, track.html, reports.html, sw.js
 │   ├── css/                 styles.css, screens.css
 │   ├── js/                  UI, auth demo, queue API adapter, queue rules, vendor/qrcode.js (MIT)
 │   └── assets/              hospital illustration
@@ -120,9 +121,9 @@ CareQueue/
 │   ├── schema.sql            table constraints and indexes
 │   └── seed.sql              sample departments and doctors
 ├── tests/
-│   ├── queue-core.test.js, announce.test.js, track.test.js, report.test.js
+│   ├── queue-core, announce, track, report, counters, priority, i18n, alerts (*.test.js)
 │   └── e2e.test.js
-├── docs/                     MRD, PRD, 6 epics, 16 stories, feature specs, architecture,
+├── docs/                     MRD, PRD, 6 epics, 20 stories, feature specs, architecture,
 │                             demo deck, backup recording, automation log, screenshots
 ├── render.yaml               Render demo deployment blueprint
 ├── package.json

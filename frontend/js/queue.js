@@ -107,6 +107,13 @@
     return result.token;
   }
 
+  // US-20: a patient's 1-5 star rating of their finished visit (no sign-in).
+  async function rate(number, rating) {
+    const result = await request("/api/tokens/" + encodeURIComponent(number) + "/rating", { rating });
+    await refresh(true);
+    return result.token;
+  }
+
   async function setCounter(code, counter, open) {
     const result = await request("/api/queue/" + encodeURIComponent(code) + "/counters/" + counter, { open });
     await refresh(true);
@@ -128,6 +135,7 @@
     recall,
     sendTo,
     setCounter,
+    rate,
     estimate: (number) => Core.estimate(day, number, Date.now()),
     view: (code, counter) => Core.view(day, code, Date.now(), counter),
     publicView: (code) => Core.publicView(day, code, Date.now()),

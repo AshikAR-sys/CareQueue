@@ -22,10 +22,10 @@ flowchart TB
   subgraph Pages["Browser pages (frontend/*.html)"]
     IDX["index.html<br/>Landing and sign-in"]
     PAT["patient.html<br/>Token form, token card,<br/>print, PNG, QR code"]
-    TRK["track.html<br/>Phone tracking from the QR code<br/>no sign-in"]
+    TRK["track.html<br/>Phone tracking from the QR code<br/>alerts, rating, Tamil; no sign-in"]
     STF["staff.html<br/>Counters 1-3, Call Next,<br/>Skip, Recall, Send to Billing"]
     REP["reports.html<br/>Today's figures, busiest hour, CSV"]
-    DSP["display.html<br/>Now serving + counter, next 5,<br/>voice announcement"]
+    DSP["display.html<br/>Now serving + counter, next 5,<br/>priority marks, voice, English / Tamil"]
   end
 
   subgraph Modules["Shared modules (frontend/js/)"]
@@ -34,6 +34,7 @@ flowchart TB
     AUTH["auth.js · CareAuth<br/>session, staff pass, page guard"]
     ANN["announce.js<br/>chime + speech"]
     QR["vendor/qrcode.js<br/>QR codes (MIT)"]
+    I18N["i18n.js · alerts.js · sw.js<br/>Tamil text, turn-is-near alerts"]
   end
 
   subgraph Server["Server (backend/)"]
@@ -58,6 +59,8 @@ flowchart TB
   DSP --> Q
   DSP --> ANN
   PAT --> QR
+  TRK --> I18N
+  DSP --> I18N
   Q --> CORE
   IDX --> AUTH
   AUTH <--> LS
@@ -74,7 +77,7 @@ flowchart TB
 | API | Validates and applies every queue change | `backend/app.py`, `backend/services/queue_service.py` |
 | Database | Today's tokens, numbering, open counters | `database/schema.sql`, `database/seed.sql`, `backend/db.py` |
 | Hosting | Public demo | `render.yaml` (Render free web service, gunicorn; deploys on every push to `main`) |
-| Tests | 56 unit, 21 API, 48 browser tests; GitHub Actions on every pull request | `tests/`, `backend/tests/`, `.github/workflows/test.yml` |
+| Tests | 75 unit, 28 API, 58 browser tests; GitHub Actions on every pull request | `tests/`, `backend/tests/`, `.github/workflows/test.yml` |
 
 **Privacy:** only the staff console loads `/api/queue/state`, which includes patient names and phones. The token
 page, phone tracking page, display and reports load `/api/queue/public-state`, which has token numbers, times,
@@ -126,6 +129,8 @@ erDiagram
     int seq "1-999"
     text status "waiting, serving, done, missed"
     int counter "1-3, set when called"
+    text priority "senior, pregnant, emergency (US-17)"
+    int rating "1-5 stars after the visit (US-20)"
     text patient_name
     int age "0-120"
     text gender "Male, Female, Other"

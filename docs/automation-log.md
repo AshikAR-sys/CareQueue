@@ -476,3 +476,19 @@ PRD's Could-Haves as offered: priority tokens (C1), turn-is-near alert (C4) and 
   called; none for the state when turned on; none after turning off). A separate run with the real service worker
   and notification permission showed the notification "Almost your turn (G004) | General Medicine: 2 ahead of you."
   Results: `npm test` 72/72 · backend 25/25 · e2e 56/56.
+
+---
+
+## Feature F10 — Rate my visit (US-20) · all 20 stories built
+
+- **BA:** `docs/features/F10-visit-rating.md` (AC-20.1–20.3, five rules, one known limit).
+- **Developer (TDD):** 3 unit tests (report averages, CSV columns, when tracking may ask) and 3 API tests written
+  first and watched fail. Then `tokens.rating` (1–5, added to old databases), `POST /api/tokens/<number>/rating`
+  (400 for a bad value, 404 for an unknown token, 409 when not finished, sent to Billing or already rated), star
+  buttons on the phone page (English and Tamil) and a rating tile and column in Reports and the CSV. Two older
+  tests were updated: one compares the whole tracking result, one the CSV header.
+- **Debugging:** the new browser test first waited for "waiting", but G001 with nobody ahead is in the "almost"
+  state; the test now waits for 0 people ahead.
+- **Docs:** architecture diagram and ERD updated for priority, Tamil, alerts and ratings.
+- **QA:** 2 browser tests (rate once, refused again, shown after reload, Reports and CSV; Tamil question).
+  Results: `npm test` 75/75 · backend 28/28 · e2e 58/58. All 20 stories in the backlog are now built.
