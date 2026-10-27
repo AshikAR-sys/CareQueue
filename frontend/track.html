@@ -7,7 +7,7 @@
   <meta name="description" content="Follow your CareQueue token live on your phone: the token being served, people ahead of you and your estimated wait.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/screens.css">
 </head>
@@ -33,11 +33,15 @@
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="9"/><path d="M13 8h6v5h5v6h-5v5h-6v-5H8v-6h5z"/></svg></span>
         <span class="brand-name">CareQueue</span>
       </span>
-      <span class="track-live" id="track-live">Connecting…</span>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true" lang="en">English</button>
+        <button type="button" data-lang="ta" aria-pressed="false" lang="ta">தமிழ்</button>
+      </div>
     </header>
+    <p class="track-live" id="track-live">Connecting…</p>
 
     <section class="glass track-card" id="track-card" data-state="loading" aria-live="polite">
-      <p class="label">Your token</p>
+      <p class="label" id="track-title">Your token</p>
       <p class="track-number" id="track-number">···</p>
       <p class="track-dept" id="track-dept">&nbsp;</p>
 
@@ -46,21 +50,22 @@
       </p>
 
       <dl class="track-stats" id="track-stats">
-        <div><dt>Now serving</dt><dd id="track-serving">–</dd></div>
-        <div><dt><svg class="ic ic-sm" aria-hidden="true"><use href="#i-users"/></svg>People ahead</dt><dd id="track-ahead">–</dd></div>
-        <div class="wide"><dt><svg class="ic ic-sm" aria-hidden="true"><use href="#i-clock"/></svg>Estimated wait</dt><dd id="track-wait">–</dd></div>
+        <div><dt id="label-serving">Now serving</dt><dd id="track-serving">–</dd></div>
+        <div><dt><svg class="ic ic-sm" aria-hidden="true"><use href="#i-users"/></svg><span id="label-ahead">People ahead</span></dt><dd id="track-ahead">–</dd></div>
+        <div class="wide"><dt><svg class="ic ic-sm" aria-hidden="true"><use href="#i-clock"/></svg><span id="label-wait">Estimated wait</span></dt><dd id="track-wait">–</dd></div>
       </dl>
 
       <p class="track-where" id="track-where" hidden><svg class="ic ic-sm" aria-hidden="true"><use href="#i-map-pin"/></svg><span></span></p>
     </section>
 
-    <p class="track-foot">Keep this page open: it updates by itself. No app or sign-in needed.</p>
+    <p class="track-foot" id="track-foot">Keep this page open: it updates by itself. No app or sign-in needed.</p>
   </main>
 
   <script src="js/data.js"></script>
   <script src="js/queue-core.js"></script>
   <script src="js/queue.js"></script>
   <script src="js/screens.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/track.js"></script>
 </body>
 </html>

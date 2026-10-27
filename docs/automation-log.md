@@ -444,3 +444,20 @@ PRD's Could-Haves as offered: priority tokens (C1), turn-is-near alert (C4) and 
   belongs to one patient. The form now resets priority to None after each token.
 - **QA:** 2 browser tests (AC-17.1; AC-17.2–17.4 on staff list and display, reason never on the display). Screenshots
   of the form, card, staff list, display and phone. Results: `npm test` 62/62 · backend 25/25 · e2e 50/50.
+
+---
+
+## Feature F8 — Tamil display, voice and phone page (US-18, PRD C3)
+
+- **BA:** `docs/features/F8-tamil.md` (AC-18.1–18.3, five rules, and a review step for the Tamil wording).
+- **Developer:** `frontend/js/i18n.js` holds the English and Tamil text, Tamil department names, places and the
+  Tamil announcement. The tables were written before their tests (6 unit tests in `tests/i18n.test.js` check every
+  English text has a Tamil version in Tamil script with the same placeholders). The voice choice was test-first:
+  `pickVoice` failed (`A.pickVoice is not a function`), then passed. The display and phone page have an
+  English / தமிழ் switch (remembered per device, `?lang=ta`), Noto Sans Tamil, and a note when the screen has no
+  Tamil voice (calls then stay in English).
+- **QA:** 4 browser tests (display in Tamil and remembered after reload; Tamil voice with a stubbed Tamil voice;
+  English fallback and note without one; phone page in Tamil, also via `?lang=ta`). Screenshots at 1920 px and
+  390 px; the phone header was tidied so the sound button and clock do not wrap. Headless Chromium has no voices,
+  so actual Tamil speech is not covered by the tests and needs a check on the demo PC.
+  Results: `npm test` 68/68 · backend 25/25 · e2e 54/54.

@@ -37,7 +37,7 @@
   --gap: 24px;  --margin: 32px;
   --control-h: 50px;
 
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", Roboto, "Noto Sans Tamil", sans-serif;
   --fs-h1: 38px; --fs-title: 24px; --fs-body: 15px; --fs-small: 13px;
   --ease: cubic-bezier(.2, .8, .2, 1);
   color-scheme: light;

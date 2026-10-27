@@ -7,7 +7,7 @@
   <meta name="description" content="Waiting-room display: the token being served in each department and the next tokens with their estimated wait.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/screens.css">
 </head>
@@ -49,8 +49,12 @@
       <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="9"/><path d="M13 8h6v5h5v6h-5v5h-6v-5H8v-6h5z"/></svg></span>
       <span class="brand-name">CareQueue</span>
     </span>
-    <h1 class="display-title">Now serving</h1>
+    <h1 class="display-title" id="display-title">Now serving</h1>
     <div class="display-tools">
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true" lang="en">English</button>
+        <button type="button" data-lang="ta" aria-pressed="false" lang="ta">தமிழ்</button>
+      </div>
       <button class="sound-toggle" type="button" id="sound-toggle" aria-pressed="false">
         <svg class="ic" aria-hidden="true"><use href="#i-volume-off"/></svg><span class="sound-label">Turn on sound</span>
       </button>
@@ -61,7 +65,8 @@
   <main class="display-grid" id="display-grid" aria-live="polite"></main>
 
   <footer class="display-foot">
-    <p>Keep your token with you. When your number appears under Now serving, go to that department.</p>
+    <p class="voice-note" id="voice-note" hidden></p>
+    <p id="display-foot">Keep your token with you. When your number appears under Now serving, go to that department.</p>
     <p style="margin-top:10px;font-size:13px;opacity:0.65"><a href="index.html" style="color:inherit;text-decoration:underline">← Back to CareQueue</a></p>
   </footer>
 
@@ -69,6 +74,7 @@
   <script src="js/queue-core.js"></script>
   <script src="js/queue.js"></script>
   <script src="js/screens.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/announce.js"></script>
   <script src="js/display.js"></script>
 </body>
