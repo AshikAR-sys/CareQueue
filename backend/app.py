@@ -18,7 +18,7 @@ if str(Path(__file__).resolve().parent) not in sys.path:
 from db import close_db, get_db, init_database
 from services.queue_service import (
     RatingRefused, StepOutRefused, call_next, get_day, issue_token, list_departments, rate_visit, recall_token, send_to, set_counter,
-    set_delay, skip_current, step_out,
+    hourly_history, set_delay, skip_current, step_out,
 )
 
 
@@ -162,6 +162,27 @@ def create_app(test_config: dict | None = None) -> Flask:
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
         return jsonify({"openCounters": counters})
+
+    @app.get("/api/history/hourly")
+    def history_route():
+        # US-25: earlier days' token times for the public "best time to visit" page; numbers only.
+        return jsonify({"tokens": hourly_history(get_db())})
+
+    @app.post("/api/test/seed-history")
+    def seed_history_for_tests():
+        # Browser tests only: fake earlier-day tokens (sample patient) so the best-time page has history.
+        if not app.config.get("TESTING"):
+            return jsonify({"error": "Not found"}), 404
+        payload = request.get_json(silent=True) or {}
+        conn = get_db()
+        with conn:
+            for day, code, created in payload.get("tokens", []):
+                seq = conn.execute("SELECT COUNT(*) FROM tokens WHERE queue_date = ? AND code = ?", (day, code)).fetchone()[0] + 1
+                conn.execute(
+                    """INSERT INTO tokens (queue_date, number, code, seq, status, patient_name, age, gender, phone, created_at)
+                       VALUES (?, ?, ?, ?, 'done', 'Sample Patient', 40, 'Other', '9000000000', ?)""",
+                    (day, code + str(seq).zfill(3), code, seq, created))
+        return jsonify({"status": "seeded"})
 
     @app.post("/api/queue/<code>/delay")
     @staff_required

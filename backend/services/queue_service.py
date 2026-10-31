@@ -428,3 +428,17 @@ def step_out(conn: Connection, number: str, minutes=None, back: bool = False) ->
             until = now + minutes * 60 * 1000
         conn.execute("UPDATE tokens SET away_until = ? WHERE id = ?", (until, row["id"]))
     return token_from_row(conn.execute("SELECT * FROM tokens WHERE id = ?", (row["id"],)).fetchone(), include_patient=False)
+
+
+HISTORY_DAYS = 28
+
+
+def hourly_history(conn: Connection) -> list[list]:
+    """US-25: [code, created_at, date] for every token of the previous 28 days (not today). Numbers only."""
+    today = date.fromisoformat(today_key())
+    start = date.fromordinal(today.toordinal() - HISTORY_DAYS).isoformat()
+    rows = conn.execute(
+        "SELECT code, created_at, queue_date FROM tokens WHERE queue_date >= ? AND queue_date < ? ORDER BY id",
+        (start, today.isoformat()),
+    ).fetchall()
+    return [[row["code"], row["created_at"], row["queue_date"]] for row in rows]

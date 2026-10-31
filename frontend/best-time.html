@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Best Time to Visit · CareQueue</title>
+  <meta name="description" content="CareQueue: which hours are usually quiet in each department, from earlier days' tokens.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/screens.css">
+</head>
+<body class="screen-best">
+  <div class="backdrop" aria-hidden="true">
+    <div class="scene"></div>
+    <div class="light light-cyan"></div>
+    <div class="light light-blue"></div>
+    <div class="light light-mint"></div>
+  </div>
+
+  <main class="best">
+    <header class="track-head">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><rect width="32" height="32" rx="9"/><path d="M13 8h6v5h5v6h-5v5h-6v-5H8v-6h5z"/></svg></span>
+        <span class="brand-name">CareQueue</span>
+      </a>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" data-lang="en" aria-pressed="true" lang="en">English</button>
+        <button type="button" data-lang="ta" aria-pressed="false" lang="ta">தமிழ்</button>
+      </div>
+    </header>
+
+    <div>
+      <h1 class="screen-title" id="best-title">Best time to visit</h1>
+      <p class="screen-sub" id="best-sub">&nbsp;</p>
+    </div>
+
+    <div class="best-list" id="best-list" aria-live="polite"></div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/queue-core.js"></script>
+  <script src="js/screens.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/best-time.js"></script>
+</body>
+</html>
