@@ -57,7 +57,12 @@
       "rate.question": "How was your visit?",
       "rate.star": "{n} out of 5 stars",
       "rate.thanks": "Thank you! You rated this visit {n} out of 5.",
-      "rate.failed": "Your rating was not saved. Please try again."
+      "rate.failed": "Your rating was not saved. Please try again.",
+      "delay.surgery": "Doctor in surgery",
+      "delay.break": "Doctor on a short break",
+      "delay.emergency": "Doctor attending an emergency",
+      "delay.other": "Running late",
+      "delay.notice": "{reason} · about {n} min delay"
     },
     ta: {
       "display.title": "இப்போது சேவையில்",
@@ -108,7 +113,12 @@
       "rate.question": "உங்கள் வருகை எப்படி இருந்தது?",
       "rate.star": "5-க்கு {n} நட்சத்திரங்கள்",
       "rate.thanks": "நன்றி! இந்த வருகைக்கு 5-க்கு {n} மதிப்பீடு அளித்தீர்கள்.",
-      "rate.failed": "உங்கள் மதிப்பீடு சேமிக்கப்படவில்லை. மீண்டும் முயலுங்கள்."
+      "rate.failed": "உங்கள் மதிப்பீடு சேமிக்கப்படவில்லை. மீண்டும் முயலுங்கள்.",
+      "delay.surgery": "மருத்துவர் அறுவை சிகிச்சையில் உள்ளார்",
+      "delay.break": "மருத்துவர் சிறு இடைவேளையில் உள்ளார்",
+      "delay.emergency": "மருத்துவர் அவசர சிகிச்சையில் உள்ளார்",
+      "delay.other": "தாமதம் ஏற்பட்டுள்ளது",
+      "delay.notice": "{reason} · சுமார் {n} நிமிடம் தாமதம்"
     }
   };
 
@@ -154,6 +164,11 @@
       (counter ? ", கவுண்டர் " + counter + "-க்கு வாருங்கள்." : " பிரிவுக்கு வாருங்கள்.");
   }
 
+  // US-21: "Doctor in surgery · about 18 min delay" for a delay notice { reason, minutesLeft }.
+  function delayText(lang, delay) {
+    return t(lang, "delay.notice", { reason: t(lang, "delay." + delay.reason), n: delay.minutesLeft });
+  }
+
   // ?lang=ta in the address wins; then the choice saved on this device; then English.
   function chosen(search, saved) {
     const fromUrl = new URLSearchParams(search || "").get("lang");
@@ -161,7 +176,7 @@
     return LANGS.includes(saved) ? saved : "en";
   }
 
-  const api = { LANGS, STORE_KEY, TEXT, t, deptName, place, announcementTa, chosen };
+  const api = { LANGS, STORE_KEY, TEXT, t, deptName, place, announcementTa, chosen, delayText };
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
     return;

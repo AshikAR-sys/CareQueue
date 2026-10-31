@@ -106,6 +106,7 @@
 
   function message(state, text) {
     show(state);
+    $("track-delay").hidden = true;
     $("rate-box").hidden = true;
     setText("track-dept", text);
     $("track-where").hidden = true;
@@ -141,6 +142,9 @@
     if (issuedOn && issuedOn !== day.date) return message("stale", tr("track.stale", { date: issuedOn }));
     const t = Core.track(day, number, Date.now());
     if (!t) return message("notfound", tr("track.notfound"));
+    const delay = $("track-delay");                        // US-21: the doctor delay notice
+    delay.hidden = !(t.delay && t.status === "waiting");
+    if (t.delay) delay.textContent = I.delayText(lang, t.delay);
     renderRating(t);
 
     const dept = deptByCode(t.code);

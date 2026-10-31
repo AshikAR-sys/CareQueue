@@ -48,6 +48,15 @@ CREATE TABLE IF NOT EXISTS open_counters (
   PRIMARY KEY (queue_date, code)
 );
 
+-- US-21: a doctor delay notice per queue per day; it ends at until_ms (or when staff clear it).
+CREATE TABLE IF NOT EXISTS delays (
+  queue_date TEXT NOT NULL,
+  code TEXT NOT NULL REFERENCES departments(code),
+  reason TEXT NOT NULL CHECK(reason IN ('surgery','break','emergency','other')),
+  until_ms INTEGER NOT NULL,
+  PRIMARY KEY (queue_date, code)
+);
+
 CREATE INDEX IF NOT EXISTS idx_tokens_daily_queue
 ON tokens(queue_date, code, status, seq);
 

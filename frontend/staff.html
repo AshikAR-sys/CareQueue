@@ -83,6 +83,26 @@
         <div class="counter-chips" id="counter-chips" role="group" aria-label="Your counter"></div>
         <button class="text-btn" type="button" id="counter-toggle">Open Counter 2</button>
       </div>
+      <!-- US-21: doctor delay notice for this department -->
+      <div class="delay-row" id="delay-row">
+        <p class="delay-status" id="delay-status">No delay notice</p>
+        <div class="delay-controls">
+          <label class="sr-only" for="delay-reason">Delay reason</label>
+          <select id="delay-reason">
+            <option value="surgery">Doctor in surgery</option>
+            <option value="break">Doctor on a short break</option>
+            <option value="emergency">Doctor attending an emergency</option>
+            <option value="other">Running late</option>
+          </select>
+          <label class="sr-only" for="delay-minutes">Minutes</label>
+          <select id="delay-minutes">
+            <option value="10">10 min</option><option value="20" selected>20 min</option><option value="30">30 min</option>
+            <option value="45">45 min</option><option value="60">60 min</option>
+          </select>
+          <button class="text-btn" type="button" id="delay-post">Post delay</button>
+          <button class="text-btn" type="button" id="delay-clear" hidden>Clear</button>
+        </div>
+      </div>
       <div class="serving-body">
         <p class="serving-number" id="serving-number">—</p>
         <div class="serving-who">
@@ -129,6 +149,7 @@
   <script src="js/queue.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/screens.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/staff.js"></script>
 </body>
 </html>

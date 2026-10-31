@@ -5,6 +5,7 @@
 // A day record: { date: "YYYY-MM-DD", counters: { G: 3 }, openCounters: { G: [1, 2] }, tokens: [Token] }
 //   counters     = the last token number issued per queue today
 //   openCounters = the service counters open per queue (US-11); a queue not listed has Counter 1 open
+//   delays       = a doctor delay notice per queue (US-21): { reason, until }, until = when it ends (ms)
 // A token:      { number, code, seq, status, counter, priority, patient, createdAt, calledAt, doneAt }
 // status: "waiting" -> "serving" -> "done", or "serving" -> "missed" -> "serving" (recall)
 // counter: the service counter that called the token (1-3)
@@ -147,6 +148,13 @@
     return recent.reduce((sum, t) => sum + (t.doneAt - t.calledAt), 0) / recent.length;
   }
 
+  // US-21: the delay notice of a queue while it lasts, with whole minutes left (rounded up), or null.
+  function delayIn(day, code, now) {
+    const d = day.delays && day.delays[code];
+    if (!d || d.until <= now) return null;
+    return { reason: d.reason, minutesLeft: Math.ceil((d.until - now) / 60000) };
+  }
+
   // EWT = R + (N / C) x AST (PRD M3 + S5), rounded up to the minute. C = open counters; R = time until the first
   // open counter is free (0 if one is idle); N = tokens ahead.
   function estimate(day, number, now) {
@@ -164,7 +172,9 @@
       return current ? Math.max(0, ast - (now - current.calledAt)) : 0;
     });
     const remaining = Math.min(...left);
-    const minutes = Math.ceil((remaining + ahead / open.length * ast) / 60000);
+    const d = day.delays && day.delays[token.code];
+    const delayMs = d ? Math.max(0, d.until - now) : 0;   // US-21: the doctor's delay comes first
+    const minutes = Math.ceil((delayMs + remaining + ahead / open.length * ast) / 60000);
     return { status: "waiting", ahead, minutes };
   }
 
@@ -194,6 +204,7 @@
       code,
       serving: v.servingAll.map((t) => ({ number: t.number, counter: counterOf(t) })),
       openCounters: openCounters(day, code),
+      delay: delayIn(day, code, now),
       waiting: v.waiting.slice(0, limit).map((t) => ({ number: t.number, minutes: t.minutes, priority: !!t.priority })),
       waitingCount: v.waiting.length
     };
@@ -204,7 +215,7 @@
     const token = day.tokens.find((t) => t.number === number);
     if (!token) return null;
     const result = Object.assign(
-      { number, code: token.code, serving: servingAll(day, token.code).map((t) => t.number) },
+      { number, code: token.code, serving: servingAll(day, token.code).map((t) => t.number), delay: delayIn(day, token.code, now) },
       estimate(day, number, now)
     );
     result.almost = result.status === "waiting" && result.ahead <= ALMOST_AHEAD;
@@ -274,7 +285,7 @@
     return lines.join("\n") + "\n";
   }
 
-  const api = { DEFAULT_AST_MS, MAX_COUNTERS, PRIORITY_LABELS, openCounters, setCounter, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView, track, trackPath, report, reportCsv };
+  const api = { DEFAULT_AST_MS, MAX_COUNTERS, PRIORITY_LABELS, delayIn, openCounters, setCounter, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView, track, trackPath, report, reportCsv };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.QueueCore = api;
 })(typeof window !== "undefined" ? window : globalThis);

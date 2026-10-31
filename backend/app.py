@@ -18,7 +18,7 @@ if str(Path(__file__).resolve().parent) not in sys.path:
 from db import close_db, get_db, init_database
 from services.queue_service import (
     RatingRefused, call_next, get_day, issue_token, list_departments, rate_visit, recall_token, send_to, set_counter,
-    skip_current,
+    set_delay, skip_current,
 )
 
 
@@ -163,6 +163,17 @@ def create_app(test_config: dict | None = None) -> Flask:
             return jsonify({"error": str(exc)}), 400
         return jsonify({"openCounters": counters})
 
+    @app.post("/api/queue/<code>/delay")
+    @staff_required
+    def delay_route(code: str):
+        # US-21: {"reason": "surgery", "minutes": 20} posts a delay notice; {"clear": true} removes it.
+        payload = request.get_json(silent=True) or {}
+        try:
+            notice = set_delay(get_db(), code, payload.get("reason"), payload.get("minutes"), payload.get("clear") is True)
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+        return jsonify({"delay": notice})
+
     @app.post("/api/tokens/<number>/rating")
     def rating_route(number: str):
         # US-20: patients rate their own finished visit from the phone page; no sign-in.
@@ -186,6 +197,7 @@ def create_app(test_config: dict | None = None) -> Flask:
             conn.execute("DELETE FROM tokens")
             conn.execute("DELETE FROM queue_counters")
             conn.execute("DELETE FROM open_counters")
+            conn.execute("DELETE FROM delays")
         return jsonify({"status": "reset"})
 
     return app

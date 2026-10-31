@@ -492,3 +492,20 @@ PRD's Could-Haves as offered: priority tokens (C1), turn-is-near alert (C4) and 
 - **Docs:** architecture diagram and ERD updated for priority, Tamil, alerts and ratings.
 - **QA:** 2 browser tests (rate once, refused again, shown after reload, Reports and CSV; Tamil question).
   Results: `npm test` 75/75 · backend 28/28 · e2e 58/58. All 20 stories in the backlog are now built.
+
+---
+
+## Five more stories (US-21 to US-25) and Feature F11 — Doctor delay notice (US-21)
+
+**Backlog:** the team asked for 5 new stories and "a unique feature", so the stories go beyond a standard queue:
+doctor delay notice (US-21), hold my place while stepping out (US-22), share my token with family (US-23), estimate
+accuracy against the PRD success metric (US-24) and best time to visit (US-25). Added to the PDFs (25 stories,
+74 acceptance criteria); built one at a time.
+
+- **BA:** `docs/features/F11-delay-notice.md` (AC-21.1–21.3, five rules).
+- **Developer (TDD):** 4 unit tests (`tests/delay.test.js`) and 3 API tests written first and watched fail. Then the
+  `delays` table, `POST /api/queue/<code>/delay` (staff pass; fixed reasons; 5–180 minutes; `{"clear": true}`),
+  `QueueCore.delayIn()` and the delay added to estimates; a delay row in the staff console; a banner on the display
+  and the phone page in English and Tamil. One older test compares the whole tracking result and gained `delay`.
+- **QA:** 2 browser tests (post → display, phone, +20 min, Tamil, clear; refused without a staff pass). Screenshots
+  of staff console, display and phone. Results: `npm test` 79/79 · backend 31/31 · e2e 60/60.

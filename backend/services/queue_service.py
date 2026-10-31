@@ -70,10 +70,18 @@ def get_day(conn: Connection, include_patient: bool = True) -> dict:
         row["code"]: [int(c) for c in row["counters"].split(",")]
         for row in conn.execute("SELECT code, counters FROM open_counters WHERE queue_date = ?", (day,)).fetchall()
     }
+    now = now_ms()
+    delays = {
+        row["code"]: {"reason": row["reason"], "until": row["until_ms"]}
+        for row in conn.execute(
+            "SELECT code, reason, until_ms FROM delays WHERE queue_date = ? AND until_ms > ?", (day, now)
+        ).fetchall()
+    }
     return {
         "date": day,
         "counters": counters,
         "openCounters": open_counters,
+        "delays": delays,
         "tokens": [token_from_row(row, include_patient) for row in rows],
     }
 
@@ -326,3 +334,29 @@ def rate_visit(conn: Connection, number: str, rating) -> dict | None:
             raise RatingRefused("You can rate your visit when it is finished.")
         conn.execute("UPDATE tokens SET rating = ? WHERE id = ?", (rating, row["id"]))
     return token_from_row(conn.execute("SELECT * FROM tokens WHERE id = ?", (row["id"],)).fetchone(), include_patient=False)
+
+
+DELAY_REASONS = ("surgery", "break", "emergency", "other")
+
+
+def set_delay(conn: Connection, code: str, reason=None, minutes=None, clear: bool = False) -> dict | None:
+    """US-21: post a doctor delay notice for a queue (5-180 minutes from now), or clear it. Returns the notice."""
+    code = code.strip().upper()
+    if not department(conn, code):
+        raise ValueError("Unknown department.")
+    day = today_key()
+    with conn:
+        if clear:
+            conn.execute("DELETE FROM delays WHERE queue_date = ? AND code = ?", (day, code))
+            return None
+        if reason not in DELAY_REASONS:
+            raise ValueError("Choose a reason: surgery, break, emergency or other.")
+        if isinstance(minutes, bool) or not isinstance(minutes, int) or not 5 <= minutes <= 180:
+            raise ValueError("The delay must be 5 to 180 minutes.")
+        until = now_ms() + minutes * 60 * 1000
+        conn.execute(
+            """INSERT INTO delays(queue_date, code, reason, until_ms) VALUES (?, ?, ?, ?)
+               ON CONFLICT(queue_date, code) DO UPDATE SET reason = excluded.reason, until_ms = excluded.until_ms""",
+            (day, code, reason, until),
+        )
+    return {"reason": reason, "until": until}
