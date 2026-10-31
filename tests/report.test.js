@@ -78,10 +78,10 @@ test("the CSV has one row per department and a total row, with no patient detail
   day.tokens[0].patient = { name: "Priya Sharma", phone: "9876543210" };
   const csv = Q.reportCsv(Q.report(day, ["G", "C"], utcHour), (code) => ({ G: "General Medicine", C: "Cardiology, OPD" }[code]));
   const lines = csv.trim().split("\n");
-  assert.equal(lines[0], "Department,Code,Issued,Served,Waiting,Serving,Missed,Sent to Billing,Average wait (min),Average service (min),Average rating (1-5),Ratings");
-  assert.equal(lines[1], "General Medicine,G,4,2,1,0,1,0,3.7,3,,0");
-  assert.equal(lines[2], '"Cardiology, OPD",C,1,0,1,0,0,0,,,,0');
-  assert.equal(lines[3], "Total,,5,2,2,0,1,0,3.7,3,,0");
+  assert.equal(lines[0], "Department,Code,Issued,Served,Waiting,Serving,Missed,Sent to Billing,Average wait (min),Average service (min),Average rating (1-5),Ratings,Estimates within 5 min (%),Estimates checked");
+  assert.equal(lines[1], "General Medicine,G,4,2,1,0,1,0,3.7,3,,0,,0");
+  assert.equal(lines[2], '"Cardiology, OPD",C,1,0,1,0,0,0,,,,0,,0');
+  assert.equal(lines[3], "Total,,5,2,2,0,1,0,3.7,3,,0,,0");
   assert.ok(!csv.includes("Priya") && !csv.includes("98765"));
 });
 
@@ -103,8 +103,8 @@ test("the CSV has the rating columns (AC-20.3)", () => {
   const day = sampleDay();
   day.tokens[0].rating = 3;
   const lines = Q.reportCsv(Q.report(day, ["G"], utcHour), () => "General Medicine").trim().split("\n");
-  assert.match(lines[0], /,Average rating \(1-5\),Ratings$/);
-  assert.match(lines[1], /,3,1$/);
+  assert.match(lines[0], /,Average rating \(1-5\),Ratings,/);
+  assert.match(lines[1], /,3,1,,0$/);
 });
 
 test("tracking shows a finished visit's rating, and asks for one only at the end of the visit (AC-20.1)", () => {
@@ -121,4 +121,44 @@ test("tracking shows a finished visit's rating, and asks for one only at the end
   assert.equal(done.rating, 4);
   Q.sendTo(day, "G", "B", T0 + 2 * MIN);            // G002 goes on to Billing: rated at the end, not now
   assert.equal(Q.track(day, "G002", T0 + 2 * MIN).canRate, false);
+});
+
+// ---------- US-24 estimate accuracy (PRD success metric: 80% within +/- 5 min, after the first 3 tokens) ----------
+
+function accuracyDay() {
+  const day = Q.emptyDay("2026-10-25");
+  // 6 tokens, each with the estimate shown at issue and a real wait (issue -> call) in minutes.
+  const cases = [[3, 9], [6, 6], [9, 4], [12, 14], [15, 22], [18, 17]];
+  cases.forEach(([est, real], i) => {
+    const t = Q.issue(day, { code: "G" }, T0);
+    t.estimateMin = est;
+    t.status = "done";
+    t.calledAt = T0 + real * MIN;
+    t.doneAt = t.calledAt + MIN;
+  });
+  Q.issue(day, { code: "G" }, T0).estimateMin = 3;   // G007 still waiting: not checked yet
+  return day;
+}
+
+test("accuracy counts tokens 4 onwards whose real wait was within 5 minutes of the estimate (AC-24.2)", () => {
+  const r = Q.report(accuracyDay(), ["G"], utcHour);
+  const g = r.departments[0];
+  // G004: 12 vs 14 (in) · G005: 15 vs 22 (out) · G006: 18 vs 17 (in) -> 2 of 3
+  assert.equal(g.accuracyChecked, 3);
+  assert.equal(g.accuracyWithin, 2);
+  assert.equal(g.accuracyPct, 67);
+  assert.equal(r.total.accuracyPct, 67);
+  assert.equal(r.accuracyTarget, 80);
+});
+
+test("with no tokens to check yet, accuracy is empty rather than 0%", () => {
+  const r = Q.report(sampleDay(), ["G", "C"], utcHour);
+  assert.equal(r.departments[0].accuracyChecked, 0);
+  assert.equal(r.departments[0].accuracyPct, null);
+});
+
+test("the CSV has the accuracy columns (AC-24.3)", () => {
+  const lines = Q.reportCsv(Q.report(accuracyDay(), ["G"], utcHour), () => "General Medicine").trim().split("\n");
+  assert.match(lines[0], /,Estimates within 5 min \(%\),Estimates checked$/);
+  assert.match(lines[1], /,67,3$/);
 });

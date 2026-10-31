@@ -758,7 +758,7 @@ test("AC-16.2 Download CSV saves one row per department and a total, with no pat
   const csv = fs.readFileSync(await download.path(), "utf8");
   const lines = csv.trim().split("\n");
   assert.equal(lines[0], "Department,Code,Issued,Served,Waiting,Serving,Missed,Sent to Billing,Average wait (min),Average service (min)," +
-    "Average rating (1-5),Ratings");
+    "Average rating (1-5),Ratings,Estimates within 5 min (%),Estimates checked");
   assert.match(lines.find((l) => l.startsWith("General Medicine,")), /^General Medicine,G,3,1,1,0,1,0,/);
   assert.match(lines[lines.length - 1], /^Total,,4,1,2,0,1,0,/);
   for (const n of ["Priya", "Ravi", "Anita", "Mohan", "9876543210"]) assert.ok(!csv.includes(n));
@@ -1176,11 +1176,11 @@ test("AC-20.1 / AC-20.2 / AC-20.3 a patient rates a finished visit once, and Rep
   const rep = await open("reports.html");
   await rep.waitForFunction(() => document.getElementById("tile-rating").textContent === "4 / 5 (1)");
   const g = await cells(rep, '#dept-rows tr[data-code="G"] td');
-  assert.equal(g[g.length - 1], "4 / 5 (1)");
+  assert.equal(g[g.length - 2], "4 / 5 (1)", "the Rating column (Accuracy comes after it)");
   const [download] = await Promise.all([rep.waitForEvent("download"), rep.click("#download-csv")]);
   const csv = fs.readFileSync(await download.path(), "utf8");
-  assert.match(csv.split("\n")[0], /Average rating \(1-5\),Ratings$/);
-  assert.match(csv.split("\n").find((l) => l.startsWith("General Medicine,")), /,4,1$/);
+  assert.match(csv.split("\n")[0], /Average rating \(1-5\),Ratings,/);
+  assert.match(csv.split("\n").find((l) => l.startsWith("General Medicine,")), /,4,1,,0$/);
   assert.deepEqual(errors, []);
   await pctx.close();
   await ctx.close();
@@ -1321,5 +1321,44 @@ test("AC-23.1 / AC-23.2 without a share sheet the phone page copies the link; th
   assert.ok(!html.includes("Priya") && !html.includes("9876543210"));
   assert.deepEqual(errors, []);
   await pctx.close();
+  await ctx.close();
+});
+
+// --- US-24 Estimate accuracy ---
+
+test("AC-24.1 the estimate saved by the server matches the one on the patient's token card", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  const staff = await open("staff.html");
+  await staff.click("#call-next");                                   // G001 at the counter
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  await openCounter(staff, 2);
+  await issue(tok, "gen", "Anita Das");                              // G003
+  const card = await tok.textContent("#t-wait");
+  const saved = (await (await fetch(APP + "api/queue/public-state")).json()).tokens.find((t) => t.number === "G003").estimateMin;
+  assert.match(card, new RegExp("^About " + saved + " min"), "card says " + card + ", server saved " + saved);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-24.2 / AC-24.3 Reports show estimate accuracy against the 80% target, also in the CSV", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  for (const n of ["Priya Sharma", "Ravi Kumar", "Anita Das", "Mohan Iyer", "Lakshmi Rao"]) await issue(tok, "gen", n);
+  const staff = await open("staff.html");
+  for (const n of ["G001", "G002", "G003", "G004", "G005"]) {
+    await staff.click("#call-next");
+    await staff.waitForFunction((x) => document.getElementById("serving-number").textContent === x, n);
+  }
+  // G004 and G005 were estimated 9 and 12 min but called within seconds: outside 5 minutes.
+  const rep = await open("reports.html");
+  await rep.waitForFunction(() => document.getElementById("tile-accuracy").textContent === "0% (2)");
+  assert.equal(await rep.textContent("#accuracy-note"), "Target 80% within 5 min · not met");
+  const [download] = await Promise.all([rep.waitForEvent("download"), rep.click("#download-csv")]);
+  const csv = fs.readFileSync(await download.path(), "utf8");
+  assert.match(csv.split("\n").find((l) => l.startsWith("General Medicine,")), /,0,2$/);
+  assert.deepEqual(errors, []);
   await ctx.close();
 });

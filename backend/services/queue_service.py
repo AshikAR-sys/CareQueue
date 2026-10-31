@@ -1,6 +1,7 @@
 """Queue service: SQLite-backed operations and API response mapping."""
 from __future__ import annotations
 
+import math
 from datetime import date
 from sqlite3 import Connection
 import json
@@ -27,6 +28,7 @@ def token_from_row(row, include_patient: bool = True) -> dict:
         "priority": row["priority"] if include_patient else bool(row["priority"]),
         "rating": row["rating"],   # US-20: a number only, so the public reports can average it
         "awayUntil": row["away_until"],   # US-22: set once when the patient steps out
+        "estimateMin": row["estimate_min"],   # US-24: the estimate shown when the token was issued
     }
     if include_patient:
         token["patient"] = {
@@ -87,6 +89,36 @@ def get_day(conn: Connection, include_patient: bool = True) -> dict:
     }
 
 
+DEFAULT_AST_MS = 3 * 60 * 1000
+
+
+def estimate_for_new(conn: Connection, day: str, code: str, priority, now: int) -> int:
+    """US-24: the wait estimate (whole minutes) for a token about to join the end of its line. The same rule as
+    QueueCore.estimate in the browser: EWT = delay left + R + (N / C) x AST."""
+    waiting = conn.execute(
+        "SELECT priority FROM tokens WHERE queue_date = ? AND code = ? AND status = 'waiting'", (day, code)
+    ).fetchall()
+    ahead = sum(1 for row in waiting if row["priority"]) if priority else len(waiting)
+    served = conn.execute(
+        """SELECT done_at - called_at AS span FROM tokens
+           WHERE queue_date = ? AND code = ? AND status = 'done' AND called_at IS NOT NULL AND done_at IS NOT NULL
+           ORDER BY done_at DESC LIMIT 10""", (day, code),
+    ).fetchall()
+    total_served = conn.execute(
+        """SELECT COUNT(*) FROM tokens WHERE queue_date = ? AND code = ? AND status = 'done'
+           AND called_at IS NOT NULL AND done_at IS NOT NULL""", (day, code),
+    ).fetchone()[0]
+    ast = DEFAULT_AST_MS if total_served < 3 else sum(row["span"] for row in served) / len(served)
+    counters = open_counters(conn, day, code)
+    left = []
+    for counter in counters:
+        current = serving_at(conn, day, code, counter)
+        left.append(max(0, ast - (now - current["called_at"])) if current else 0)
+    delay = conn.execute("SELECT until_ms FROM delays WHERE queue_date = ? AND code = ?", (day, code)).fetchone()
+    delay_ms = max(0, delay["until_ms"] - now) if delay else 0
+    return math.ceil((delay_ms + min(left) + ahead / len(counters) * ast) / 60000)
+
+
 def issue_token(conn: Connection, payload: dict) -> dict:
     code = str(payload.get("code", "")).strip().upper()
     if not department(conn, code):
@@ -132,11 +164,13 @@ def issue_token(conn: Connection, payload: dict) -> dict:
             (day, code, seq),
         )
         number = code + str(seq).zfill(3)
+        estimate = estimate_for_new(conn, day, code, priority, created)
         conn.execute(
             """INSERT INTO tokens
-               (queue_date, number, code, seq, status, patient_name, age, gender, phone, doctor, created_at, priority)
-               VALUES (?, ?, ?, ?, 'waiting', ?, ?, ?, ?, ?, ?, ?)""",
-            (day, number, code, seq, name, age, gender, phone, doctor, created, priority),
+               (queue_date, number, code, seq, status, patient_name, age, gender, phone, doctor, created_at, priority,
+                estimate_min)
+               VALUES (?, ?, ?, ?, 'waiting', ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (day, number, code, seq, name, age, gender, phone, doctor, created, priority, estimate),
         )
     row = conn.execute(
         "SELECT * FROM tokens WHERE queue_date = ? AND number = ?", (day, number)
@@ -298,13 +332,14 @@ def send_to(conn: Connection, from_code: str, to_code: str, counter: int = 1) ->
             (day, to_code, seq),
         )
         number = to_code + str(seq).zfill(3)
+        estimate = estimate_for_new(conn, day, to_code, current["priority"], now)
         conn.execute(
             """INSERT INTO tokens
                (queue_date, number, code, seq, status, patient_name, age, gender, phone, doctor, created_at,
-                linked_from, priority)
-               VALUES (?, ?, ?, ?, 'waiting', ?, ?, ?, ?, '', ?, ?, ?)""",
+                linked_from, priority, estimate_min)
+               VALUES (?, ?, ?, ?, 'waiting', ?, ?, ?, ?, '', ?, ?, ?, ?)""",
             (day, number, to_code, seq, current["patient_name"], current["age"], current["gender"],
-             current["phone"], now, current["number"], current["priority"]),
+             current["phone"], now, current["number"], current["priority"], estimate),
         )
         conn.execute(
             "UPDATE tokens SET status = 'done', done_at = ?, forwarded_to = ? WHERE id = ?",

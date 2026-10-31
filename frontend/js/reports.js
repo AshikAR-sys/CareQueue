@@ -16,6 +16,8 @@
   const mins = (v) => (v == null ? "–" : v + " min");
   // US-20: "4.5 / 5 (2)" = average stars and how many patients rated.
   const stars = (r) => (r.avgRating == null ? "–" : r.avgRating + " / 5 (" + r.ratingCount + ")");
+  // US-24: "67% (3)" = share of estimates within 5 minutes, and how many tokens were checked.
+  const accuracy = (r) => (r.accuracyPct == null ? "–" : r.accuracyPct + "% (" + r.accuracyChecked + ")");
   const hourLabel = (h) => (h % 12 || 12) + (h < 12 ? " AM" : " PM");
 
   function current() { return Core.report(Q.day(), CODES); }
@@ -31,7 +33,7 @@
   }
 
   function figures(r) {
-    return [r.issued, r.served, r.waiting, r.serving, r.missed, r.sentToBilling, mins(r.avgWaitMin), mins(r.avgServiceMin), stars(r)].map(String);
+    return [r.issued, r.served, r.waiting, r.serving, r.missed, r.sentToBilling, mins(r.avgWaitMin), mins(r.avgServiceMin), stars(r), accuracy(r)].map(String);
   }
 
   function render() {
@@ -48,6 +50,11 @@
     $("tile-wait").textContent = mins(t.avgWaitMin);
     $("tile-service").textContent = mins(t.avgServiceMin);
     $("tile-rating").textContent = stars(t);
+    $("tile-accuracy").textContent = accuracy(t);
+    const met = t.accuracyPct != null && t.accuracyPct >= rep.accuracyTarget;
+    $("accuracy-note").textContent = "Target " + rep.accuracyTarget + "% within 5 min" +
+      (t.accuracyPct == null ? " · not enough tokens yet" : met ? " · met" : " · not met");
+    $("accuracy-tile").dataset.met = t.accuracyPct == null ? "" : String(met);
 
     // Departments with no tokens today are left out of the table; the total covers everything.
     const rows = $("dept-rows");
@@ -61,7 +68,7 @@
     if (!used.length) {
       const tr = el("tr", "empty-row");
       const td = el("td", null, "No tokens issued yet today.");
-      td.colSpan = 10;
+      td.colSpan = 11;
       tr.append(td);
       rows.append(tr);
     }

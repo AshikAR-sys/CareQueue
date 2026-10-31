@@ -11,6 +11,7 @@
 // counter: the service counter that called the token (1-3)
 // priority: null, or why the patient is seen first (US-17): "senior" | "pregnant" | "emergency"
 // rating: null, or the patient's 1-5 star rating of a finished visit (US-20)
+// estimateMin: the wait estimate (minutes) shown when the token was issued, saved by the server (US-24)
 // awayUntil: null, or until when a waiting patient has stepped out (US-22); once set, it stays (one step-out each)
 (function (root) {
   "use strict";
@@ -246,6 +247,20 @@
     return Math.round(spans.reduce((a, b) => a + b, 0) / spans.length / 60000 * 10) / 10;
   }
 
+  // US-24 / PRD success metric: share of estimates within 5 minutes of the real wait (issue -> call), counted from
+  // the 4th token of each queue on ("after the first 3 tokens").
+  const ACCURACY_TARGET = 80;
+  const ACCURACY_MARGIN_MIN = 5;
+  function accuracy(tokens) {
+    const checked = tokens.filter((t) => t.seq > 3 && t.estimateMin != null && t.calledAt != null);
+    const within = checked.filter((t) => Math.abs((t.calledAt - t.createdAt) / 60000 - t.estimateMin) <= ACCURACY_MARGIN_MIN);
+    return {
+      accuracyChecked: checked.length,
+      accuracyWithin: within.length,
+      accuracyPct: checked.length ? Math.round(within.length / checked.length * 100) : null
+    };
+  }
+
   function summarise(tokens) {
     const rated = tokens.filter((t) => t.rating).map((t) => t.rating);
     const called = tokens.filter((t) => t.calledAt != null);
@@ -261,7 +276,8 @@
       avgWaitMin: averageMin(called.map((t) => t.calledAt - t.createdAt)),
       avgServiceMin: averageMin(finished.map((t) => t.doneAt - t.calledAt)),
       ratingCount: rated.length,
-      avgRating: rated.length ? Math.round(rated.reduce((a, b) => a + b, 0) / rated.length * 10) / 10 : null
+      avgRating: rated.length ? Math.round(rated.reduce((a, b) => a + b, 0) / rated.length * 10) / 10 : null,
+      ...accuracy(tokens)
     };
   }
 
@@ -277,7 +293,7 @@
       for (let h = Math.min(...used); h <= Math.max(...used); h++) hours.push({ hour: h, count: perHour[h] || 0 });
     }
     const busiest = hours.reduce((best, h) => (!best || h.count > best.count ? h : best), null);
-    return { departments, total, hours, busiest };
+    return { departments, total, hours, busiest, accuracyTarget: ACCURACY_TARGET };
   }
 
   function reportCsv(rep, nameOf) {
@@ -286,9 +302,9 @@
       return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
     };
     const row = (name, code, r) => [name, code, r.issued, r.served, r.waiting, r.serving, r.missed, r.sentToBilling,
-      r.avgWaitMin, r.avgServiceMin, r.avgRating, r.ratingCount].map(cell).join(",");
+      r.avgWaitMin, r.avgServiceMin, r.avgRating, r.ratingCount, r.accuracyPct, r.accuracyChecked].map(cell).join(",");
     const lines = ["Department,Code,Issued,Served,Waiting,Serving,Missed,Sent to Billing,Average wait (min),Average service (min)," +
-      "Average rating (1-5),Ratings"];
+      "Average rating (1-5),Ratings,Estimates within 5 min (%),Estimates checked"];
     for (const d of rep.departments) lines.push(row(nameOf(d.code), d.code, d));
     lines.push(row("Total", "", rep.total));
     return lines.join("\n") + "\n";
