@@ -86,7 +86,7 @@
         const li = el("li");
         const num = el("span", "next-number", t.number);
         if (t.priority) num.append(el("span", "next-priority", tr("priority")));   // US-17: the mark only, never the reason
-        li.append(num, el("span", "next-wait", waitWords(t)));
+        li.append(num, el("span", "next-wait", t.away ? tr("away.mark") : waitWords(t)));   // US-22
         list.append(li);
       }
       next.append(list);

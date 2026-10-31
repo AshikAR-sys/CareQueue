@@ -115,6 +115,14 @@
     return result.delay;
   }
 
+  // US-22: a waiting patient steps out for 5, 10 or 15 minutes, or says they are back (minutes null).
+  async function stepOut(number, minutes) {
+    const body = minutes ? { minutes } : { back: true };
+    const result = await request("/api/tokens/" + encodeURIComponent(number) + "/away", body);
+    await refresh(true);
+    return result.token;
+  }
+
   // US-20: a patient's 1-5 star rating of their finished visit (no sign-in).
   async function rate(number, rating) {
     const result = await request("/api/tokens/" + encodeURIComponent(number) + "/rating", { rating });
@@ -144,6 +152,7 @@
     sendTo,
     setCounter,
     rate,
+    stepOut,
     setDelay,
     delay: (code) => Core.delayIn(day, code, Date.now()),
     estimate: (number) => Core.estimate(day, number, Date.now()),

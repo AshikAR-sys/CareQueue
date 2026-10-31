@@ -69,6 +69,16 @@
       <p class="track-where" id="track-where" hidden><svg class="ic ic-sm" aria-hidden="true"><use href="#i-map-pin"/></svg><span></span></p>
     </section>
 
+    <!-- US-22: hold my place while I step out -->
+    <div class="glass step-card" id="step-box" hidden>
+      <p class="step-title" id="step-title">Need to step out?</p>
+      <p class="step-help" id="step-help"></p>
+      <div class="step-choices" id="step-choices">
+        <button type="button" data-minutes="5">5 min</button><button type="button" data-minutes="10">10 min</button><button type="button" data-minutes="15">15 min</button>
+      </div>
+      <button type="button" class="step-back" id="step-back" hidden>I'm back</button>
+    </div>
+
     <div class="glass alert-card">
       <button class="alert-toggle" type="button" id="alert-toggle" aria-pressed="false">
         <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span id="alert-label">Alert me when my turn is near</span>

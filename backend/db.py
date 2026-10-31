@@ -44,6 +44,8 @@ def upgrade_schema(conn: sqlite3.Connection) -> None:
         conn.execute("ALTER TABLE tokens ADD COLUMN priority TEXT")
     if "rating" not in columns:  # US-20 Rate my visit
         conn.execute("ALTER TABLE tokens ADD COLUMN rating INTEGER")
+    if "away_until" not in columns:  # US-22 Hold my place
+        conn.execute("ALTER TABLE tokens ADD COLUMN away_until INTEGER")
 
 
 def get_db() -> sqlite3.Connection:

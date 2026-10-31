@@ -509,3 +509,16 @@ accuracy against the PRD success metric (US-24) and best time to visit (US-25). 
   and the phone page in English and Tamil. One older test compares the whole tracking result and gained `delay`.
 - **QA:** 2 browser tests (post → display, phone, +20 min, Tamil, clear; refused without a staff pass). Screenshots
   of staff console, display and phone. Results: `npm test` 79/79 · backend 31/31 · e2e 60/60.
+
+---
+
+## Feature F12 — Hold my place (US-22, PRD S1)
+
+- **BA:** `docs/features/F12-hold-my-place.md` (AC-22.1–22.3, five rules, one known limit).
+- **Developer (TDD):** 5 unit tests (`tests/away.test.js`) and 2 API tests written first and watched fail. Then
+  `tokens.away_until` (kept after return, so each token steps out once), the Call Next filter on the server and
+  `QueueCore.nextUp()`, `POST /api/tokens/<number>/away`, a step-out card on the phone page (English and Tamil), an
+  "Away until" tag and the next present patient on the staff console, and "Stepped out" on the display.
+- **QA:** 1 browser test covering the whole flow (step out, passed over, front place kept, back, called).
+  Screenshot review: the card still asked "Need to step out?" while the patient was away; headings now say
+  "You've stepped out" and "Welcome back". Results: `npm test` 84/84 · backend 33/33 · e2e 61/61.

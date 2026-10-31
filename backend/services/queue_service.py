@@ -26,6 +26,7 @@ def token_from_row(row, include_patient: bool = True) -> dict:
         # US-17: staff and the patient's own token see the reason; public views only that it is a priority token.
         "priority": row["priority"] if include_patient else bool(row["priority"]),
         "rating": row["rating"],   # US-20: a number only, so the public reports can average it
+        "awayUntil": row["away_until"],   # US-22: set once when the patient steps out
     }
     if include_patient:
         token["patient"] = {
@@ -221,7 +222,8 @@ def call_next(conn: Connection, code: str, counter: int = 1) -> dict | None:
         next_row = conn.execute(
             """SELECT id FROM tokens
                WHERE queue_date = ? AND code = ? AND status = 'waiting'
-               ORDER BY priority IS NULL, seq LIMIT 1""", (day, code),
+                 AND (away_until IS NULL OR away_until <= ?)
+               ORDER BY priority IS NULL, seq LIMIT 1""", (day, code, now),
         ).fetchone()
         if not next_row:
             return None
@@ -360,3 +362,34 @@ def set_delay(conn: Connection, code: str, reason=None, minutes=None, clear: boo
             (day, code, reason, until),
         )
     return {"reason": reason, "until": until}
+
+
+class StepOutRefused(Exception):
+    """The patient cannot step out now (not waiting, already used their step-out, or not away)."""
+
+
+def step_out(conn: Connection, number: str, minutes=None, back: bool = False) -> dict | None:
+    """US-22: a waiting patient steps out for 5, 10 or 15 minutes (once per token), or says they are back.
+    None if the token does not exist today."""
+    if not back and (isinstance(minutes, bool) or minutes not in (5, 10, 15)):
+        raise ValueError("Choose 5, 10 or 15 minutes.")
+    day, now = today_key(), now_ms()
+    with conn:
+        conn.execute("BEGIN IMMEDIATE")
+        row = conn.execute(
+            "SELECT * FROM tokens WHERE queue_date = ? AND number = ?", (day, number.strip().upper())
+        ).fetchone()
+        if not row:
+            return None
+        if row["status"] != "waiting":
+            raise StepOutRefused("Only a waiting token can step out.")
+        if back:
+            if not row["away_until"] or row["away_until"] <= now:
+                raise StepOutRefused("This token is not marked as away.")
+            until = now          # kept, so the step-out cannot be used again
+        else:
+            if row["away_until"]:
+                raise StepOutRefused("You have already stepped out once with this token.")
+            until = now + minutes * 60 * 1000
+        conn.execute("UPDATE tokens SET away_until = ? WHERE id = ?", (until, row["id"]))
+    return token_from_row(conn.execute("SELECT * FROM tokens WHERE id = ?", (row["id"],)).fetchone(), include_patient=False)
