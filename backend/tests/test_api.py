@@ -397,10 +397,34 @@ class CareQueueApiTests(unittest.TestCase):
         self.client.post("/api/queue/G/delay", json={"reason": "surgery", "minutes": 20})
         self.assertEqual(self.est(name="Lakshmi Rao"), 26, "20 min delay + 4 ahead / 2 x 3")
 
+    # ---- US-25 Best time to visit ----
+
+    def test_history_lists_earlier_days_only_with_numbers_only(self):
+        import sqlite3
+        from datetime import date, timedelta
+        self.issue()                                                   # today: not part of the history
+        conn = sqlite3.connect(self.app.config["DATABASE"])
+        for days_ago, number in ((1, "G001"), (2, "G001"), (40, "G001")):
+            day = (date.today() - timedelta(days=days_ago)).isoformat()
+            conn.execute(
+                """INSERT INTO tokens (queue_date, number, code, seq, status, patient_name, age, gender, phone, created_at)
+                   VALUES (?, ?, 'G', 1, 'done', 'Old Patient', 50, 'Male', '9123456789', ?)""", (day, number, 1000 * days_ago))
+        conn.commit()
+        conn.close()
+        response = self.app.test_client().get("/api/history/hourly")
+        self.assertEqual(response.status_code, 200)
+        rows = response.get_json()["tokens"]
+        self.assertEqual(len(rows), 2, "today and records older than 28 days are left out")
+        self.assertEqual(sorted(len(r) for r in rows), [3, 3])
+        self.assertTrue(all(r[0] == "G" for r in rows))
+        self.assertNotIn("Old Patient", response.get_data(as_text=True))
+        self.assertNotIn("9123456789", response.get_data(as_text=True))
+
     def test_test_reset_is_not_available_without_test_mode(self):
         production_app = create_app({"TESTING": False, "DATABASE": str(Path(self.temp_dir.name) / "prod.sqlite3")})
         response = production_app.test_client().post("/api/test/reset")
         self.assertEqual(response.status_code, 404)
+        self.assertEqual(production_app.test_client().post("/api/test/seed-history", json={}).status_code, 404)
 
 
 if __name__ == "__main__":

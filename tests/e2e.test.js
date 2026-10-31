@@ -1362,3 +1362,56 @@ test("AC-24.2 / AC-24.3 Reports show estimate accuracy against the 80% target, a
   assert.deepEqual(errors, []);
   await ctx.close();
 });
+
+// --- US-25 Best time to visit ---
+
+async function seedHistory(days) {
+  const rows = [];
+  for (let d = 1; d <= days; d++) {
+    const dt = new Date(); dt.setDate(dt.getDate() - d);
+    const date = dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+    // General Medicine: 4 tokens at 9 AM, 1 at 10 AM, 2 at 11 AM, 3 at 12 PM (local time) each day.
+    for (const [h, n] of [[9, 4], [10, 1], [11, 2], [12, 3]]) {
+      for (let i = 0; i < n; i++) rows.push([date, "G", new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), h, i).getTime()]);
+    }
+  }
+  const r = await fetch(APP + "api/test/seed-history", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tokens: rows }) });
+  assert.equal(r.status, 200);
+}
+
+test("AC-25.1 / AC-25.3 the best-time page shows usual tokens per hour and the quietest hours, with no sign-in", async () => {
+  await setup();
+  await seedHistory(4);
+  const errors = [];
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await open(ctx, "best-time.html", errors);
+  await page.waitForSelector('.best-card[data-code="G"]');
+  assert.equal(page.url(), APP + "best-time.html", "no sign-in needed");
+  assert.equal(await page.textContent(".best-card .card-title"), "General Medicine");
+  assert.equal(await page.textContent(".best-quiet"), "Quietest: 10 AM, 11 AM");
+  assert.equal(await page.textContent(".best-busy"), "Busiest: 9 AM");
+  assert.match(await page.textContent("#best-sub"), /last 4 days/);
+  assert.equal(await page.locator(".best-card .hour").count(), 4);
+  const body = await page.content();
+  assert.ok(!body.includes("Sample Patient") && !body.includes("9000000000"));
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  assert.equal(overflow, false);
+  await page.click('.lang-switch button[data-lang="ta"]');
+  await page.waitForFunction(() => document.getElementById("best-title").textContent === "வருகைக்கு சிறந்த நேரம்");
+  assert.equal(await page.textContent(".best-card .card-title"), "பொது மருத்துவம்");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-25.2 with fewer than 3 days of history the page says there is not enough yet", async () => {
+  await setup();
+  await seedHistory(2);
+  const errors = [];
+  const ctx = await browser.newContext();
+  const page = await open(ctx, "best-time.html", errors);
+  await page.waitForSelector(".best-empty");
+  assert.match(await page.textContent(".best-empty"), /Not enough history yet/);
+  assert.equal(await page.locator(".best-card").count(), 0);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});

@@ -74,7 +74,14 @@
       "step.title.used": "Welcome back",
       "share.button": "Share with family",
       "share.copied": "Link copied. Paste it in WhatsApp or a message.",
-      "share.failed": "Sharing is not available here. Copy the address of this page instead."
+      "share.failed": "Sharing is not available here. Copy the address of this page instead.",
+      "best.title": "Best time to visit",
+      "best.sub": "Usual tokens per hour over the last {n} days. Come in a quiet hour for a shorter wait.",
+      "best.quiet": "Quietest: {hours}",
+      "best.busy": "Busiest: {hour}",
+      "best.notenough": "Not enough history yet. Advice appears after {n} days of records.",
+      "best.tokens": "{hour}: about {n} tokens",
+      "best.link": "Best time to visit"
     },
     ta: {
       "display.title": "இப்போது சேவையில்",
@@ -142,7 +149,14 @@
       "step.title.used": "மீண்டும் வருக",
       "share.button": "குடும்பத்தினருடன் பகிர்",
       "share.copied": "இணைப்பு நகலெடுக்கப்பட்டது. WhatsApp அல்லது செய்தியில் ஒட்டுங்கள்.",
-      "share.failed": "இங்கே பகிர முடியாது. இந்தப் பக்கத்தின் முகவரியை நகலெடுங்கள்."
+      "share.failed": "இங்கே பகிர முடியாது. இந்தப் பக்கத்தின் முகவரியை நகலெடுங்கள்.",
+      "best.title": "வருகைக்கு சிறந்த நேரம்",
+      "best.sub": "கடந்த {n} நாட்களில் ஒவ்வொரு மணி நேரத்திலும் வழக்கமான டோக்கன்கள். குறைந்த காத்திருப்புக்கு அமைதியான நேரத்தில் வாருங்கள்.",
+      "best.quiet": "அமைதியான நேரம்: {hours}",
+      "best.busy": "அதிகக் கூட்டம்: {hour}",
+      "best.notenough": "இன்னும் போதுமான பதிவுகள் இல்லை. {n} நாட்கள் பதிவுகளுக்குப் பிறகு ஆலோசனை தோன்றும்.",
+      "best.tokens": "{hour}: சுமார் {n} டோக்கன்கள்",
+      "best.link": "வருகைக்கு சிறந்த நேரம்"
     }
   };
 

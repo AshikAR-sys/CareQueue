@@ -548,3 +548,18 @@ accuracy against the PRD success metric (US-24) and best time to visit (US-25). 
 - **QA:** 2 browser tests (the saved estimate equals the token card's with a patient at the counter and two counters
   open; Reports and CSV show 0% (2) and "not met" when calls come much earlier than estimated). Screenshot with
   realistic times in a throwaway database: 70% (10), not met. Results: `npm test` 90/90 · backend 35/35 · e2e 65/65.
+
+---
+
+## Feature F15 — Best time to visit (US-25) · all 25 stories built
+
+- **BA:** `docs/features/F15-best-time.md` (AC-25.1–25.3, five rules).
+- **Developer (TDD):** 3 unit tests (`tests/besttime.test.js`: averages with empty hours as 0, quietest and busiest
+  hours, fewer than 3 days) and 1 API test (earlier days only, 28-day window, no names or phones) written first and
+  watched fail. Then `QueueCore.bestTimes()`, `GET /api/history/hourly`, a test-only `POST /api/test/seed-history`
+  (404 outside test mode, checked by a test), and the public `best-time.html` page with English / Tamil, linked from
+  the landing page and the phone page.
+- **Docs:** architecture diagram and ERD updated for US-21 to US-25 (`delays` table, `away_until`, `estimate_min`,
+  new routes and page).
+- **QA:** 2 browser tests (page with 4 days of history at 390 px, Tamil, no patient details; "not enough history" with
+  2 days). Results: `npm test` 93/93 · backend 37/37 · e2e 67/67. All 25 stories in the backlog are now built.

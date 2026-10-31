@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1060" viewBox="0 0 1600 1060" font-family="Inter, -apple-system, 'Segoe UI', Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1180" viewBox="0 0 1600 1180" font-family="Inter, -apple-system, 'Segoe UI', Arial, sans-serif">
 <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6b82"/></marker></defs>
-<rect width="1600" height="1060" fill="#f7fafc"/>
+<rect width="1600" height="1180" fill="#f7fafc"/>
 <text x="50" y="56" font-size="30" font-weight="800" fill="#0b1b33" text-anchor="start">CareQueue: entity relationship diagram</text>
-<text x="50" y="86" font-size="16" font-weight="400" fill="#33445e" text-anchor="start">SQLite tables from database/schema.sql (plus the browser session) · as built on 27 Oct 2026</text>
+<text x="50" y="86" font-size="16" font-weight="400" fill="#33445e" text-anchor="start">SQLite tables from database/schema.sql (plus the browser session) · as built on 31 Oct 2026</text>
 <rect x="60" y="140" width="430" height="286" rx="12" fill="#fff" stroke="#1458e6" stroke-width="1.6"/>
 <path d="M60,186 V152 a12,12 0 0 1 12,-12 H478 a12,12 0 0 1 12,12 V186 Z" fill="#e6efff"/>
 <line x1="60" y1="186" x2="490" y2="186" stroke="#1458e6" stroke-width="1.2"/>
@@ -50,7 +50,7 @@
 <text x="112" y="867" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">counters</text>
 <text x="476" y="867" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">open counters, e.g. &quot;1,2&quot;</text>
 <text x="76" y="895" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">US-11: no row = Counter 1 open</text>
-<rect x="620" y="140" width="500" height="646" rx="12" fill="#fff" stroke="#0a7e9b" stroke-width="1.6"/>
+<rect x="620" y="140" width="500" height="706" rx="12" fill="#fff" stroke="#0a7e9b" stroke-width="1.6"/>
 <path d="M620,186 V152 a12,12 0 0 1 12,-12 H1108 a12,12 0 0 1 12,12 V186 Z" fill="#dff4f8"/>
 <line x1="620" y1="186" x2="1120" y2="186" stroke="#0a7e9b" stroke-width="1.2"/>
 <text x="636" y="170" font-size="17" font-weight="800" fill="#0a7e9b" text-anchor="start">tokens</text>
@@ -75,29 +75,33 @@
 <text x="1106" y="417" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">senior · pregnant · emergency</text>
 <text x="672" y="447" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">rating</text>
 <text x="1106" y="447" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">1–5 stars after the visit</text>
-<text x="672" y="477" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">patient_name</text>
-<text x="1106" y="477" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">patient details:</text>
-<text x="672" y="507" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">age · gender</text>
-<text x="1106" y="507" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">0–120 · Male/Female/Other</text>
-<text x="672" y="537" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">phone</text>
-<text x="1106" y="537" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">10 digits, starts 6–9</text>
-<text x="672" y="567" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">doctor</text>
-<text x="1106" y="567" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">optional</text>
-<text x="672" y="597" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">created_at</text>
-<text x="1106" y="597" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">issued (ms)</text>
-<text x="672" y="627" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">called_at</text>
-<text x="1106" y="627" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Call Next / Recall</text>
-<text x="672" y="657" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">done_at</text>
-<text x="1106" y="657" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">completed</text>
-<text x="672" y="687" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">skipped_at</text>
-<text x="1106" y="687" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Skip</text>
-<text x="636" y="717" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
-<text x="672" y="717" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">linked_from</text>
-<text x="1106" y="717" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ tokens.number (Billing)</text>
-<text x="636" y="747" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
-<text x="672" y="747" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">forwarded_to</text>
-<text x="1106" y="747" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ tokens.number (Billing)</text>
-<text x="636" y="775" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">One row per token; names and phones never leave via public-state</text>
+<text x="672" y="477" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">away_until</text>
+<text x="1106" y="477" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">stepped out until (once)</text>
+<text x="672" y="507" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">estimate_min</text>
+<text x="1106" y="507" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">estimate shown at issue</text>
+<text x="672" y="537" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">patient_name</text>
+<text x="1106" y="537" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">patient details:</text>
+<text x="672" y="567" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">age · gender</text>
+<text x="1106" y="567" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">0–120 · Male/Female/Other</text>
+<text x="672" y="597" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">phone</text>
+<text x="1106" y="597" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">10 digits, starts 6–9</text>
+<text x="672" y="627" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">doctor</text>
+<text x="1106" y="627" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">optional</text>
+<text x="672" y="657" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">created_at</text>
+<text x="1106" y="657" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">issued (ms)</text>
+<text x="672" y="687" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">called_at</text>
+<text x="1106" y="687" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Call Next / Recall</text>
+<text x="672" y="717" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">done_at</text>
+<text x="1106" y="717" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">completed</text>
+<text x="672" y="747" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">skipped_at</text>
+<text x="1106" y="747" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">Skip</text>
+<text x="636" y="777" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
+<text x="672" y="777" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">linked_from</text>
+<text x="1106" y="777" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ tokens.number (Billing)</text>
+<text x="636" y="807" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
+<text x="672" y="807" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">forwarded_to</text>
+<text x="1106" y="807" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ tokens.number (Billing)</text>
+<text x="636" y="835" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">One row per token; names and phones never leave via public-state</text>
 <rect x="1240" y="140" width="320" height="196" rx="12" fill="#fff" stroke="#5b6b82" stroke-width="1.6"/>
 <path d="M1240,186 V152 a12,12 0 0 1 12,-12 H1548 a12,12 0 0 1 12,12 V186 Z" fill="#eef2f7"/>
 <line x1="1240" y1="186" x2="1560" y2="186" stroke="#5b6b82" stroke-width="1.2"/>
@@ -110,6 +114,20 @@
 <text x="1292" y="297" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">timestamp</text>
 <text x="1546" y="297" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">8-hour expiry</text>
 <text x="1256" y="325" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">Browser localStorage, not in SQLite</text>
+<rect x="1240" y="600" width="320" height="196" rx="12" fill="#fff" stroke="#5b6b82" stroke-width="1.6"/>
+<path d="M1240,646 V612 a12,12 0 0 1 12,-12 H1548 a12,12 0 0 1 12,12 V646 Z" fill="#eef2f7"/>
+<line x1="1240" y1="646" x2="1560" y2="646" stroke="#5b6b82" stroke-width="1.2"/>
+<text x="1256" y="630" font-size="17" font-weight="800" fill="#5b6b82" text-anchor="start">delays</text>
+<text x="1256" y="667" font-size="11.5" font-weight="800" fill="#8a5300" text-anchor="start">PK</text>
+<text x="1292" y="667" font-size="14.5" font-weight="600" fill="#0b1b33" text-anchor="start">queue_date + code</text>
+<text x="1256" y="697" font-size="11.5" font-weight="800" fill="#0a7e9b" text-anchor="start">FK</text>
+<text x="1292" y="697" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">code</text>
+<text x="1546" y="697" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">→ departments.code</text>
+<text x="1292" y="727" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">reason</text>
+<text x="1546" y="727" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">surgery · break · …</text>
+<text x="1292" y="757" font-size="14.5" font-weight="500" fill="#0b1b33" text-anchor="start">until_ms</text>
+<text x="1546" y="757" font-size="12.5" font-weight="400" fill="#5b6b82" text-anchor="end">end time</text>
+<text x="1256" y="785" font-size="12" font-weight="500" fill="#5b6b82" text-anchor="start">US-21: ends at until_ms or when cleared</text>
 <polyline points="490,291 620,291" fill="none" stroke="#33445e" stroke-width="1.8"/>
 <line x1="500.0" y1="283.0" x2="500.0" y2="299.0" stroke="#33445e" stroke-width="1.8"/>
 <line x1="506.0" y1="283.0" x2="506.0" y2="299.0" stroke="#33445e" stroke-width="1.8"/>
@@ -134,19 +152,19 @@
 <line x1="506.0" y1="830.0" x2="490.0" y2="830.0" stroke="#33445e" stroke-width="1.8"/>
 <circle cx="514.0" cy="830.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
 <text x="556" y="620" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">counters</text>
-<polyline points="1120,711 1180,711 1180,801 1100,801 1100,786" fill="none" stroke="#33445e" stroke-width="1.8"/>
-<line x1="1130.0" y1="703.0" x2="1130.0" y2="719.0" stroke="#33445e" stroke-width="1.8"/>
-<circle cx="1142.0" cy="711.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
-<line x1="1108.0" y1="796.0" x2="1092.0" y2="796.0" stroke="#33445e" stroke-width="1.8"/>
-<circle cx="1100.0" cy="808.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
+<polyline points="1120,771 1180,771 1180,861 1100,861 1100,846" fill="none" stroke="#33445e" stroke-width="1.8"/>
+<line x1="1130.0" y1="763.0" x2="1130.0" y2="779.0" stroke="#33445e" stroke-width="1.8"/>
+<circle cx="1142.0" cy="771.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
+<line x1="1108.0" y1="856.0" x2="1092.0" y2="856.0" stroke="#33445e" stroke-width="1.8"/>
+<circle cx="1100.0" cy="868.0" r="6" fill="#fff" stroke="#33445e" stroke-width="1.8"/>
 <text x="0" y="0" font-size="13" font-weight="600" fill="#33445e" text-anchor="start"></text>
-<text x="1190" y="761" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">Send to Billing:</text>
-<text x="1190" y="781" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">G001 → B001</text>
-<rect x="1240" y="400" width="320" height="150" rx="12" fill="#fff" stroke="#c9d6e3" stroke-width="1.5"/>
-<text x="1256" y="426" font-size="14" font-weight="700" fill="#0b1b33" text-anchor="start">How to read</text>
-<text x="1256" y="450" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">PK primary key · UK unique · FK reference</text>
-<text x="1256" y="470" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Bars = exactly one</text>
-<text x="1256" y="490" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Circle + crow&#x27;s foot = zero or many</text>
-<text x="1256" y="510" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Circle + bar = zero or one</text>
-<text x="1256" y="530" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Doctors are a JSON list in departments</text>
+<text x="1190" y="821" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">Send to Billing:</text>
+<text x="1190" y="841" font-size="13" font-weight="600" fill="#33445e" text-anchor="start">G001 → B001</text>
+<rect x="1240" y="380" width="320" height="150" rx="12" fill="#fff" stroke="#c9d6e3" stroke-width="1.5"/>
+<text x="1256" y="406" font-size="14" font-weight="700" fill="#0b1b33" text-anchor="start">How to read</text>
+<text x="1256" y="430" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">PK primary key · UK unique · FK reference</text>
+<text x="1256" y="450" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Bars = exactly one</text>
+<text x="1256" y="470" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Circle + crow&#x27;s foot = zero or many</text>
+<text x="1256" y="490" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Circle + bar = zero or one</text>
+<text x="1256" y="510" font-size="12.5" font-weight="400" fill="#33445e" text-anchor="start">Doctors are a JSON list in departments</text>
 </svg>

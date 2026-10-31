@@ -310,7 +310,39 @@
     return lines.join("\n") + "\n";
   }
 
-  const api = { DEFAULT_AST_MS, MAX_COUNTERS, PRIORITY_LABELS, delayIn, nextUp, openCounters, setCounter, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView, track, trackPath, report, reportCsv };
+  // ---------- US-25 best time to visit: usual tokens per hour from earlier days ----------
+  const MIN_HISTORY_DAYS = 3;
+
+  // rows: [code, createdAt, date] for tokens issued on earlier days (numbers only, no patient details).
+  // Per department: the average tokens per hour over the days on record (a day with none in an hour counts as 0),
+  // the two quietest hours and the busiest hour. hourOf turns a time into the local hour; tests pass a fixed zone.
+  function bestTimes(rows, hourOf = (ms) => new Date(ms).getHours()) {
+    const days = new Set(rows.map((r) => r[2])).size;
+    const counts = {};
+    for (const [code, createdAt] of rows) {
+      const h = hourOf(createdAt);
+      counts[code] = counts[code] || {};
+      counts[code][h] = (counts[code][h] || 0) + 1;
+    }
+    const departments = {};
+    for (const [code, byHour] of Object.entries(counts)) {
+      const used = Object.keys(byHour).map(Number);
+      const hours = [];
+      for (let h = Math.min(...used); h <= Math.max(...used); h++) {
+        hours.push({ hour: h, avg: Math.round((byHour[h] || 0) / days * 10) / 10 });
+      }
+      const byQuiet = hours.slice().sort((a, b) => a.avg - b.avg || a.hour - b.hour);
+      const byBusy = hours.slice().sort((a, b) => b.avg - a.avg || a.hour - b.hour);
+      departments[code] = {
+        hours,
+        quietest: byQuiet.slice(0, 2).map((h) => h.hour).sort((a, b) => a - b),
+        busiest: byBusy[0].hour
+      };
+    }
+    return { days, enough: days >= MIN_HISTORY_DAYS, departments };
+  }
+
+  const api = { bestTimes, DEFAULT_AST_MS, MAX_COUNTERS, PRIORITY_LABELS, delayIn, nextUp, openCounters, setCounter, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView, track, trackPath, report, reportCsv };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.QueueCore = api;
 })(typeof window !== "undefined" ? window : globalThis);

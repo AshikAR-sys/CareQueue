@@ -158,6 +158,7 @@
     setText("label-wait", tr("track.wait"));
     setText("track-foot", tr("track.foot"));
     setText("share-label", tr("share.button"));
+    setText("best-link", tr("best.link"));
     setAlertButton();
     document.querySelectorAll(".lang-switch button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
     render();

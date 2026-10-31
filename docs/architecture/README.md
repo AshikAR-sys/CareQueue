@@ -77,7 +77,7 @@ flowchart TB
 | API | Validates and applies every queue change | `backend/app.py`, `backend/services/queue_service.py` |
 | Database | Today's tokens, numbering, open counters | `database/schema.sql`, `database/seed.sql`, `backend/db.py` |
 | Hosting | Public demo | `render.yaml` (Render free web service, gunicorn; deploys on every push to `main`) |
-| Tests | 75 unit, 28 API, 58 browser tests; GitHub Actions on every pull request | `tests/`, `backend/tests/`, `.github/workflows/test.yml` |
+| Tests | 93 unit, 37 API, 67 browser tests; GitHub Actions on every pull request | `tests/`, `backend/tests/`, `.github/workflows/test.yml` |
 
 **Privacy:** only the staff console loads `/api/queue/state`, which includes patient names and phones. The token
 page, phone tracking page, display and reports load `/api/queue/public-state`, which has token numbers, times,
@@ -100,6 +100,7 @@ erDiagram
   DEPARTMENTS ||--o{ TOKENS : "numbers (by code)"
   DEPARTMENTS ||--o{ QUEUE_COUNTERS : "per day"
   DEPARTMENTS ||--o{ OPEN_COUNTERS : "per day"
+  DEPARTMENTS ||--o{ DELAYS : "delay notice per day"
   TOKENS |o--o| TOKENS : "Send to Billing (linked_from / forwarded_to)"
 
   DEPARTMENTS {
@@ -116,6 +117,12 @@ erDiagram
     text code PK,FK "departments.code"
     int last_seq "last number issued, 1-999"
   }
+  DELAYS {
+    text queue_date PK
+    text code PK,FK "departments.code"
+    text reason "surgery, break, emergency, other (US-21)"
+    int until_ms "when the notice ends"
+  }
   OPEN_COUNTERS {
     text queue_date PK
     text code PK,FK "departments.code"
@@ -131,6 +138,8 @@ erDiagram
     int counter "1-3, set when called"
     text priority "senior, pregnant, emergency (US-17)"
     int rating "1-5 stars after the visit (US-20)"
+    int away_until "stepped out until, once (US-22)"
+    int estimate_min "estimate shown at issue (US-24)"
     text patient_name
     int age "0-120"
     text gender "Male, Female, Other"
