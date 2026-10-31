@@ -124,11 +124,12 @@ class CareQueueApiTests(unittest.TestCase):
                            .replace("  linked_from TEXT,\n  forwarded_to TEXT,\n", "")
                            .replace("  counter INTEGER CHECK(counter BETWEEN 1 AND 3),\n", "")
                            .replace("  priority TEXT CHECK(priority IN ('senior','pregnant','emergency')),\n", "")
-                           .replace("  rating INTEGER CHECK(rating BETWEEN 1 AND 5),\n", ""))
+                           .replace("  rating INTEGER CHECK(rating BETWEEN 1 AND 5),\n", "")
+                           .replace("  away_until INTEGER,\n", ""))
         conn.close()
         upgraded = create_app({"TESTING": True, "DATABASE": old})
         columns = {row[1] for row in sqlite3.connect(old).execute("PRAGMA table_info(tokens)")}
-        self.assertTrue({"linked_from", "forwarded_to", "counter", "priority", "rating"} <= columns)
+        self.assertTrue({"linked_from", "forwarded_to", "counter", "priority", "rating", "away_until"} <= columns)
         self.assertEqual(upgraded.test_client().get("/api/health").status_code, 200)
 
     # ---- US-11 Multiple counters ----
@@ -346,6 +347,32 @@ class CareQueueApiTests(unittest.TestCase):
         self.assertEqual(cleared.status_code, 200)
         self.assertIsNone(cleared.get_json()["delay"])
         self.assertEqual(self.client.get("/api/queue/public-state").get_json()["delays"], {})
+
+    # ---- US-22 Hold my place ----
+
+    def away(self, number, body):
+        return self.app.test_client().post(f"/api/tokens/{number}/away", json=body)
+
+    def test_a_waiting_patient_can_step_out_once_and_is_passed_over(self):
+        self.issue()
+        self.issue(name="Ravi Kumar")
+        response = self.away("G001", {"minutes": 10})
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(response.get_json()["token"]["awayUntil"], 0)
+        self.assertEqual(self.client.post("/api/queue/G/call-next").get_json()["token"]["number"], "G002")
+        self.assertEqual(self.away("G001", {"minutes": 5}).status_code, 409, "only one step-out per token")
+        back = self.away("G001", {"back": True})
+        self.assertEqual(back.status_code, 200)
+        self.assertEqual(self.client.post("/api/queue/G/call-next").get_json()["token"]["number"], "G001")
+
+    def test_step_out_rules(self):
+        self.issue()
+        for bad in ({"minutes": 20}, {"minutes": 0}, {"minutes": "10"}, {}):
+            self.assertEqual(self.away("G001", bad).status_code, 400, bad)
+        self.assertEqual(self.away("G999", {"minutes": 5}).status_code, 404)
+        self.client.post("/api/queue/G/call-next")
+        self.assertEqual(self.away("G001", {"minutes": 5}).status_code, 409, "already called")
+        self.assertEqual(self.away("G001", {"back": True}).status_code, 409, "not away")
 
     def test_test_reset_is_not_available_without_test_mode(self):
         production_app = create_app({"TESTING": False, "DATABASE": str(Path(self.temp_dir.name) / "prod.sqlite3")})

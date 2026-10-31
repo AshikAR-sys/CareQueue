@@ -17,8 +17,8 @@ if str(Path(__file__).resolve().parent) not in sys.path:
 
 from db import close_db, get_db, init_database
 from services.queue_service import (
-    RatingRefused, call_next, get_day, issue_token, list_departments, rate_visit, recall_token, send_to, set_counter,
-    set_delay, skip_current,
+    RatingRefused, StepOutRefused, call_next, get_day, issue_token, list_departments, rate_visit, recall_token, send_to, set_counter,
+    set_delay, skip_current, step_out,
 )
 
 
@@ -173,6 +173,20 @@ def create_app(test_config: dict | None = None) -> Flask:
         except ValueError as exc:
             return jsonify({"error": str(exc)}), 400
         return jsonify({"delay": notice})
+
+    @app.post("/api/tokens/<number>/away")
+    def away_route(number: str):
+        # US-22: {"minutes": 5|10|15} steps out; {"back": true} returns. From the patient's phone, no sign-in.
+        payload = request.get_json(silent=True) or {}
+        try:
+            token = step_out(get_db(), number, payload.get("minutes"), payload.get("back") is True)
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+        except StepOutRefused as exc:
+            return jsonify({"error": str(exc)}), 409
+        if token is None:
+            return jsonify({"error": "No token with that number was found today."}), 404
+        return jsonify({"token": token})
 
     @app.post("/api/tokens/<number>/rating")
     def rating_route(number: str):

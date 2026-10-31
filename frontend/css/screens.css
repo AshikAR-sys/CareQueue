@@ -372,6 +372,23 @@
 .track-card[data-state="stale"] .track-stats,
 .track-card[data-state="notfound"] .track-stats { display: none; }
 .track-where { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; color: var(--ink-2); }
+/* US-22: hold my place */
+.step-card { border-radius: var(--r-inner); padding: 16px; display: grid; gap: 10px; text-align: center; }
+.step-card.away { box-shadow: inset 0 0 0 2px var(--blue); }
+.step-title { font-size: 17px; font-weight: 700; }
+.step-help { font-size: 14px; color: var(--ink-2); }
+.step-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.step-choices[hidden], .step-back[hidden] { display: none; }
+.step-choices button, .step-back {
+  min-height: 46px; border: 0; border-radius: var(--r-pill); cursor: pointer; font: inherit; font-weight: 700;
+  color: var(--blue-deep); background: #fff; box-shadow: 0 4px 12px -6px rgba(18, 58, 110, 0.35);
+}
+.step-back { color: #fff; background: linear-gradient(100deg, var(--blue), var(--cyan)); }
+.away-tag {
+  display: inline-block; padding: 2px 8px; border-radius: var(--r-pill); font-size: 12px; font-weight: 700;
+  color: var(--blue-deep); background: rgba(20, 88, 230, 0.12);
+}
+
 /* US-20: star rating on the phone page */
 .rate-box { margin-top: 18px; padding: 16px; border-radius: var(--r-field); background: var(--well-fill); box-shadow: var(--well-shadow); }
 .rate-question { font-size: 17px; font-weight: 700; }

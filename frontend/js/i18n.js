@@ -62,7 +62,16 @@
       "delay.break": "Doctor on a short break",
       "delay.emergency": "Doctor attending an emergency",
       "delay.other": "Running late",
-      "delay.notice": "{reason} · about {n} min delay"
+      "delay.notice": "{reason} · about {n} min delay",
+      "away.mark": "Stepped out",
+      "step.title": "Need to step out?",
+      "step.help": "We'll hold your place. If your turn comes while you're away, the next patient goes first and you stay at the front.",
+      "step.min": "{n} min",
+      "step.away": "Your place is held until {time}.",
+      "step.back": "I'm back",
+      "step.used": "Welcome back. You can step out once per token.",
+      "step.title.away": "You've stepped out",
+      "step.title.used": "Welcome back"
     },
     ta: {
       "display.title": "இப்போது சேவையில்",
@@ -118,7 +127,16 @@
       "delay.break": "மருத்துவர் சிறு இடைவேளையில் உள்ளார்",
       "delay.emergency": "மருத்துவர் அவசர சிகிச்சையில் உள்ளார்",
       "delay.other": "தாமதம் ஏற்பட்டுள்ளது",
-      "delay.notice": "{reason} · சுமார் {n} நிமிடம் தாமதம்"
+      "delay.notice": "{reason} · சுமார் {n} நிமிடம் தாமதம்",
+      "away.mark": "வெளியே சென்றுள்ளார்",
+      "step.title": "சற்று வெளியே செல்ல வேண்டுமா?",
+      "step.help": "உங்கள் இடம் காக்கப்படும். நீங்கள் வெளியே இருக்கும்போது உங்கள் முறை வந்தால், அடுத்தவர் முதலில் அழைக்கப்படுவார்; நீங்கள் முன்னிலையிலேயே இருப்பீர்கள்.",
+      "step.min": "{n} நிமிடம்",
+      "step.away": "{time} வரை உங்கள் இடம் காக்கப்படுகிறது.",
+      "step.back": "நான் திரும்பி வந்துவிட்டேன்",
+      "step.used": "மீண்டும் வருக. ஒரு டோக்கனுக்கு ஒரு முறை மட்டுமே வெளியே செல்லலாம்.",
+      "step.title.away": "நீங்கள் வெளியே சென்றுள்ளீர்கள்",
+      "step.title.used": "மீண்டும் வருக"
     }
   };
 

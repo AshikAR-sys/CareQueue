@@ -46,6 +46,32 @@
     setAlertButton();
   });
 
+  // ---------- US-22 hold my place while I step out ----------
+  function renderStepOut(t) {
+    const box = $("step-box");
+    box.hidden = !(t && t.status === "waiting");
+    if (box.hidden) return;
+    setText("step-title", tr(t.canStepOut ? "step.title" : t.away ? "step.title.away" : "step.title.used"));
+    $("step-choices").hidden = !t.canStepOut;
+    $("step-back").hidden = !t.away;
+    setText("step-back", tr("step.back"));
+    $("step-choices").querySelectorAll("button").forEach((b) => { b.textContent = tr("step.min", { n: b.dataset.minutes }); });
+    if (t.canStepOut) setText("step-help", tr("step.help"));
+    else if (t.away) setText("step-help", tr("step.away", { time: time(new Date(t.awayUntil)) }));
+    else setText("step-help", tr("step.used"));
+    box.classList.toggle("away", t.away);
+  }
+
+  async function stepOut(minutes) {
+    try { await Q.stepOut(number, minutes); } catch (err) { setText("step-help", (err && err.message) || ""); }
+    render();
+  }
+  $("step-choices").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-minutes]");
+    if (b) stepOut(Number(b.dataset.minutes));
+  });
+  $("step-back").addEventListener("click", () => stepOut(null));
+
   // ---------- US-20 rate my visit ----------
   let rated = null;               // the rating this page just sent, shown before the next refresh
 
@@ -106,6 +132,7 @@
 
   function message(state, text) {
     show(state);
+    $("step-box").hidden = true;
     $("track-delay").hidden = true;
     $("rate-box").hidden = true;
     setText("track-dept", text);
@@ -142,6 +169,7 @@
     if (issuedOn && issuedOn !== day.date) return message("stale", tr("track.stale", { date: issuedOn }));
     const t = Core.track(day, number, Date.now());
     if (!t) return message("notfound", tr("track.notfound"));
+    renderStepOut(t);
     const delay = $("track-delay");                        // US-21: the doctor delay notice
     delay.hidden = !(t.delay && t.status === "waiting");
     if (t.delay) delay.textContent = I.delayText(lang, t.delay);

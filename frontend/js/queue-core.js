@@ -11,6 +11,7 @@
 // counter: the service counter that called the token (1-3)
 // priority: null, or why the patient is seen first (US-17): "senior" | "pregnant" | "emergency"
 // rating: null, or the patient's 1-5 star rating of a finished visit (US-20)
+// awayUntil: null, or until when a waiting patient has stepped out (US-22); once set, it stays (one step-out each)
 (function (root) {
   "use strict";
 
@@ -39,6 +40,10 @@
   function servingAll(day, code) {
     return day.tokens.filter((t) => t.code === code && t.status === "serving").sort((a, b) => counterOf(a) - counterOf(b));
   }
+  // US-22: a waiting patient who stepped out is passed over by Call Next until they are back.
+  function isAway(t, now) { return !!t.awayUntil && t.awayUntil > now; }
+  function nextUp(day, code, now) { return waitingIn(day, code).find((t) => !isAway(t, now)) || null; }
+
   function servingAt(day, code, counter) { return servingAll(day, code).find((t) => counterOf(t) === counter) || null; }
 
   function openCounters(day, code) {
@@ -95,7 +100,7 @@
   function callNext(day, code, now, counter = 1) {
     checkOpen(day, code, counter);
     completeAt(day, code, counter, now);
-    const next = waitingIn(day, code)[0];
+    const next = nextUp(day, code, now);
     if (!next) return null;
     next.status = "serving";
     next.calledAt = now;
@@ -187,6 +192,7 @@
       counter,
       serving: servingAt(day, code, counter),
       servingAll: all,
+      next: nextUp(day, code, now),           // US-22: the first waiting patient who has not stepped out
       counters: Array.from({ length: MAX_COUNTERS }, (_, i) => ({
         counter: i + 1, open: open.includes(i + 1), serving: servingAt(day, code, i + 1)
       })),
@@ -205,7 +211,7 @@
       serving: v.servingAll.map((t) => ({ number: t.number, counter: counterOf(t) })),
       openCounters: openCounters(day, code),
       delay: delayIn(day, code, now),
-      waiting: v.waiting.slice(0, limit).map((t) => ({ number: t.number, minutes: t.minutes, priority: !!t.priority })),
+      waiting: v.waiting.slice(0, limit).map((t) => ({ number: t.number, minutes: t.minutes, priority: !!t.priority, away: isAway(t, now) })),
       waitingCount: v.waiting.length
     };
   }
@@ -222,6 +228,9 @@
     // US-20: a finished visit can be rated once; a patient sent on to Billing rates at the end, on the billing token.
     result.rating = token.rating || null;
     result.canRate = token.status === "done" && !token.forwardedTo && !token.rating;
+    result.awayUntil = token.awayUntil || null;
+    result.away = isAway(token, now);
+    result.canStepOut = token.status === "waiting" && !token.awayUntil;
     return result;
   }
 
@@ -285,7 +294,7 @@
     return lines.join("\n") + "\n";
   }
 
-  const api = { DEFAULT_AST_MS, MAX_COUNTERS, PRIORITY_LABELS, delayIn, openCounters, setCounter, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView, track, trackPath, report, reportCsv };
+  const api = { DEFAULT_AST_MS, MAX_COUNTERS, PRIORITY_LABELS, delayIn, nextUp, openCounters, setCounter, dayKey, emptyDay, issue, callNext, skip, recall, sendTo, averageServiceMs, estimate, view, publicView, track, trackPath, report, reportCsv };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.QueueCore = api;
 })(typeof window !== "undefined" ? window : globalThis);

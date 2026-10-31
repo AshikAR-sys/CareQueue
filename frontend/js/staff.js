@@ -65,7 +65,7 @@
     const allCounts = DATA.departments.map((d) => Q.view(d.code).waiting.length).join(",");
     // Rebuild only when something visible changed, so keyboard focus is not lost every second.
     const signature = JSON.stringify([code, counter, v.counters.map((c) => [c.open, c.serving && c.serving.number]),
-      allCounts, v.serving && v.serving.number, v.waiting.map((t) => t.number + t.minutes),
+      allCounts, v.serving && v.serving.number, v.next && v.next.number, v.waiting.map((t) => t.awayUntil > now), v.waiting.map((t) => t.number + t.minutes),
       v.missed.map((t) => t.number), v.served, Math.floor(now / 60000), Q.delay(code)]);
     if (!force && signature === lastSignature) return;
     const focusedId = document.activeElement && document.activeElement.id;
@@ -93,12 +93,13 @@
       $("serving-number").classList.add("empty");
       $("serving-name").textContent = paused ? "Counter " + counter + " is paused" : v.waiting.length ? "No one is being served" : "No one is waiting";
       $("serving-meta").textContent = paused ? "Open it to call patients here." :
-        v.waiting.length ? "Press Call Next to call " + v.waiting[0].number + "." : "New tokens from the token page appear here.";
+        v.next ? "Press Call Next to call " + v.next.number + "." :
+        v.waiting.length ? "Everyone waiting has stepped out for a few minutes." : "New tokens from the token page appear here.";
     }
 
     const callBtn = $("call-next");
-    callBtn.disabled = paused || (!v.serving && v.waiting.length === 0);
-    callBtn.querySelector(".btn-label").textContent = v.waiting.length ? "Call Next · " + v.waiting[0].number : (v.serving ? "Finish " + v.serving.number : "Call Next");
+    callBtn.disabled = paused || (!v.serving && !v.next);
+    callBtn.querySelector(".btn-label").textContent = v.next ? "Call Next · " + v.next.number : (v.serving ? "Finish " + v.serving.number : "Call Next");
     $("skip").disabled = !v.serving;
     $("skip").title = v.serving ? "Move " + v.serving.number + " to Missed" : "Nobody is being served";
     const sendBtn = $("send-billing");
@@ -125,6 +126,7 @@
       const who = el("td", null, patientLine(t.patient) + fromText(t));
       const tag = priorityTag(t);
       if (tag) who.append(" ", tag, el("span", "priority-why", " " + tag.title));
+      if (t.awayUntil > now) who.append(" ", el("span", "away-tag", "Away until " + time(new Date(t.awayUntil))));   // US-22
       tr.append(el("td", "num", String(i + 1)), el("td", "token", t.number), who,
         el("td", "num", minutes(now - t.createdAt) + " min"), el("td", "num", t.minutes === 0 ? "Next" : t.minutes + " min"));
       rows.append(tr);

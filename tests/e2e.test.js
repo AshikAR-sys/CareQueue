@@ -1241,3 +1241,36 @@ test("US-21 a delay cannot be posted without the staff pass", async () => {
     body: JSON.stringify({ reason: "break", minutes: 10 }) });
   assert.equal(r.status, 401);
 });
+
+// --- US-22 Hold my place ---
+
+test("AC-22.1 / AC-22.2 / AC-22.3 a patient steps out, is passed over, keeps the front place and comes back", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  await issue(tok, "gen", "Anita Das");
+  const url = await tok.evaluate(() => new URL(window.QueueCore.trackPath("G001", window.TokenQueue.day().date), location.href).href);
+  const { ctx: pctx, page } = await phone(url, errors);
+  await page.waitForFunction(() => !document.getElementById("step-box").hidden);
+  await page.click('#step-choices button[data-minutes="10"]');
+  await page.waitForFunction(() => /place is held until/.test(document.getElementById("step-help").textContent));
+  assert.equal(await page.isVisible("#step-back"), true);
+  const staff = await open("staff.html");
+  await staff.waitForFunction(() => /Away until/.test(document.getElementById("waiting-rows").textContent));
+  assert.match(await staff.textContent(".btn-label"), /Call Next · G002/);
+  const disp = await open("display.html");
+  await disp.waitForFunction(() => document.querySelector(".next-wait")?.textContent === "Stepped out");
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G002");
+  assert.deepEqual(await cells(staff, "#waiting-rows .token"), ["G001", "G003"], "G001 keeps the front place");
+  await page.click("#step-back");
+  await page.waitForFunction(() => /once per token/.test(document.getElementById("step-help").textContent));
+  assert.equal(await page.isVisible("#step-choices"), false, "only one step-out per token");
+  await staff.waitForFunction(() => /Call Next · G001/.test(document.querySelector("#call-next .btn-label").textContent));
+  await staff.click("#call-next");
+  await staff.waitForFunction(() => document.getElementById("serving-number").textContent === "G001");
+  assert.deepEqual(errors, []);
+  await pctx.close();
+  await ctx.close();
+});
