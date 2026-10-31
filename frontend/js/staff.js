@@ -66,7 +66,7 @@
     // Rebuild only when something visible changed, so keyboard focus is not lost every second.
     const signature = JSON.stringify([code, counter, v.counters.map((c) => [c.open, c.serving && c.serving.number]),
       allCounts, v.serving && v.serving.number, v.waiting.map((t) => t.number + t.minutes),
-      v.missed.map((t) => t.number), v.served, Math.floor(now / 60000)]);
+      v.missed.map((t) => t.number), v.served, Math.floor(now / 60000), Q.delay(code)]);
     if (!force && signature === lastSignature) return;
     const focusedId = document.activeElement && document.activeElement.id;
     const focusedCode = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.code;
@@ -76,6 +76,7 @@
     renderTabs();
     $("serving-dept").textContent = dept.name;
     $("serving-counter").textContent = "Counter " + counter;
+    renderDelay();
     renderCounters(v, counter);
     const paused = !v.counters[counter - 1].open;
 
@@ -166,6 +167,21 @@
     toggle.textContent = (mine.open ? "Pause" : "Open") + " Counter " + counter;
     toggle.dataset.open = String(mine.open);
   }
+
+  // US-21: the department's delay notice, with Post / Clear.
+  function renderDelay() {
+    const d = Q.delay(code);
+    $("delay-status").textContent = d ? "Delay posted: " + window.CareQueueI18n.delayText("en", d) : "No delay notice";
+    $("delay-row").classList.toggle("active", !!d);
+    $("delay-clear").hidden = !d;
+    $("delay-post").textContent = d ? "Update" : "Post delay";
+  }
+
+  $("delay-post").addEventListener("click", () => {
+    const reason = $("delay-reason").value, minutes = Number($("delay-minutes").value);
+    act(() => Q.setDelay(code, reason, minutes), () => "Delay notice posted. It is on the display and patients' phones.");
+  });
+  $("delay-clear").addEventListener("click", () => act(() => Q.setDelay(code, null), () => "Delay notice cleared."));
 
   $("counter-toggle").addEventListener("click", () => {
     const counter = myCounter();

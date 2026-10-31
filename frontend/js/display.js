@@ -56,6 +56,11 @@
       panel.setAttribute("aria-label", deptName(dept));
       const head = el("div", "panel-head");
       head.append(el("h2", null, deptName(dept)), el("span", "panel-loc", I.place(lang, dept.location)));
+      if (v.delay) {                                        // US-21: the doctor delay notice
+        const banner = el("p", "delay-banner", I.delayText(lang, v.delay));
+        banner.setAttribute("role", "status");
+        head.append(banner);
+      }
       const now = el("div", "panel-now");
       now.append(el("p", "panel-label", tr("now")));
       // US-11: one slot per serving counter, each with its token number and counter.

@@ -69,6 +69,24 @@
 }
 .dept-tab[aria-pressed="true"] .dept-tab-count { background: var(--blue); color: #fff; }
 
+/* US-21: doctor delay notice (display, phone page, staff console) */
+.delay-banner {
+  flex-basis: 100%; margin-top: 8px; padding: 10px 14px; border-radius: var(--r-field);
+  font-size: 17px; font-weight: 700; color: var(--notice-ink); background: var(--notice-bg);
+}
+.delay-banner::before { content: "⏳ "; }
+.screen-display .delay-banner { font-size: 22px; }
+.track-card .delay-banner { margin-top: 14px; font-size: 15px; }
+.delay-row { display: grid; gap: 8px; padding: 12px 14px; border-radius: var(--r-field); background: rgba(255, 255, 255, 0.35); }
+.delay-row.active { background: var(--notice-bg); }
+.delay-status { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.delay-row.active .delay-status { color: var(--notice-ink); }
+.delay-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.delay-controls select {
+  height: 38px; padding: 0 10px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75); font: inherit; font-size: 14px; color: var(--ink);
+}
+
 /* US-17: priority marks */
 .priority-tag {
   display: inline-block; padding: 2px 8px; border-radius: var(--r-pill); vertical-align: 1px;

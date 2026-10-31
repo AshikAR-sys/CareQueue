@@ -320,6 +320,33 @@ class CareQueueApiTests(unittest.TestCase):
         self.client.post("/api/queue/G/send-to/B")
         self.assertEqual(self.rate("G001", 5).status_code, 409)
 
+    # ---- US-21 Doctor delay notice ----
+
+    def delay(self, body, client=None):
+        return (client or self.client).post("/api/queue/G/delay", json=body)
+
+    def test_staff_post_a_delay_and_everyone_sees_it(self):
+        response = self.delay({"reason": "surgery", "minutes": 20})
+        self.assertEqual(response.status_code, 200)
+        public = self.client.get("/api/queue/public-state").get_json()
+        notice = public["delays"]["G"]
+        self.assertEqual(notice["reason"], "surgery")
+        self.assertAlmostEqual((notice["until"] - response.get_json()["delay"]["until"]) / 1000, 0, delta=1)
+
+    def test_delay_needs_staff_and_valid_values(self):
+        self.assertEqual(self.delay({"reason": "surgery", "minutes": 20}, self.app.test_client()).status_code, 401)
+        for bad in ({"reason": "lunch party", "minutes": 20}, {"reason": "break", "minutes": 0},
+                    {"reason": "break", "minutes": 181}, {"reason": "break", "minutes": "20"}):
+            self.assertEqual(self.delay(bad).status_code, 400, bad)
+        self.assertEqual(self.client.post("/api/queue/Z/delay", json={"reason": "break", "minutes": 10}).status_code, 400)
+
+    def test_clearing_a_delay_removes_it(self):
+        self.delay({"reason": "break", "minutes": 15})
+        cleared = self.client.post("/api/queue/G/delay", json={"clear": True})
+        self.assertEqual(cleared.status_code, 200)
+        self.assertIsNone(cleared.get_json()["delay"])
+        self.assertEqual(self.client.get("/api/queue/public-state").get_json()["delays"], {})
+
     def test_test_reset_is_not_available_without_test_mode(self):
         production_app = create_app({"TESTING": False, "DATABASE": str(Path(self.temp_dir.name) / "prod.sqlite3")})
         response = production_app.test_client().post("/api/test/reset")

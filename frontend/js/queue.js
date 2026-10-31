@@ -107,6 +107,14 @@
     return result.token;
   }
 
+  // US-21: post a doctor delay notice for a queue, or clear it (reason null).
+  async function setDelay(code, reason, minutes) {
+    const body = reason ? { reason, minutes } : { clear: true };
+    const result = await request("/api/queue/" + encodeURIComponent(code) + "/delay", body);
+    await refresh(true);
+    return result.delay;
+  }
+
   // US-20: a patient's 1-5 star rating of their finished visit (no sign-in).
   async function rate(number, rating) {
     const result = await request("/api/tokens/" + encodeURIComponent(number) + "/rating", { rating });
@@ -136,6 +144,8 @@
     sendTo,
     setCounter,
     rate,
+    setDelay,
+    delay: (code) => Core.delayIn(day, code, Date.now()),
     estimate: (number) => Core.estimate(day, number, Date.now()),
     view: (code, counter) => Core.view(day, code, Date.now(), counter),
     publicView: (code) => Core.publicView(day, code, Date.now()),

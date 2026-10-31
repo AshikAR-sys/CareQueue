@@ -1203,3 +1203,41 @@ test("US-20 the rating question is in Tamil when the phone page is in Tamil", as
   await pctx.close();
   await ctx.close();
 });
+
+// --- US-21 Doctor delay notice ---
+
+test("AC-21.1 / AC-21.2 / AC-21.3 a posted delay shows on the display and phones, adds to waits and can be cleared", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  await issue(tok, "gen", "Ravi Kumar");
+  const url = await tok.getAttribute("#t-qr-code", "data-url");      // G002, 1 ahead: about 3 min
+  const { ctx: pctx, page } = await phone(url, errors);
+  await page.waitForFunction(() => document.getElementById("track-wait").textContent === "About 3 min");
+  const disp = await open("display.html");
+  await disp.waitForSelector(".panel-head h2");
+  const staff = await open("staff.html");
+  await staff.selectOption("#delay-reason", "surgery");
+  await staff.selectOption("#delay-minutes", "20");
+  await staff.click("#delay-post");
+  await staff.waitForFunction(() => /Delay posted: Doctor in surgery · about 20 min delay/.test(document.getElementById("delay-status").textContent));
+  await disp.waitForFunction(() => /Doctor in surgery · about 20 min delay/.test(document.querySelector(".delay-banner")?.textContent || ""), null, { timeout: 2000 });
+  await page.waitForFunction(() => document.getElementById("track-wait").textContent === "About 23 min", null, { timeout: 2000 });
+  assert.match(await page.textContent("#track-delay"), /Doctor in surgery/);
+  await page.click('.lang-switch button[data-lang="ta"]');
+  await page.waitForFunction(() => /அறுவை சிகிச்சையில்/.test(document.getElementById("track-delay").textContent));
+  await staff.click("#delay-clear");
+  await disp.waitForFunction(() => !document.querySelector(".delay-banner"), null, { timeout: 2000 });
+  await page.waitForFunction(() => document.getElementById("track-delay").hidden, null, { timeout: 2000 });
+  assert.equal(await staff.textContent("#delay-status"), "No delay notice");
+  assert.deepEqual(errors, []);
+  await pctx.close();
+  await ctx.close();
+});
+
+test("US-21 a delay cannot be posted without the staff pass", async () => {
+  await setup();
+  const r = await fetch(APP + "api/queue/G/delay", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason: "break", minutes: 10 }) });
+  assert.equal(r.status, 401);
+});
