@@ -533,3 +533,18 @@ accuracy against the PRD success metric (US-24) and best time to visit (US-25). 
   an error) and a **Share with family** button on the token card and the phone page (English and Tamil).
 - **QA:** 2 browser tests (share sheet on the token card with the exact message and link; clipboard fallback on the
   phone page, and the shared link shows no name or phone). Results: `npm test` 87/87 · backend 33/33 · e2e 63/63.
+
+---
+
+## Feature F14 — Estimate accuracy (US-24, PRD success metric)
+
+- **BA:** `docs/features/F14-estimate-accuracy.md` (AC-24.1–24.3; measured exactly as the PRD's "EWT accuracy" row).
+- **Developer (TDD):** 3 unit tests (accuracy from the 4th token, empty when nothing to check, CSV columns) and
+  2 API tests with hand-worked estimates (0/3/6/9 min; priority; two counters 4.5 → 5; a 20-min delay → 26) written
+  first and watched fail. Then `estimate_for_new()` on the server (the same rule as `QueueCore.estimate`), saved in
+  `tokens.estimate_min` for new and Billing tokens; accuracy in `QueueCore.report()`; a tile with the 80% target, a
+  column and two CSV columns in Reports. Four older CSV checks and one table-column index were updated for the new
+  columns.
+- **QA:** 2 browser tests (the saved estimate equals the token card's with a patient at the counter and two counters
+  open; Reports and CSV show 0% (2) and "not met" when calls come much earlier than estimated). Screenshot with
+  realistic times in a throwaway database: 70% (10), not met. Results: `npm test` 90/90 · backend 35/35 · e2e 65/65.

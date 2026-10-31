@@ -69,6 +69,7 @@
       <div class="glass"><dt>Average wait</dt><dd id="tile-wait">–</dd></div>
       <div class="glass"><dt>Average service</dt><dd id="tile-service">–</dd></div>
       <div class="glass"><dt>Patient rating</dt><dd id="tile-rating">–</dd></div>
+      <div class="glass accuracy-tile" id="accuracy-tile"><dt>Estimate accuracy</dt><dd id="tile-accuracy">–</dd><p class="tile-note" id="accuracy-note">Target 80% within 5 min</p></div>
     </dl>
 
     <section class="glass list-card report-table-card" aria-labelledby="dept-heading">
@@ -79,7 +80,7 @@
             <th scope="col">Department</th><th scope="col" class="num">Issued</th><th scope="col" class="num">Served</th>
             <th scope="col" class="num">Waiting</th><th scope="col" class="num">Serving</th><th scope="col" class="num">Missed</th>
             <th scope="col" class="num">To Billing</th><th scope="col" class="num">Avg wait</th><th scope="col" class="num">Avg service</th>
-            <th scope="col" class="num">Rating</th>
+            <th scope="col" class="num">Rating</th><th scope="col" class="num">Accuracy</th>
           </tr></thead>
           <tbody id="dept-rows"></tbody>
           <tfoot id="dept-total"></tfoot>
@@ -93,7 +94,7 @@
       <div class="hour-chart" id="hour-chart" role="list" aria-label="Tokens issued per hour"></div>
     </section>
 
-    <p class="report-note"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-info"/></svg>Average wait is from issuing the token to calling it; average service is from calling it to the next patient. No patient names or phone numbers are shown or exported.</p>
+    <p class="report-note"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-info"/></svg>Average wait is from issuing the token to calling it; average service is from calling it to the next patient. Estimate accuracy (PRD success metric) is the share of tokens, from the 4th in each queue, whose real wait was within 5 minutes of the estimate shown when the token was issued. No patient names or phone numbers are shown or exported.</p>
   </main>
 
   <footer class="foot">

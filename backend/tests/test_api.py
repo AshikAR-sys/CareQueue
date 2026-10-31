@@ -125,11 +125,12 @@ class CareQueueApiTests(unittest.TestCase):
                            .replace("  counter INTEGER CHECK(counter BETWEEN 1 AND 3),\n", "")
                            .replace("  priority TEXT CHECK(priority IN ('senior','pregnant','emergency')),\n", "")
                            .replace("  rating INTEGER CHECK(rating BETWEEN 1 AND 5),\n", "")
-                           .replace("  away_until INTEGER,\n", ""))
+                           .replace("  away_until INTEGER,\n", "")
+                           .replace("  estimate_min INTEGER,\n", ""))
         conn.close()
         upgraded = create_app({"TESTING": True, "DATABASE": old})
         columns = {row[1] for row in sqlite3.connect(old).execute("PRAGMA table_info(tokens)")}
-        self.assertTrue({"linked_from", "forwarded_to", "counter", "priority", "rating", "away_until"} <= columns)
+        self.assertTrue({"linked_from", "forwarded_to", "counter", "priority", "rating", "away_until", "estimate_min"} <= columns)
         self.assertEqual(upgraded.test_client().get("/api/health").status_code, 200)
 
     # ---- US-11 Multiple counters ----
@@ -373,6 +374,28 @@ class CareQueueApiTests(unittest.TestCase):
         self.client.post("/api/queue/G/call-next")
         self.assertEqual(self.away("G001", {"minutes": 5}).status_code, 409, "already called")
         self.assertEqual(self.away("G001", {"back": True}).status_code, 409, "not away")
+
+    # ---- US-24 Estimate accuracy: the server saves the estimate shown at issue ----
+
+    def est(self, **kw):
+        return self.issue(**kw).get_json()["token"]["estimateMin"]
+
+    def test_the_estimate_shown_at_issue_is_saved(self):
+        # Empty queue, default 3 min per patient, Counter 1 free: 0, 3, 6 minutes.
+        self.assertEqual([self.est(name=n) for n in ("Priya Sharma", "Ravi Kumar", "Anita Das")], [0, 3, 6])
+        self.client.post("/api/queue/G/call-next")                 # G001 at the counter, just called
+        self.assertEqual(self.est(name="Mohan Iyer"), 9)            # 3 left for G001 + 2 ahead x 3
+        public = self.client.get("/api/queue/public-state").get_json()
+        self.assertEqual([t["estimateMin"] for t in public["tokens"]], [0, 3, 6, 9])
+
+    def test_saved_estimate_follows_priority_counters_and_delays(self):
+        self.issue()
+        self.issue(name="Ravi Kumar")
+        self.assertEqual(self.est(name="Anita Das", priority="emergency"), 0, "a priority token goes to the front")
+        self.client.post("/api/queue/G/counters/2", json={"open": True})
+        self.assertEqual(self.est(name="Mohan Iyer"), 5, "3 ahead over 2 free counters: 4.5 -> 5")
+        self.client.post("/api/queue/G/delay", json={"reason": "surgery", "minutes": 20})
+        self.assertEqual(self.est(name="Lakshmi Rao"), 26, "20 min delay + 4 ahead / 2 x 3")
 
     def test_test_reset_is_not_available_without_test_mode(self):
         production_app = create_app({"TESTING": False, "DATABASE": str(Path(self.temp_dir.name) / "prod.sqlite3")})

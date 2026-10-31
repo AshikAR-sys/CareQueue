@@ -46,6 +46,8 @@ def upgrade_schema(conn: sqlite3.Connection) -> None:
         conn.execute("ALTER TABLE tokens ADD COLUMN rating INTEGER")
     if "away_until" not in columns:  # US-22 Hold my place
         conn.execute("ALTER TABLE tokens ADD COLUMN away_until INTEGER")
+    if "estimate_min" not in columns:  # US-24 Estimate accuracy
+        conn.execute("ALTER TABLE tokens ADD COLUMN estimate_min INTEGER")
 
 
 def get_db() -> sqlite3.Connection:

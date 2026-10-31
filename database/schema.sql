@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS tokens (
   priority TEXT CHECK(priority IN ('senior','pregnant','emergency')),
   rating INTEGER CHECK(rating BETWEEN 1 AND 5),
   away_until INTEGER,
+  estimate_min INTEGER,
   UNIQUE(queue_date, number),
   UNIQUE(queue_date, code, seq)
 );
