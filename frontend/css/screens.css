@@ -411,6 +411,11 @@
   color: var(--blue-deep); background: #fff; box-shadow: 0 6px 16px -8px rgba(18, 58, 110, 0.4);
 }
 .alert-toggle[aria-pressed="true"] { color: #fff; background: linear-gradient(100deg, var(--blue), var(--cyan)); }
+.share-family {
+  display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 46px; padding: 8px 16px;
+  border: 0; border-radius: var(--r-pill); cursor: pointer; font: inherit; font-size: 15px; font-weight: 700;
+  color: var(--ink-2); background: rgba(255, 255, 255, 0.6);
+}
 .alert-note { font-size: 13.5px; color: var(--ink-2); text-align: center; }
 .track-card.alerting { animation: track-flash 1.2s var(--ease) 3; }
 @keyframes track-flash { 50% { box-shadow: 0 0 0 6px rgba(20, 88, 230, 0.45); } }

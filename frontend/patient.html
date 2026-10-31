@@ -30,6 +30,7 @@
     <symbol id="i-menu"        viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></symbol>
     <symbol id="i-map-pin"     viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
     <symbol id="i-rotate"      viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98"/><path d="m15.41 6.51-6.82 3.98"/></symbol>
     <symbol id="i-signout"     viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
   </svg>
 
@@ -243,7 +244,9 @@
       <div class="actions">
         <button type="button" class="btn-secondary" id="print-btn" disabled><svg class="ic"><use href="#i-printer"/></svg>Print Token</button>
         <button type="button" class="btn-secondary" id="download-btn" disabled><svg class="ic"><use href="#i-download"/></svg>Download</button>
+        <button type="button" class="btn-secondary share-btn" id="share-btn" disabled><svg class="ic"><use href="#i-share"/></svg>Share with family</button>
       </div>
+      <p class="share-status" id="share-status" role="status" hidden></p>
       <p class="actions-note" id="actions-note">Print and download are available once you generate a token.</p>
     </section>
   </main>
@@ -258,6 +261,7 @@
   <script src="js/queue.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/vendor/qrcode.js"></script>
+  <script src="js/share.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -177,6 +177,8 @@
   function setActionsEnabled(on) {
     printBtn.disabled = !on;
     downloadBtn.disabled = !on;
+    $("share-btn").disabled = !on;
+    if (!on) $("share-status").hidden = true;
     $("actions-note").hidden = on;
   }
 
@@ -359,6 +361,20 @@
   }
 
   $("retry-btn").addEventListener("click", () => form.requestSubmit());
+
+  /* ---------- US-23 share with family ---------- */
+  const SHARE_MSG = {
+    copied: "Link copied. Paste it in WhatsApp or a message.",
+    failed: "Sharing is not available here. Use the QR code or Open tracking page."
+  };
+  $("share-btn").addEventListener("click", async () => {
+    if (!issued) return;
+    const S = window.CareQueueShare;
+    const result = await S.share(S.shareData("en", issued.number, issued.department.name, trackUrl(issued)), navigator);
+    const status = $("share-status");
+    status.hidden = !SHARE_MSG[result];
+    status.textContent = SHARE_MSG[result] || "";
+  });
 
   /* ---------- print ---------- */
   printBtn.addEventListener("click", () => { if (issued) window.print(); });

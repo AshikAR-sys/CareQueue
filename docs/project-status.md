@@ -1,6 +1,6 @@
 # CareQueue Project Status
 
-Updated: 31 Oct 2026, after adding hold my place (US-22). 22 of 25 stories built.
+Updated: 31 Oct 2026, after adding share my token (US-23). 23 of 25 stories built.
 Demo: 25 Oct, 10:00 IST.
 Status labels: **Completed** (with evidence) · **In Progress** · **Pending** · **Blocked** · **Needs Verification**.
 
@@ -34,7 +34,7 @@ Status labels: **Completed** (with evidence) · **In Progress** · **Pending** �
 | Rate my visit (1–5 stars on the phone page; average in Reports and CSV) | US-20 | **Completed** | 3 unit tests; 3 backend tests; e2e AC-20.1–20.3 (+1) |
 | Doctor delay notice on display and phones, added to estimates | US-21 | **Completed** | 4 unit tests; 3 backend tests; e2e AC-21.1–21.3 (+1) |
 | Hold my place while stepping out (once per token; passed over by Call Next) | US-22 | **Completed** | 5 unit tests; 2 backend tests; e2e AC-22.1–22.3 |
-| Share my token with family | US-23 | Pending | added 31 Oct |
+| Share my token with family (share sheet or copied link) | US-23 | **Completed** | 3 unit tests; e2e AC-23.1–23.2 (+1) |
 | Estimate accuracy in Reports (PRD metric) | US-24 | Pending | added 31 Oct |
 | Best time to visit | US-25 | Pending | added 31 Oct |
 | Multiple counters: up to 3 per queue, each calling its own patient; counter shown on display, voice and phone | US-11 | **Completed** | 10 unit tests; 5 backend tests; e2e AC-11.1–11.4 (+1) |
@@ -54,9 +54,9 @@ Open http://127.0.0.1:8000.
 ## Test results (27 Oct 2026)
 
 ```
-npm test              →  84 / 84 pass  (queue rules + counters + priority + Tamil + alerts + delays + step-out + tracking + reports)
+npm test              →  87 / 87 pass  (queue rules + counters + priority + Tamil + alerts + delays + step-out + share + reports)
 npm run test:backend  →  33 / 33 pass  (Flask API + SQLite)
-npm run test:e2e      →  61 / 61 pass  (browser tests against an isolated test database)
+npm run test:e2e      →  63 / 63 pass  (browser tests against an isolated test database)
 ```
 
 ## Role-wise backlog
