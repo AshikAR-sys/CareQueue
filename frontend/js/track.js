@@ -72,6 +72,17 @@
   });
   $("step-back").addEventListener("click", () => stepOut(null));
 
+  // ---------- US-23 share with family ----------
+  let lastDeptName = "";
+  $("share-btn").addEventListener("click", async () => {
+    const S = window.CareQueueShare;
+    const link = new URL(Core.trackPath(number, Q.day().date), window.location.href).href;
+    const result = await S.share(S.shareData(lang, number, lastDeptName || number, link), navigator);
+    const status = $("share-status");
+    status.hidden = !(result === "copied" || result === "failed");
+    if (!status.hidden) status.textContent = tr("share." + result);
+  });
+
   // ---------- US-20 rate my visit ----------
   let rated = null;               // the rating this page just sent, shown before the next refresh
 
@@ -146,6 +157,7 @@
     setText("label-ahead", tr("track.ahead"));
     setText("label-wait", tr("track.wait"));
     setText("track-foot", tr("track.foot"));
+    setText("share-label", tr("share.button"));
     setAlertButton();
     document.querySelectorAll(".lang-switch button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
     render();
@@ -178,6 +190,7 @@
     const dept = deptByCode(t.code);
     const name = dept ? I.deptName(lang, dept.code, dept.name) : tr("the.department");
     setText("track-dept", dept ? name : t.code);
+    lastDeptName = name;
     const where = $("track-where");
     where.hidden = !dept;
     if (dept) where.lastChild.textContent = I.place(lang, dept.location);

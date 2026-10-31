@@ -1274,3 +1274,52 @@ test("AC-22.1 / AC-22.2 / AC-22.3 a patient steps out, is passed over, keeps the
   await pctx.close();
   await ctx.close();
 });
+
+// --- US-23 Share my token ---
+
+test("AC-23.1 Share on the token card opens the share sheet with the tracking link", async () => {
+  const { ctx, errors, open } = await setup();
+  await ctx.addInitScript(() => {
+    window.__shared = [];
+    navigator.share = async (data) => { window.__shared.push(data); };
+  });
+  const tok = await open("patient.html");
+  assert.equal(await tok.isDisabled("#share-btn"), true, "nothing to share before a token exists");
+  await issue(tok, "gen", "Priya Sharma");
+  await tok.click("#share-btn");
+  await tok.waitForFunction(() => window.__shared.length === 1);
+  const shared = await tok.evaluate(() => window.__shared[0]);
+  assert.equal(shared.title, "CareQueue token G001");
+  assert.equal(shared.text, "Follow my CareQueue token G001 (General Medicine) live:");
+  assert.equal(shared.url, await tok.getAttribute("#t-qr-code", "data-url"));
+  assert.ok(!JSON.stringify(shared).includes("Priya") && !JSON.stringify(shared).includes("9876543210"));
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test("AC-23.1 / AC-23.2 without a share sheet the phone page copies the link; the link shows no patient details", async () => {
+  const { ctx, errors, open } = await setup();
+  const tok = await open("patient.html");
+  await issue(tok, "gen", "Priya Sharma");
+  const url = await tok.getAttribute("#t-qr-code", "data-url");
+  const pctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await pctx.grantPermissions(["clipboard-read", "clipboard-write"], { origin: "http://127.0.0.1:8765" });
+  await pctx.addInitScript(() => { delete Navigator.prototype.share; });
+  const page = await pctx.newPage();
+  page.on("pageerror", (e) => errors.push("track: " + e.message));
+  await page.goto(url);
+  await page.waitForFunction(() => document.getElementById("track-dept").textContent === "General Medicine");
+  await page.click("#share-btn");
+  await page.waitForFunction(() => /Link copied/.test(document.getElementById("share-status").textContent));
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  assert.equal(copied, "Follow my CareQueue token G001 (General Medicine) live: " + url);
+  // A family member opening the link sees the token, not the patient.
+  const family = await pctx.newPage();
+  await family.goto(url);
+  await family.waitForFunction(() => document.getElementById("track-number").textContent === "G001");
+  const html = await family.content();
+  assert.ok(!html.includes("Priya") && !html.includes("9876543210"));
+  assert.deepEqual(errors, []);
+  await pctx.close();
+  await ctx.close();
+});

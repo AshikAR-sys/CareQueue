@@ -522,3 +522,14 @@ accuracy against the PRD success metric (US-24) and best time to visit (US-25). 
 - **QA:** 1 browser test covering the whole flow (step out, passed over, front place kept, back, called).
   Screenshot review: the card still asked "Need to step out?" while the patient was away; headings now say
   "You've stepped out" and "Welcome back". Results: `npm test` 84/84 · backend 33/33 · e2e 61/61.
+
+---
+
+## Feature F13 — Share my token (US-23, PRD S3)
+
+- **BA:** `docs/features/F13-share-token.md` (AC-23.1–23.2, three rules).
+- **Developer (TDD):** 3 unit tests (`tests/share.test.js`) written first and watched fail (`Cannot find module
+  share.js`). Then `frontend/js/share.js` (message without patient details; Web Share, else clipboard; cancel is not
+  an error) and a **Share with family** button on the token card and the phone page (English and Tamil).
+- **QA:** 2 browser tests (share sheet on the token card with the exact message and link; clipboard fallback on the
+  phone page, and the shared link shows no name or phone). Results: `npm test` 87/87 · backend 33/33 · e2e 63/63.

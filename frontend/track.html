@@ -15,6 +15,7 @@
 <body class="screen-track">
   <!-- Lucide icons (ISC licence), inlined as a sprite so the page needs no icon package. -->
   <svg class="sprite" aria-hidden="true">
+<symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98"/><path d="m15.41 6.51-6.82 3.98"/></symbol>
     <symbol id="i-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
     <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
@@ -84,6 +85,9 @@
         <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg><span id="alert-label">Alert me when my turn is near</span>
       </button>
       <p class="alert-note" id="alert-note" hidden></p>
+      <!-- US-23 share with family -->
+      <button class="share-family" type="button" id="share-btn"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg><span id="share-label">Share with family</span></button>
+      <p class="alert-note" id="share-status" role="status" hidden></p>
     </div>
 
     <p class="track-foot" id="track-foot">Keep this page open: it updates by itself. No app or sign-in needed.</p>
@@ -96,6 +100,7 @@
   <script src="js/i18n.js"></script>
   <script src="js/announce.js"></script>
   <script src="js/alerts.js"></script>
+  <script src="js/share.js"></script>
   <script src="js/track.js"></script>
 </body>
 </html>

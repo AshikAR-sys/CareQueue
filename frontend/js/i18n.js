@@ -71,7 +71,10 @@
       "step.back": "I'm back",
       "step.used": "Welcome back. You can step out once per token.",
       "step.title.away": "You've stepped out",
-      "step.title.used": "Welcome back"
+      "step.title.used": "Welcome back",
+      "share.button": "Share with family",
+      "share.copied": "Link copied. Paste it in WhatsApp or a message.",
+      "share.failed": "Sharing is not available here. Copy the address of this page instead."
     },
     ta: {
       "display.title": "இப்போது சேவையில்",
@@ -136,7 +139,10 @@
       "step.back": "நான் திரும்பி வந்துவிட்டேன்",
       "step.used": "மீண்டும் வருக. ஒரு டோக்கனுக்கு ஒரு முறை மட்டுமே வெளியே செல்லலாம்.",
       "step.title.away": "நீங்கள் வெளியே சென்றுள்ளீர்கள்",
-      "step.title.used": "மீண்டும் வருக"
+      "step.title.used": "மீண்டும் வருக",
+      "share.button": "குடும்பத்தினருடன் பகிர்",
+      "share.copied": "இணைப்பு நகலெடுக்கப்பட்டது. WhatsApp அல்லது செய்தியில் ஒட்டுங்கள்.",
+      "share.failed": "இங்கே பகிர முடியாது. இந்தப் பக்கத்தின் முகவரியை நகலெடுங்கள்."
     }
   };
 

@@ -462,6 +462,8 @@ a { color: inherit; }
 .instructions .ic { color: var(--blue); margin-top: 2px; }
 
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.actions .share-btn { grid-column: 1 / -1; }   /* US-23 */
+.share-status { margin-top: 8px; font-size: 13.5px; font-weight: 600; color: var(--ink-2); text-align: center; }
 .btn-secondary {
   height: 48px; border-radius: var(--r-pill); cursor: pointer; border: 0;
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -593,7 +595,7 @@ a { color: inherit; }
   .number { color: #000 !important; text-shadow: none; }
   .wait { background: #fff; border: 1px solid #999; box-shadow: none; }
   .instructions li, .muted, .label, .slip-meta dt { color: #000; }
-  .slip-qr a { display: none; }
+  .slip-qr a, .share-status { display: none; }
 }
 
 /* the QR code on the token slip (patient page) */
