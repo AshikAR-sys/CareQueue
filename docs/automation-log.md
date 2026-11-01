@@ -562,4 +562,21 @@ accuracy against the PRD success metric (US-24) and best time to visit (US-25). 
 - **Docs:** architecture diagram and ERD updated for US-21 to US-25 (`delays` table, `away_until`, `estimate_min`,
   new routes and page).
 - **QA:** 2 browser tests (page with 4 days of history at 390 px, Tamil, no patient details; "not enough history" with
-  2 days). Results: `npm test` 93/93 · backend 37/37 · e2e 67/67. All 25 stories in the backlog are now built.
+  2 days). Results: `npm test` 93/93 · backend 36/36 · e2e 67/67. All 25 stories in the backlog are now built.
+  (Corrected on 1 Nov: this entry first said backend 37/37; the seed-route check was added to an existing test.)
+
+---
+
+## Project check (1 Nov 2026)
+
+Asked "is there any error in my project". Checked: all three test suites, GitHub's checks on `main`, a JavaScript
+syntax check of every script, and every page opened in a real browser at 1440 px and 390 px (as the right role),
+locally and on the live site, recording JavaScript errors, failed requests and sideways scrolling.
+
+- **No JavaScript errors and no failed requests** on any page, locally or live. All suites passed; CI green.
+- **Found 1: the waiting-room display in Tamil scrolled sideways on a 390 px phone** when no tokens were issued yet:
+  the Tamil heading "வழங்கப்படவில்லை" is one long word at 34 px. Fixed with a smaller heading and word wrapping on
+  phones. A new browser test failed before the fix and passes after it.
+- **Found 2: wrong test count in the docs:** README, project status, architecture page and this log said 37 backend
+  tests; there are 36. Corrected.
+- Results: `npm test` 93/93 · backend 36/36 · e2e 68/68.

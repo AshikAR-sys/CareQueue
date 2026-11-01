@@ -289,6 +289,9 @@
   .display-title { font-size: 24px; text-align: left; }
   .display-clock { font-size: 18px; white-space: nowrap; }
   .display-grid { padding: 16px; grid-template-columns: minmax(0, 1fr); }
+  .display-empty { padding: 24px 18px; }
+  .display-empty h2 { font-size: 24px; overflow-wrap: anywhere; }
+  .display-empty p { font-size: 16px; }
   .display-panel { padding: 20px; }
   .panel-head h2 { font-size: 22px; }
 }

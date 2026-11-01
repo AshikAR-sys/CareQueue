@@ -36,7 +36,7 @@ Status labels: **Completed** (with evidence) · **In Progress** · **Pending** �
 | Hold my place while stepping out (once per token; passed over by Call Next) | US-22 | **Completed** | 5 unit tests; 2 backend tests; e2e AC-22.1–22.3 |
 | Share my token with family (share sheet or copied link) | US-23 | **Completed** | 3 unit tests; e2e AC-23.1–23.2 (+1) |
 | Estimate accuracy in Reports (PRD success metric, 80% within ±5 min) | US-24 | **Completed** | 3 unit tests; 2 backend tests; e2e AC-24.1–24.3 |
-| Best time to visit (public page; quiet hours from the last 28 days) | US-25 | **Completed** | 3 unit tests; 1 backend test; e2e AC-25.1–25.3 |
+| Best time to visit (public page; quiet hours from the last 28 days) | US-25 | **Completed** | 3 unit tests; 1 backend test (+ a check in another); e2e AC-25.1–25.3 |
 | Multiple counters: up to 3 per queue, each calling its own patient; counter shown on display, voice and phone | US-11 | **Completed** | 10 unit tests; 5 backend tests; e2e AC-11.1–11.4 (+1) |
 | QR phone tracking (live phone page, "Almost your turn") | US-13 | **Completed** | 6 unit tests; e2e US-13, AC-13.1–13.3 (+1) |
 
@@ -55,8 +55,8 @@ Open http://127.0.0.1:8000.
 
 ```
 npm test              →  93 / 93 pass  (queue rules + counters + priority + Tamil + alerts + delays + step-out + share + reports + best time)
-npm run test:backend  →  37 / 37 pass  (Flask API + SQLite)
-npm run test:e2e      →  67 / 67 pass  (browser tests against an isolated test database)
+npm run test:backend  →  36 / 36 pass  (Flask API + SQLite)
+npm run test:e2e      →  68 / 68 pass  (browser tests against an isolated test database)
 ```
 
 ## Role-wise backlog

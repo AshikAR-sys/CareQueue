@@ -55,8 +55,8 @@ The database file is created automatically at `database/carequeue.sqlite3`. It i
 
 ```bash
 npm test                         # 93 unit tests (queue rules, counters, priority, Tamil, alerts, delays, step-out, share, reports, best time)
-npm run test:backend             # 37 Flask API + SQLite integration tests
-npm run test:e2e                 # 67 browser tests against an isolated test database
+npm run test:backend             # 36 Flask API + SQLite integration tests
+npm run test:e2e                 # 68 browser tests against an isolated test database
 npm run test:all                 # all three suites
 ```
 
