@@ -2,7 +2,7 @@
 <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6b82"/></marker></defs>
 <rect width="1600" height="1180" fill="#f7fafc"/>
 <text x="50" y="56" font-size="30" font-weight="800" fill="#0b1b33" text-anchor="start">CareQueue: entity relationship diagram</text>
-<text x="50" y="86" font-size="16" font-weight="400" fill="#33445e" text-anchor="start">SQLite tables from database/schema.sql (plus the browser session) · as built on 31 Oct 2026</text>
+<text x="50" y="86" font-size="16" font-weight="400" fill="#33445e" text-anchor="start">SQLite tables from database/schema.sql (plus the browser session) · as built on 1 Nov 2026</text>
 <rect x="60" y="140" width="430" height="286" rx="12" fill="#fff" stroke="#1458e6" stroke-width="1.6"/>
 <path d="M60,186 V152 a12,12 0 0 1 12,-12 H478 a12,12 0 0 1 12,12 V186 Z" fill="#e6efff"/>
 <line x1="60" y1="186" x2="490" y2="186" stroke="#1458e6" stroke-width="1.2"/>

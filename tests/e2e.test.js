@@ -1415,3 +1415,15 @@ test("AC-25.2 with fewer than 3 days of history the page says there is not enoug
   assert.deepEqual(errors, []);
   await ctx.close();
 });
+
+test("the display fits a phone in Tamil, also with no tokens yet", async () => {
+  await setup();
+  const errors = [];
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const disp = await open(ctx, "display.html?lang=ta", errors);
+  await disp.waitForSelector(".display-empty");
+  const overflow = await disp.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  assert.equal(overflow, false);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});

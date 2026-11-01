@@ -2,7 +2,7 @@
 <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5b6b82"/></marker></defs>
 <rect width="1600" height="1420" fill="#f7fafc"/>
 <text x="50" y="56" font-size="30" font-weight="800" fill="#0b1b33" text-anchor="start">CareQueue: system architecture</text>
-<text x="50" y="86" font-size="16" font-weight="400" fill="#33445e" text-anchor="start">Hospital Digital Token and Queue Management System · browser pages + Flask API + SQLite · as built on 31 Oct 2026</text>
+<text x="50" y="86" font-size="16" font-weight="400" fill="#33445e" text-anchor="start">Hospital Digital Token and Queue Management System · browser pages + Flask API + SQLite · as built on 1 Nov 2026</text>
 <text x="50" y="150" font-size="15" font-weight="700" fill="#5b6b82" text-anchor="start">People</text>
 <rect x="250" y="118" width="250" height="58" rx="29" fill="#0b1b33"/>
 <text x="375" y="143" font-size="16" font-weight="700" fill="#fff" text-anchor="middle">Patient</text>
@@ -136,9 +136,9 @@
 <text x="68" y="1146" font-size="17" font-weight="700" fill="#0b1b33" text-anchor="start">Automated tests  (npm run test:all, GitHub Actions on every PR)</text>
 <text x="68" y="1172" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">node:test · 93 unit tests → queue-core, announce, i18n, alerts, share</text>
 <text x="68" y="1193" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">EWT, counters, priority, delays, step-out, accuracy, best time</text>
-<text x="68" y="1214" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">unittest · 37 API tests → Flask + SQLite</text>
+<text x="68" y="1214" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">unittest · 36 API tests → Flask + SQLite</text>
 <text x="68" y="1235" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">transitions, counters, staff pass, privacy, schema upgrade</text>
-<text x="68" y="1256" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">Playwright · 67 browser tests → all pages on a test database</text>
+<text x="68" y="1256" font-size="14" font-weight="600" fill="#33445e" text-anchor="start">Playwright · 68 browser tests → all pages on a test database</text>
 <text x="68" y="1277" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">display &lt; 2 s, no names in public views, sign-in guards,</text>
 <text x="68" y="1298" font-size="14" font-weight="400" fill="#33445e" text-anchor="start">QR link, voice text, two receptionists, phone layout</text>
 <rect x="815" y="1116" width="735" height="250" rx="14" fill="#fff" stroke="#9aa9bd" stroke-width="1.5" stroke-dasharray="7 6"/>

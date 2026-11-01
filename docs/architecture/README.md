@@ -77,7 +77,7 @@ flowchart TB
 | API | Validates and applies every queue change | `backend/app.py`, `backend/services/queue_service.py` |
 | Database | Today's tokens, numbering, open counters | `database/schema.sql`, `database/seed.sql`, `backend/db.py` |
 | Hosting | Public demo | `render.yaml` (Render free web service, gunicorn; deploys on every push to `main`) |
-| Tests | 93 unit, 37 API, 67 browser tests; GitHub Actions on every pull request | `tests/`, `backend/tests/`, `.github/workflows/test.yml` |
+| Tests | 93 unit, 36 API, 68 browser tests; GitHub Actions on every pull request | `tests/`, `backend/tests/`, `.github/workflows/test.yml` |
 
 **Privacy:** only the staff console loads `/api/queue/state`, which includes patient names and phones. The token
 page, phone tracking page, display and reports load `/api/queue/public-state`, which has token numbers, times,
